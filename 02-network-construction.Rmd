@@ -1,0 +1,508 @@
+---
+author: V. Keith Hughitt
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+  settings: ""
+  title: "Consensus Co-expression Network Construction"
+  version: "1.0"
+title: "`r params$title` (`r params$version`)"
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document:
+    toc: true
+    latex_engine: xelatex
+---
+
+Introduction
+============
+
+**Overview**
+
+This goal of this analysis is to combine information from multiple alternative
+network parameterizations for the same dataset into a single consensus network.
+While it's not possible to know which, if any, single network parameterization
+is optimal, by aggregating across a large number of networks, we may be able to
+arrive at a single more robust network topology or cluster partitioning.
+
+**Consensus co-expression network construction**
+
+To construct a consensus co-expression network, we will load the stored
+adjacency matrices for each alternative network constructed, and stack them to
+create a single combined adjacency matrix. Edges with support from a large
+number of networks will thus have larger edge weights while those with less
+support will have lower combined edge weights. Hierarchical clustering and
+tree-cutting can then be used to derrive the usual network partitioning from
+this combined data.
+
+One approach to generating a robust filtered network is to prune edges from the
+network that fall below a certain limit. By applying a sufficiently stringent
+cutoff, many of the non-robust edges can be removed. Afterwards, genes which
+become completely disconnected can also be removed to reduce the size of the
+dataset.
+
+
+Methods
+=======
+
+## Setup
+
+```{r load_settings, include=FALSE}
+library('knitr')
+library('readr')
+knit(params$settings, quiet=TRUE, output=tempfile())
+```
+
+```{r knitr_settings, include=FALSE}
+output_prefix <- file.path('output', params$version)
+output_suffix <- file.path(MANUSCRIPT_CONFIG$output_dirname,
+                           '02-network-construction/')
+
+output_datadir  <- file.path(output_prefix, 'data', output_suffix)
+output_figdir   <- file.path(output_prefix, 'figure', output_suffix)
+output_tabledir <- file.path(output_prefix, 'table', output_suffix)
+
+cache_dir <- file.path('cache', params$version,
+                       MANUSCRIPT_CONFIG$output_dirname,
+                       '02-network-construction/')
+
+opts_chunk$set(fig.width=1920/192,
+               fig.height=1920/192,
+               fig.path=file.path(output_figdir),
+               dpi=192,
+               cache.path=cache_dir,
+			   echo=CONFIG$verbose)
+
+options(digits=3)
+options(stringsAsFactors=FALSE)
+options(knitr.duplicate.label='allow')
+options(java.parameters="-Xmx8g" )
+
+# If rmarkdown.pandoc.to not specified, have it default to 'latex' output
+if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
+    opts_knit$set(rmarkdown.pandoc.to='latex')
+}
+
+# Format-specific options
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    # PDF output
+    opts_chunk$set(dev=c('cairo_pdf', 'tiff'), 
+  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans"),
+                                 tiff=list(compression="lzw")))
+} else {
+    # HTML output
+    #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
+    opts_chunk$set(dev=c('png'), fig.retina=1)
+}
+
+# plotting parameters
+cex_main <- 1.6
+cex_lab  <- 1.8
+cex_axis <- 1.8
+cex_color_labels <- 1.3
+
+# List for storing result
+COEXPRESSION_NETWORK_RESULT <- list()
+```
+
+```{r load_libraries}
+library('biomaRt')
+library('clusteval')
+library('doParallel')
+library('dplyr')
+library('DT')
+library('dynamicTreeCut')
+library('flashClust')
+library('foreach')
+library('goseq')
+library('gplots')
+library('ggplot2')
+library('gridExtra')
+library('hpgltools')
+library('igraph')
+library('knitr')
+library('knitcitations')
+library('matrixStats')
+library('readr')
+library('RColorBrewer')
+library('reshape2')
+library('tools')
+library('venneuler')
+library('WGCNA')
+
+source('../../2015/00-shared/R/annotations.R')
+source('../../2015/00-shared/R/count_tables.R')
+source('../../2015/00-shared/R/enrichment_analysis.R')
+source('../../2015/00-shared/R/filtering.R')
+source('../../2015/00-shared/R/plots.R')
+source('../../2015/00-shared/R/util.R')
+source('../../2015/00-shared/R/wgcna.R')
+
+options(stringsAsFactors=FALSE)
+```
+
+## Consensus co-expression network construction
+
+```{r, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
+input_rdas <- sub('_adjmat', '', input_nets)
+
+# load adjacency matrix and module mapping for the first network
+load(input_rdas[1])
+
+# use module mapping to determine adjacency matrix dimensions
+matsize <- nrow(module_mapping)
+
+# create empty adjacency matrix from first network
+adjmat <- matrix(0, nrow=matsize, ncol=matsize)
+
+# note, genes are stored in the same order in the adjacency matrix and the
+# module mapping, so we can infer id's from the mapping
+rownames(adjmat) <- module_mapping$gene_id
+colnames(adjmat) <- module_mapping$gene_id
+
+# Note: as long as low_count and other filter setting does not change, all of
+# the networks will have the same genes in the same order, so no sorting is 
+# needed.
+
+# iterate over remaining networks and add to consensus net
+for (i in 1:length(input_nets)) {
+    # load saved data
+    message(sprintf("Loading network %d/%d", i, length(input_nets)))
+
+    load(input_nets[i])
+    load(input_rdas[i])
+
+    # reconstruct adjacency matrix
+    matsize <- nrow(module_mapping)
+
+    # add to existing adjacency matrix;
+    tmp <- matrix(0, nrow=matsize, ncol=matsize)
+    tmp[upper.tri(tmp)] <- adjacency_matrix
+    tmp[lower.tri(tmp)] <- t(tmp)[lower.tri(tmp)]
+
+    rownames(tmp) <- module_mapping$gene_id
+    colnames(tmp) <- module_mapping$gene_id
+
+    if ((nrow(adjmat) != nrow(tmp)) || (!all(rownames(adjmat) == rownames(tmp)))) {
+        # normalize matrix size and elements
+        tmp_missing <- rownames(adjmat)[!rownames(adjmat) %in% rownames(tmp)]
+        if (length(tmp_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(tmp)
+
+            tmp <- rbind(tmp, matrix(0, nrow=length(tmp_missing), ncol=ncol(tmp)))
+            tmp <- cbind(tmp, matrix(0, nrow=nrow(tmp), ncol=length(tmp_missing)))
+
+            rownames(tmp) <- c(gene_ids, tmp_missing)
+            colnames(tmp) <- c(gene_ids, tmp_missing)
+
+        }
+
+        adj_missing <- rownames(tmp)[!rownames(tmp) %in% rownames(adjmat)]
+        if (length(adj_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(adjmat)
+
+            adjmat <- rbind(adjmat, matrix(0, nrow=length(adj_missing), ncol=ncol(adjmat)))
+            adjmat <- cbind(adjmat, matrix(0, nrow=nrow(adjmat), ncol=length(adj_missing)))
+
+            rownames(adjmat) <- c(gene_ids, adj_missing)
+            colnames(adjmat) <- c(gene_ids, adj_missing)
+        }
+
+        # normalize row/column order
+        tmp <- tmp[order(rownames(tmp)),order(colnames(tmp))]
+        adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
+    }
+
+    # combine matrices
+    adjmat <- adjmat + tmp
+}
+
+range(adjmat)
+hist(adjmat)
+```
+
+## Filtered consensus co-expression network
+
+```{r filtered_consensus_network_setup, results='asis'}
+gene_max_edge_weights <- apply(adjmat, 1, max)
+hist(gene_max_edge_weights)
+
+cutoff <- quantile(gene_max_edge_weights, MANUSCRIPT_CONFIG$quantile_cutoff)
+cat(sprintf('- Max edge weight cutoff: %0.2f\n', cutoff))
+```
+
+```{r}
+mask <- gene_max_edge_weights >= cutoff
+filtered_adjmat <- adjmat[mask, mask]
+cat(sprintf('- Genes passing cutoff: %d\n', sum(mask)))
+```
+
+```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
+```
+
+```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
+```
+
+```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
+```
+
+```{r}
+count_table <- count_table[rownames(count_table) %in%
+                           rownames(filtered_adjmat),]
+gene_info <- gene_info %>% filter(gene_id %in% rownames(filtered_adjmat))
+```
+
+```{r child='../../2015/00-shared/Rmd/init/create_expression_set.Rmd'}
+```
+
+```{r}
+# Plot raw counts
+network_counts <- de_counts
+network_counts$final <- network_counts$raw
+```
+
+```{r}
+# TODO: reconsider how best to go from aggregate adjacency matrix to distance
+# matrix
+distmat <- 1 - (filtered_adjmat / max(filtered_adjmat))
+
+gene_tree <- flashClust(as.dist(distmat), method="average")
+gene_tree$height <- round(gene_tree$height, 6)
+
+module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
+
+num_labels <- length(unique(module_labels))
+pal <- c('grey', substring(rainbow(num_labels), 1, 7))
+module_colors <- (pal[module_labels + 1])
+```
+
+```{r}
+# create a mapping from module id to number of genes for later use
+module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
+    group_by(module_id) %>% 
+    summarize(num_genes=n())
+
+num_modules <- length(unique(module_colors))
+```
+
+```{r, results='asis'}
+result <- cbind(gene_info, color=module_colors)
+
+cat(sprintf("- Number of modules: %d\n", num_modules))
+cat(sprintf("- Median module size: %0.1f\n", median(module_sizes$num_genes)))
+cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
+```
+
+```{r expression_profiles, message=FALSE, warning=FALSE, fig.show='hold', fig.width=18, results='hide'}
+counts <- cbind(gene_id=rownames(count_table), count_table)
+counts_long <- melt(counts, id.vars='gene_id')
+
+names(counts_long) <- c('gene_id', 'condition', 'expression')
+
+# If non-numeric conditions (e.g. 'procyclic') are included, convert to
+# factor and reorder levels of dataframe for better plotting
+if (!is.numeric(counts_long$condition)) {
+    counts_long$condition <- factor(counts_long$condition)
+}
+
+counts_long <- cbind(counts_long, cluster=as.factor(module_colors))
+
+module_order <- unique(module_colors[gene_tree$order])
+module_expression_profile_plot(counts_long, module_colors, module_order,
+                               modules_per_plot=4, ncols=2)
+```
+
+### GO Enrichment
+
+```{r child='../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
+```
+
+### KEGG Enrichment
+
+```{r child='../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
+```
+
+```{r}
+# create dataframe to use for network node annotations
+annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
+```
+
+```{r kegg_enrichment_summary}
+# get list of enriched kegg pathwys
+enriched_kegg_paths <- c()
+
+for (x in names(module_kegg_enrichment)) {
+    res <- module_kegg_enrichment[[x]]
+
+    if (nrow(res) > 0) {
+        kegg_pathways <- (res %>% filter(over_represented_pvalue_adj < 0.05))$category
+        enriched_kegg_paths <- unique(c(enriched_kegg_paths, kegg_pathways))
+    }
+}
+
+gene_kegg_pathways <- gene_kegg_mapping %>% 
+    filter(category %in% enriched_kegg_paths & gene %in% gene_info$gene_id)
+
+cat(sprintf('- Number of enriched KEGG Pathways: %d/%d\n',
+            length(unique(gene_kegg_pathways$category)),
+            length(unique(gene_kegg_mapping$category))))
+cat(sprintf('- Number of genes associated with at least one enriched KEGG Pathway: %d/%d\n',
+            length(unique(gene_kegg_pathways$gene)),
+            nrow(gene_info)))
+
+# average number of KEGG pathways associated with each gene (only considering genes
+# associated with at least one enriched pathway...)
+hist(table(gene_kegg_pathways$gene))
+
+# collapse module kegg path enrichment results into a single dataframe and find
+# the N pathways with the strongest enrichment
+kegg_paths_of_interest <- 'Cytokine|Antigen|TNF|immune|Chagas|Toll'
+
+kegg_enrich_df <- do.call("rbind", module_kegg_enrichment) %>%
+    arrange(over_represented_pvalue_adj) %>%
+    select(-starts_with('under'), -over_represented_pvalue)
+
+kegg_enrich_df <- kegg_enrich_df[rownames(kegg_enrich_df) %in% 1:5 |
+                                 grepl(kegg_paths_of_interest, kegg_enrich_df$name),]
+kable(kegg_enrich_df)
+
+# add one column for each of the top enriched KEGG pathways
+for (name in kegg_enrich_df$name) {
+    # create binary vector of enrichment status for specific KEGG pathways
+    gids <- (gene_kegg_pathways %>% 
+        filter(name == name))$gene
+    annot[[name]] <- annot$gene_id %in% gids
+}
+```
+
+### TF regulon Enrichment
+
+```{r child='../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
+```
+
+```{r tf_enrichment_summary, eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
+# get list of enriched TF regulons
+enriched_tfs <- c()
+
+for (x in names(module_coreg_enrichment)) {
+    res <- module_coreg_enrichment[[x]]
+
+    if (nrow(res) > 0) {
+        tfs <- (res %>% filter(over_represented_pvalue_adj < 0.05))$category
+        enriched_tfs <- unique(c(enriched_tfs, tfs))
+    }
+}
+
+gene_tfs <- gene_tf_mapping %>% 
+    filter(category %in% enriched_tfs & gene %in% gene_info$gene_id)
+
+cat(sprintf('- Number of enriched TFs: %d/%d\n',
+            length(unique(gene_tfs$category)),
+            length(unique(gene_tf_mapping$category))))
+cat(sprintf('- Number of genes associated with at least one enriched TF: %d/%d\n',
+            length(unique(gene_tfs$gene)),
+            nrow(gene_info)))
+
+# average number of TF's associated with each gene (only considering genes
+# associated with at least one enriched TF...)
+hist(table(gene_tfs$gene))
+
+# collapse module tf enrichment results into a single dataframe and find the
+# N TF's with the strongest enrichment
+tf_enrich_df <- do.call("rbind", module_coreg_enrichment) %>%
+    arrange(over_represented_pvalue_adj) %>%
+    select(-starts_with('under'), -over_represented_pvalue) %>%
+    head(5)
+kable(tf_enrich_df)
+
+# add one column for each of the top enriched TF's
+for (cat in tf_enrich_df$category) {
+    # create binary vector of enrichment status for specific TF
+    gids <- (gene_tfs %>% 
+        filter(category == cat))$gene
+    annot[[cat]] <- annot$gene_id %in% gids
+}
+```
+
+```{r child='../../2015/00-shared/Rmd/results/secreted_proteins.Rmd', eval=CONFIG$target == 'pathogen'}
+```
+
+## Save results
+
+```{r save_clustering}
+if (!dir.exists(output_datadir)) {
+    dir.create(output_datadir, recursive=TRUE)
+}
+if (!dir.exists(output_tabledir)) {
+    dir.create(output_tabledir, recursive=TRUE)
+}
+
+# all(gene_info$gene_id == gene_tree$labels)                                                                                                                                                                   
+# [1] TRUE
+clusters <- data.frame(gene_id=gene_info$gene_id, 
+                       color=module_colors,
+                       cluster=module_labels,
+                       description=gene_info$description)
+
+outfile <- file.path(output_tabledir, 'clusters.tab')
+write.table(clusters, file=outfile,
+            row.names=FALSE, quote=FALSE, sep="\t")
+```
+
+```{r network_annotations, results='asis'}
+# TODO: create module_go_enrichment and module_kegg_enrichment RData files
+save(module_go_enrichment, file=file.path(output_datadir, 'module_go_enrichment.RData'))
+save(module_kegg_enrichment, file=file.path(output_datadir, 'module_kegg_enrichment.RData'))
+```
+
+
+```{r save_network}
+# add secretion / GPI-anchor status cols
+if (CONFIG$target == 'pathogen') {
+    annot$gpi_anchored <- gpi_anchored_gene_status
+    annot$secreted <- secreted_gene_status
+}
+
+# remove unclustered genes
+#mask <- annot$color != 'grey'
+#filtered_adjmat <- filtered_adjmat[mask, mask]
+#annot <- annot[mask,]
+
+# rescale edge weights to 0 - 1 and save network
+filtered_adjmat <- log1p(filtered_adjmat)
+filtered_adjmat <- filtered_adjmat / max(filtered_adjmat)
+
+network_outfile <- file.path(output_datadir,
+                             'edge_weight_filtered_network.graphml')
+
+g <- export_network_to_graphml(filtered_adjmat,
+                               network_outfile,
+                               threshold=0, max_edge_ratio=5,
+                               nodeAttrDataFrame=annot)
+```
+
+## Downloads
+
+```{r, results='asis'}
+for (d in c(output_datadir, output_tabledir)) {
+    for (x in list.files(d)) {
+        cat(sprintf('- [%s](%s)\n', basename(x), sub(output_prefix, '', x)))
+    }
+}
+```
+
+```{r save_output, include=FALSE}
+# Give rmarkdown some time to finish convern and then copy original rmarkdown
+# along with output images and HTML to archive location
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    system(sprintf('(sleep 30 && mv 02-network-construction.pdf %s) &', output_prefix))
+} else {
+    system(sprintf('(sleep 30 && mv 02-network-construction.html %s) &', output_prefix))
+}
+```

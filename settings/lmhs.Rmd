@@ -1,0 +1,47 @@
+```{r settings}
+#
+# L. major infecting H. sapiens
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: L. major infecting H. sapiens", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'lmajor_all_samples-multicopy-v6.0'),
+    output_dirname  = 'lmhs',
+    quantile_cutoff = 0.75
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "L. major",
+    target          = "pathogen",
+
+    organism_db     = "Leishmania.major.Friedlin",
+    organism_genome = "LmJF",
+    orgdb_key       = "GID",
+
+    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
+                                   "counts", "lmajor", "*.count"),
+
+    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
+                                             '01-coex-network-lmajor-infecting-hsapiens',
+                                             'settings', 'lmajor_samples.csv')),
+    'sample_id'         = 'HPGL_ID',
+    'condition'         = 'Condition',
+    'batch'             = 'Batch',
+    'covariates'        = c('Batch'),
+    'filter_multicopy'  = FALSE,
+
+    verbose             = TRUE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

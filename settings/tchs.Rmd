@@ -1,0 +1,47 @@
+```{r settings}
+#
+# T. cruzi infecting H. sapiens
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: T. cruzi infecting H. sapiens", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'tcruzi_all_samples-multicopy-v6.0'),
+    output_dirname  = 'tchs',
+    quantile_cutoff = 0.50
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "T. cruzi",
+    target          = "pathogen",
+
+    organism_db     = "Trypanosoma.cruzi.CLBrener.Esmeraldo",
+    organism_genome = "TcCLB",
+    orgdb_key       = "GID",
+
+    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
+                                   "counts", "tcruzi", "*.count"),
+
+    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
+                                             '03-coex-network-tcruzi-infecting-hsapiens',
+                                             'settings', 'tcruzi_samples.csv')),
+    'sample_id'         = 'HPGL_ID',
+    'condition'         = 'Condition',
+    'batch'             = 'Batch',
+    'covariates'        = c('Batch'),
+    'filter_multicopy'  = FALSE,
+
+    verbose             = TRUE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

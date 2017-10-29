@@ -1,0 +1,47 @@
+```{r settings}
+#
+# H. sapiens infected with L. major settings
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'hsapiens_infected_with_lmajor-v6.0'),
+    output_dirname  = 'hslm-inf',
+    quantile_cutoff = 0.82
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "L. major",
+    target          = "host",
+
+    organism_db     = "Homo.sapiens",
+    organism_genome = "hg19",
+    orgdb_key       = "ENSEMBL",
+    biomart_dataset = "hsapiens_gene_ensembl",
+
+    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
+                                   "counts", "hsapiens", "*.count"),
+
+    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
+                                             '11-coex-network-hsapiens-infected-with-lmajor',
+                                             'settings', 'hsapiens_samples.csv')),
+    'sample_id'         = 'HPGL_ID',
+    'condition'         = 'Condition',
+    'batch'             = 'Batch',
+    'covariates'        = c('Batch'),
+
+    verbose             = TRUE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```
