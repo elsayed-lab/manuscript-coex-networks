@@ -1,6 +1,6 @@
 ```{r settings}
 #
-# T. cruzi infecting H. sapiens
+# T. cruzi infecting H. sapiens (all samples)
 #
 
 #
@@ -32,11 +32,13 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '03-coex-network-tcruzi-infecting-hsapiens',
                                              'settings', 'tcruzi_samples.csv')),
-    'sample_id'         = 'HPGL_ID',
-    'condition'         = 'Condition',
-    'batch'             = 'Batch',
-    'covariates'        = c('Batch'),
-    'filter_multicopy'  = FALSE,
+    sample_id         = 'HPGL_ID',
+    condition         = 'Condition',
+    batch             = 'Batch',
+    covariates        = c('Batch'),
+    filter_multicopy  = FALSE,
+
+    main_comparison     = c(4, 72),
 
     verbose             = TRUE,
     include_tables      = TRUE,

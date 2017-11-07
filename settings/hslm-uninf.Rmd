@@ -1,17 +1,17 @@
 ```{r settings}
 #
-# H. sapiens infected with L. major settings
+# H. sapiens infected with L. major settings (Uninfected samples only)
 #
 
 #
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major", 
+    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major (Uninfected Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'hsapiens_infected_with_lmajor-v6.0'),
-    output_dirname  = 'hslm-inf',
-    quantile_cutoff = 0.82
+                                'hsapiens_infected_with_lmajor-uninf-v6.0'),
+    output_dirname  = 'hslm-uninf',
+    quantile_cutoff = 0.5
 )
 
 #
@@ -33,12 +33,12 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '11-coex-network-hsapiens-infected-with-lmajor',
                                              'settings', 'hsapiens_samples.csv')),
-    sample_id           = 'HPGL_ID',
-    condition           = 'Condition',
-    batch               = 'Batch',
-    covariates          = c('Batch'),
+    'sample_id'         = 'HPGL_ID',
+    'condition'         = 'Condition',
+    'batch'             = 'Batch',
+    'covariates'        = c('Batch'),
 
-    main_comparison     = c('infLM4', 'infLM72'),
+    main_comparison     = c('uninf4', 'uninf72'),
 
     verbose             = TRUE,
     include_tables      = TRUE,

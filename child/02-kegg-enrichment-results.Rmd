@@ -1,0 +1,47 @@
+```{r kegg_enrichment_summary}
+# get list of enriched kegg pathwys
+enriched_kegg_paths <- c()
+
+for (x in names(module_kegg_enrichment)) {
+    res <- module_kegg_enrichment[[x]]
+
+    if (nrow(res) > 0) {
+        kegg_pathways <- (res %>% filter(over_represented_pvalue_adj < 0.05))$category
+        enriched_kegg_paths <- unique(c(enriched_kegg_paths, kegg_pathways))
+    }
+}
+
+gene_kegg_pathways <- gene_kegg_mapping %>% 
+    filter(category %in% enriched_kegg_paths & gene %in% gene_info$gene_id)
+
+cat(sprintf('- Number of enriched KEGG Pathways: %d/%d\n',
+            length(unique(gene_kegg_pathways$category)),
+            length(unique(gene_kegg_mapping$category))))
+cat(sprintf('- Number of genes associated with at least one enriched KEGG Pathway: %d/%d\n',
+            length(unique(gene_kegg_pathways$gene)),
+            nrow(gene_info)))
+
+# average number of KEGG pathways associated with each gene (only considering genes
+# associated with at least one enriched pathway...)
+hist(table(gene_kegg_pathways$gene))
+
+# collapse module kegg path enrichment results into a single dataframe and find
+# the N pathways with the strongest enrichment
+kegg_paths_of_interest <- 'Cytokine|Antigen|TNF|immune|Chagas|Toll'
+
+kegg_enrich_df <- do.call("rbind", module_kegg_enrichment) %>%
+    arrange(over_represented_pvalue_adj) %>%
+    select(-starts_with('under'), -over_represented_pvalue)
+
+kegg_enrich_df <- kegg_enrich_df[rownames(kegg_enrich_df) %in% 1:5 |
+                                 grepl(kegg_paths_of_interest, kegg_enrich_df$name),]
+kable(kegg_enrich_df)
+
+# add one column for each of the top enriched KEGG pathways
+for (name in kegg_enrich_df$name) {
+    # create binary vector of enrichment status for specific KEGG pathways
+    gids <- (gene_kegg_pathways %>% 
+        filter(name == name))$gene
+    annot[[name]] <- annot$gene_id %in% gids
+}
+```

@@ -32,11 +32,13 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '01-coex-network-lmajor-infecting-hsapiens',
                                              'settings', 'lmajor_samples.csv')),
-    'sample_id'         = 'HPGL_ID',
-    'condition'         = 'Condition',
-    'batch'             = 'Batch',
-    'covariates'        = c('Batch'),
-    'filter_multicopy'  = FALSE,
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    filter_multicopy    = FALSE,
+
+    main_comparison     = c('amast04', 'amast72'),
 
     verbose             = TRUE,
     include_tables      = TRUE,

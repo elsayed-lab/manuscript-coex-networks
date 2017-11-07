@@ -1,0 +1,125 @@
+## Overview
+
+```{r results='asis'}
+if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
+    # GO, KEGG, TFs
+    dat <- data.frame(
+        cutoff_quantile=quantile_cutoffs,
+        cutoff=cutoffs,
+        num_modules,
+        num_genes=genes_passing,
+        median_module_size=median_module_sizes,
+        largest_module_size=largest_module_sizes,
+        num_unique_go_terms,
+        num_unique_kegg_pathways,
+        num_unique_tfs,
+        total_go_pvals,
+        total_kegg_pvals,
+        total_tf_pvals,
+        num_go_enriched_modules,
+        num_kegg_enriched_modules,
+        num_tf_enriched_modules
+    ) %>% mutate(
+        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
+        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
+        ratio_enriched_tf_modules=num_tf_enriched_modules/num_modules,
+        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
+        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes,
+        ratio_tf_enrichment_to_num_genes=total_tf_pvals/num_genes
+    )
+} else {
+    # GO, KEGG
+    dat <- data.frame(
+        cutoff_quantile=quantile_cutoffs,
+        cutoff=cutoffs,
+        num_modules,
+        num_genes=genes_passing,
+        median_module_size=median_module_sizes,
+        largest_module_size=largest_module_sizes,
+        num_unique_go_terms,
+        num_unique_kegg_pathways,
+        total_go_pvals,
+        total_kegg_pvals,
+        num_go_enriched_modules,
+        num_kegg_enriched_modules
+    ) %>% mutate(
+        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
+        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
+        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
+        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes
+    )
+}
+
+datatable(dat)
+```
+
+## Number of unique annotations
+
+```{r num_unique_annotations}
+dat_num_unique <- dat %>%
+    select(cutoff_quantile, starts_with('num_unique')) %>%
+    melt(id.vars='cutoff_quantile', variable.name='type',
+         value.name='num_unique_annotations')
+
+ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=type)) +
+    geom_line() +
+    xlab('Edge Weight Cutoff Quantile') + ylab('# Unique annotations') +
+    ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
+```
+
+## -log10(Adj. P-value) totals
+
+```{r pval_totals}
+dat_num_unique <- dat %>%
+    select(cutoff_quantile, starts_with('total')) %>%
+    melt(id.vars='cutoff_quantile', variable.name='type',
+         value.name='pvalue_totals')
+
+ggplot(dat_num_unique, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
+    geom_line() +
+    xlab('Edge Weight Cutoff Quantile') + ylab('Total -log10(Adj. P-values)') +
+    ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
+```
+
+## Number of enriched modules
+
+```{r num_enriched_modules}
+dat_num_modules <- dat %>%
+    select(cutoff_quantile, ends_with('enriched_modules')) %>%
+    melt(id.vars='cutoff_quantile', variable.name='type',
+         value.name='num_enriched_modules')
+
+ggplot(dat_num_modules, aes(x=cutoff_quantile, y=num_enriched_modules, color=type)) +
+    geom_line() +
+    xlab('Edge Weight Cutoff Quantile') + ylab('# Enriched Modules') +
+    ggtitle('Number of Enriched Modules vs. Edge Weight Cutoff')
+```
+
+## Ratio of enriched modules
+
+```{r ratio_enriched_modules}
+dat_ratio_modules <- dat %>%
+    select(cutoff_quantile, starts_with('ratio_enriched')) %>%
+    melt(id.vars='cutoff_quantile', variable.name='type',
+         value.name='ratio_enriched_modules')
+
+ggplot(dat_ratio_modules, aes(x=cutoff_quantile, y=ratio_enriched_modules, color=type)) +
+    geom_line() +
+    xlab('Edge Weight Cutoff Quantile') + ylab('Ratio Enriched Modules') +
+    ggtitle('Ratio Enriched Modules vs. Edge Weight Cutoff')
+```
+
+## Ratio of enrichment score to number of genes
+
+```{r ratio_enrichment_to_num_genes}
+# sum(-log10(adj.p.val)) over # genes vs. cutoff
+dat_ratio_enrichment <- dat %>%
+    select(cutoff_quantile, ends_with('to_num_genes')) %>%
+    melt(id.vars='cutoff_quantile', variable.name='type',
+         value.name='ratio_enrichment_to_num_genes')
+
+ggplot(dat_ratio_enrichment, aes(x=cutoff_quantile, y=ratio_enrichment_to_num_genes, color=type)) +
+    geom_line() +
+    xlab('Edge Weight Cutoff Quantile') + ylab('Ratio Enrichment to Number of Genes') +
+    ggtitle('Ratio of Enrichment to Number of Genes vs. Edge Weight Cutoff')
+```

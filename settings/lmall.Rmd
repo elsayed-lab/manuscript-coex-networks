@@ -1,0 +1,53 @@
+```{r settings}
+#
+# L. major all samples
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: L. major (All samples)", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'lmajor_all_samples-multicopy-v6.0'),
+    output_dirname  = 'lmajor',
+    quantile_cutoff = 0.75
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = c("H. sapiens", "M. musculus", "P. duboscqi"),
+    pathogen        = "L. major",
+    target          = "pathogen",
+
+    organism_db     = "Leishmania.major.Friedlin",
+    organism_genome = "LmJF",
+    orgdb_key       = "GID",
+
+    input_count_tables  = c(file.path(Sys.getenv("SCRATCH"),
+                                      "lmajor-hsapiens/counts/lmajor/*.count"),
+                            file.path(Sys.getenv("SCRATCH"),
+                                      "lmajor-mmusculus/counts/lmajor/*.count"),
+                            file.path(Sys.getenv("SCRATCH"),
+                                      "lmajor-pduboscqi/counts/lmajor/*.count")),
+    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
+                                             '14-coex-network-lmajor-all-samples',
+                                             'settings', 'lmajor_samples.csv')),
+    sample_id         = 'sample_id',
+    condition         = 'condition',
+    batch             = 'batch',
+    covariates        = c('batch', 'host', 'strain'),
+
+    main_comparison     = c('proc', 'amast04'),
+
+    filter_multicopy  = FALSE,
+
+    verbose             = TRUE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

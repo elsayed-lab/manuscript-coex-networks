@@ -1,0 +1,63 @@
+```{r load_settings, include=FALSE}
+library('knitr')
+library('readr')
+knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+```
+
+```{r knitr_settings, include=FALSE}
+output_prefix <- file.path('output', params$version, params$analysis_dirname)
+output_suffix <- MANUSCRIPT_CONFIG$output_dirname
+
+output_datadir   <- file.path(output_prefix, 'data')
+output_tabledir  <- file.path(output_prefix, 'table')
+output_figprefix <- file.path(output_prefix, 'figure', paste0(output_suffix, '-'))
+
+# create output directories, if needed
+if (!dir.exists(output_datadir)) {
+    dir.create(output_datadir, recursive=TRUE)
+}
+
+if (!dir.exists(output_tabledir)) {
+    dir.create(output_tabledir, recursive=TRUE)
+}
+
+cache_dir <- file.path('cache', output_prefix, output_suffix)
+
+opts_chunk$set(fig.width=1920/192,
+               fig.height=1920/192,
+               fig.path=output_figprefix,
+               dpi=192,
+               cache.path=cache_dir,
+			   echo=CONFIG$verbose)
+
+options(digits=3)
+options(stringsAsFactors=FALSE)
+options(knitr.duplicate.label='allow')
+options(java.parameters="-Xmx8g" )
+
+# If rmarkdown.pandoc.to not specified, have it default to 'latex' output
+if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
+    opts_knit$set(rmarkdown.pandoc.to='latex')
+}
+
+# Format-specific options
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    # PDF output
+    opts_chunk$set(dev=c('cairo_pdf', 'tiff'), 
+  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans"),
+                                 tiff=list(compression="lzw")))
+} else {
+    # HTML output
+    #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
+    opts_chunk$set(dev=c('png'), fig.retina=1)
+}
+
+# plotting parameters
+cex_main <- 1.6
+cex_lab  <- 1.8
+cex_axis <- 1.8
+cex_color_labels <- 1.3
+
+# List for storing result
+COEXPRESSION_NETWORK_RESULT <- list()
+```

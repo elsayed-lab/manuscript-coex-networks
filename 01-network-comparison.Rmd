@@ -5,6 +5,7 @@ params:
   settings: ""
   title: "Consensus Co-expression Network Comparison"
   version: "1.0"
+  analysis_dirname: "01-network-comparison"
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
@@ -12,6 +13,7 @@ output:
     toc: true
     toc_float: true
     number_sections: true
+    code_folding: hide
   pdf_document:
     toc: true
     latex_engine: xelatex
@@ -21,7 +23,7 @@ Introduction
 ============
 
 The goal of this analysis is to construct a consensus co-expression network by
-summing the adjacency matrices for multiple network parameterizations, and
+summing the adjacency matrices for multiple network parameterizations, and then
 compare the effect of pruning low-confidence network edges and genes at various
 thresholds.
 
@@ -34,62 +36,7 @@ Methods
 
 ## Setup
 
-```{r load_settings, include=FALSE}
-library('knitr')
-library('readr')
-knit(params$settings, quiet=TRUE, output=tempfile())
-```
-
-```{r knitr_settings, include=FALSE}
-output_prefix <- file.path('output', params$version)
-output_suffix <- file.path(MANUSCRIPT_CONFIG$output_dirname,
-                           '01-network-comparison/')
-
-output_datadir  <- file.path(output_prefix, 'data', output_suffix)
-output_figdir   <- file.path(output_prefix, 'figure', output_suffix)
-output_tabledir <- file.path(output_prefix, 'table', output_suffix)
-
-cache_dir <- file.path('cache', params$version,
-                       MANUSCRIPT_CONFIG$output_dirname,
-                       '01-network-comparison')
-
-opts_chunk$set(fig.width=1920/192,
-               fig.height=1920/192,
-               fig.path=file.path(output_figdir),
-               dpi=192,
-               cache.path=cache_dir,
-			   echo=CONFIG$verbose)
-
-options(digits=3)
-options(stringsAsFactors=FALSE)
-options(knitr.duplicate.label='allow')
-options(java.parameters="-Xmx8g" )
-
-# If rmarkdown.pandoc.to not specified, have it default to 'latex' output
-if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
-    opts_knit$set(rmarkdown.pandoc.to='latex')
-}
-
-# Format-specific options
-if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    # PDF output
-    opts_chunk$set(dev=c('cairo_pdf', 'tiff'), 
-  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans"),
-                                 tiff=list(compression="lzw")))
-} else {
-    # HTML output
-    #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
-    opts_chunk$set(dev=c('png'), fig.retina=1)
-}
-
-# plotting parameters
-cex_main <- 1.6
-cex_lab  <- 1.8
-cex_axis <- 1.8
-cex_color_labels <- 1.3
-
-# List for storing result
-COEXPRESSION_NETWORK_RESULT <- list()
+```{r child='child/00-shared-setup.Rmd'}
 ```
 
 ```{r load_libraries}
@@ -105,9 +52,11 @@ library('foreach')
 library('ggplot2')
 library('goseq')
 library('gplots')
+library('hpgltools')
 library('knitr')
 library('knitcitations')
 library('reshape2')
+library('tools')
 
 source('../../2015/00-shared/R/annotations.R')
 source('../../2015/00-shared/R/enrichment_analysis.R')
@@ -116,95 +65,10 @@ source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
 ```
 
-## Consensus co-expression network construction
-
-```{r load_consensus_nets, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
-# input adjaceny matrices
-input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
-input_rdas <- sub('_adjmat', '', input_nets)
-
-# load adjacency matrix and module mapping for the first network
-load(input_rdas[1])
-
-# use module mapping to determine adjacency matrix dimensions
-matsize <- nrow(module_mapping)
-
-# create adjacency matrix from first network
-adjmat <- matrix(0, nrow=matsize, ncol=matsize)
-
-# note, genes are stored in the same order in the adjacency matrix and the
-# module mapping, so we can infer id's from the mapping
-rownames(adjmat) <- module_mapping$gene_id
-colnames(adjmat) <- module_mapping$gene_id
-
-# iterate over remaining networks and add to consensus net
-for (i in 1:length(input_nets)) {
-    # load saved data
-    message(sprintf("Loading network %d/%d", i, length(input_nets)))
-
-    load(input_nets[i])
-    load(input_rdas[i])
-
-    # reconstruct adjacency matrix
-    matsize <- nrow(module_mapping)
-
-    # add to existing adjacency matrix;
-    tmp <- matrix(0, nrow=matsize, ncol=matsize)
-    tmp[upper.tri(tmp)] <- adjacency_matrix
-    tmp[lower.tri(tmp)] <- t(tmp)[lower.tri(tmp)]
-
-    rownames(tmp) <- module_mapping$gene_id
-    colnames(tmp) <- module_mapping$gene_id
-
-    if ((nrow(adjmat) != nrow(tmp)) || (!all(rownames(adjmat) == rownames(tmp)))) {
-        # normalize matrix size and elements
-        tmp_missing <- rownames(adjmat)[!rownames(adjmat) %in% rownames(tmp)]
-        if (length(tmp_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(tmp)
-
-            tmp <- rbind(tmp, matrix(0, nrow=length(tmp_missing), ncol=ncol(tmp)))
-            tmp <- cbind(tmp, matrix(0, nrow=nrow(tmp), ncol=length(tmp_missing)))
-
-            rownames(tmp) <- c(gene_ids, tmp_missing)
-            colnames(tmp) <- c(gene_ids, tmp_missing)
-
-        }
-
-        adj_missing <- rownames(tmp)[!rownames(tmp) %in% rownames(adjmat)]
-        if (length(adj_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(adjmat)
-
-            adjmat <- rbind(adjmat, matrix(0, nrow=length(adj_missing), ncol=ncol(adjmat)))
-            adjmat <- cbind(adjmat, matrix(0, nrow=nrow(adjmat), ncol=length(adj_missing)))
-
-            rownames(adjmat) <- c(gene_ids, adj_missing)
-            colnames(adjmat) <- c(gene_ids, adj_missing)
-        }
-
-        # normalize row/column order
-        tmp <- tmp[order(rownames(tmp)),order(colnames(tmp))]
-        adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
-    }
-
-    # combine matrices
-    adjmat <- adjmat + tmp
-}
-
-range(adjmat)
-hist(log1p(adjmat))
+```{r child='child/00-shared-build-consensus-net.Rmd'}
 ```
 
-```{r unfiltered_consensus_network_setup}
-# dummy objects for compatibility with shared functions
-network_counts <- list(
-    final=matrix(0, nrow=nrow(adjmat))
-)
-rownames(network_counts$final) <- rownames(adjmat)
-
-count_table <- matrix(0, nrow=nrow(adjmat)) 
-rownames(count_table) <- rownames(adjmat)
+```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
@@ -213,313 +77,30 @@ rownames(count_table) <- rownames(adjmat)
 ```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
 ```
 
-## Filtered consensus co-expression network comparison
-
-```{r filtered_consensus_network_setup, results='hide', message=FALSE}
-# maximum consensus edge weights for each gene
-gene_max_edge_weights <- apply(adjmat, 1, max)
-
-# vectores to store results
-cutoffs <- c()
-genes_passing <- c()
-
-num_modules <- c()
-median_module_sizes <- c()
-largest_module_sizes <- c()
-
-# number of unique annotations
-num_unique_go_terms <- c()
-num_unique_kegg_pathways <- c()
-num_unique_tfs <- c()
-
-# -log10(adj.pval) totals
-total_go_pvals <- c()
-total_kegg_pvals <- c()
-total_tf_pvals <- c()
-
-# number of enriched modules in each network
-num_go_enriched_modules <- c()
-num_kegg_enriched_modules <- c()
-num_tf_enriched_modules <- c()
-
-# create a copy of the original full gene annotation dataframe
-gene_info_orig <- gene_info
-
-# cutoffs to compare
-quantile_cutoffs <- seq(0.01, 0.99, by=0.01)
-
-# iterate over cutoffs and construct and evaluate filtered co-expression 
-# networks for each cutoff
-for (quantile_cutoff in quantile_cutoffs) {
-    message(sprintf("Testing network for quantile cutoff: %0.2f", quantile_cutoff))
-    cutoff <- quantile(gene_max_edge_weights, quantile_cutoff)
-    cutoffs <- c(cutoffs, cutoff)
-
-    # filter adjacency matrix
-    mask <- gene_max_edge_weights >= cutoff
-    filtered_adjmat <- adjmat[mask, mask]
-
-    genes_passing <- c(genes_passing, sum(mask))
-
-    # dummy objects for compatibility with shared functions
-    network_counts <- list(
-        final=matrix(0, nrow=nrow(filtered_adjmat))
-    )
-    rownames(network_counts$final) <- rownames(filtered_adjmat)
-
-    count_table <- matrix(0, nrow=nrow(filtered_adjmat)) 
-    rownames(count_table) <- rownames(filtered_adjmat)
-
-    # convert to distance matrix and perform hierarchical clustering
-    distmat <- 1 - (filtered_adjmat / max(filtered_adjmat))
-
-    gene_tree <- flashClust(as.dist(distmat), method="average")
-    gene_tree$height <- round(gene_tree$height, 6)
-
-    module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
-
-    num_labels <- length(unique(module_labels))
-    pal <- c('grey', substring(rainbow(num_labels), 1, 7))
-    module_colors <- (pal[module_labels + 1])
-
-    # remove unclustered genes
-    # DOESN'T WORK (mask incorrect, or forgetting to mask something else?)
-    #mask <- module_colors != 'grey'
-
-    #module_colors <- module_colors[mask]
-    #filtered_adjmat <- filtered_adjmat[mask, mask]
-
-    # relevant gene annotations
-    gene_info <- gene_info_orig %>% filter(gene_id %in% rownames(filtered_adjmat))
-    result <- cbind(gene_info, color=module_colors)
-
-    # create a mapping from module id to number of genes for later use
-    module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
-        group_by(module_id) %>% 
-        summarize(num_genes=n())
-
-    num_modules <- c(num_modules, length(unique(module_colors)))
-
-    median_module_sizes <- c(median_module_sizes, median(module_sizes$num_genes))
-    largest_module_sizes <- c(largest_module_sizes, max(module_sizes$num_genes))
-
-    # measure enrichment
-    knit('../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
-    knit('../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
-
-    # save results
-    #module_go_enrichment <- module_go_enrichment[sapply(module_go_enrichment, nrow) > 0] 
-
-    # GO
-    num_go <- length(unique(unlist(sapply(module_go_enrichment, function(x) { x$category }))))
-    num_unique_go_terms <- c(num_unique_go_terms, num_go)
-
-    go_pval_total <- 0
-
-    for (module in names(module_go_enrichment)) {
-        # over-represented terms with adj. p-val <= 0.05
-        mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
-
-        # -log10pvals (limit to 1E-10)
-        pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
-        go_pval_total <- go_pval_total + sum(-log10(pmax(pvals, 10^-10)))
-    }
-    total_go_pvals <- c(total_go_pvals, go_pval_total)
-
-    num_go_enriched_modules <- c(num_go_enriched_modules,
-                                 length(enriched_colors_go))
-    
-    # KEGG
-    num_kegg <- length(unique(unlist(sapply(module_kegg_enrichment, function(x) { x$category }))))
-    num_unique_kegg_pathways <- c(num_unique_kegg_pathways, num_kegg)
-
-    kegg_pval_total <- 0
-
-    for (module in names(module_kegg_enrichment)) {
-        # over-represented terms with adj. p-val <= 0.05
-        mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
-
-        # -log10pvals (limit to 1E-10)
-        pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
-        kegg_pval_total <- kegg_pval_total + sum(-log10(pmax(pvals, 10^-10)))
-    }
-    total_kegg_pvals <- c(total_kegg_pvals, kegg_pval_total)
-
-    num_kegg_enriched_modules <- c(num_kegg_enriched_modules,
-                                 length(enriched_colors_kegg))
-
-    # TF Regulon (human only)
-    if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
-        knit('../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd')
-
-        num_tf <- length(unique(unlist(sapply(module_coreg_enrichment, function(x) { x$category }))))
-        num_unique_tfs <- c(num_unique_tfs, num_tf)
-
-        tf_pval_total <- 0
-
-        for (module in names(module_coreg_enrichment)) {
-            # over-represented terms with adj. p-val <= 0.05
-            mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
-
-            # -log10pvals (limit to 1E-10)
-            pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
-            tf_pval_total <- tf_pval_total + sum(-log10(pmax(pvals, 10^-10)))
-        }
-        total_tf_pvals <- c(total_tf_pvals, tf_pval_total)
-
-        num_tf_enriched_modules <- c(num_tf_enriched_modules,
-                                     sum(sapply(module_coreg_enrichment, nrow) > 0))
-    }
-}
+```{r child='child/01-filtered-consensus-net-comparison.Rmd'}
 ```
 
 Results
 =======
 
-## Overview
-
-```{r results='asis'}
-if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
-    # GO, KEGG, TFs
-    dat <- data.frame(
-        cutoff_quantile=quantile_cutoffs,
-        cutoff=cutoffs,
-        num_modules,
-        num_genes=genes_passing,
-        median_module_size=median_module_sizes,
-        largest_module_size=largest_module_sizes,
-        num_unique_go_terms,
-        num_unique_kegg_pathways,
-        num_unique_tfs,
-        total_go_pvals,
-        total_kegg_pvals,
-        total_tf_pvals,
-        num_go_enriched_modules,
-        num_kegg_enriched_modules,
-        num_tf_enriched_modules
-    ) %>% mutate(
-        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
-        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
-        ratio_enriched_tf_modules=num_tf_enriched_modules/num_modules,
-        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
-        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes,
-        ratio_tf_enrichment_to_num_genes=total_tf_pvals/num_genes
-    )
-} else {
-    # GO, KEGG
-    dat <- data.frame(
-        cutoff_quantile=quantile_cutoffs,
-        cutoff=cutoffs,
-        num_modules,
-        num_genes=genes_passing,
-        median_module_size=median_module_sizes,
-        largest_module_size=largest_module_sizes,
-        num_unique_go_terms,
-        num_unique_kegg_pathways,
-        total_go_pvals,
-        total_kegg_pvals,
-        num_go_enriched_modules,
-        num_kegg_enriched_modules
-    ) %>% mutate(
-        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
-        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
-        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
-        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes
-    )
-}
-
-datatable(dat)
-```
-
-## Number of unique annotations
-
-```{r num_unique_annotations}
-dat_num_unique <- dat %>%
-    select(cutoff_quantile, starts_with('num_unique')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='num_unique_annotations')
-
-ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('# Unique annotations') +
-    ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
-```
-
-## -log10(Adj. P-value) totals
-
-```{r pval_totals}
-dat_num_unique <- dat %>%
-    select(cutoff_quantile, starts_with('total')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='pvalue_totals')
-
-ggplot(dat_num_unique, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('Total -log10(Adj. P-values)') +
-    ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
-```
-
-## Number of enriched modules
-
-```{r num_enriched_modules}
-dat_num_modules <- dat %>%
-    select(cutoff_quantile, ends_with('enriched_modules')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='num_enriched_modules')
-
-ggplot(dat_num_modules, aes(x=cutoff_quantile, y=num_enriched_modules, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('# Enriched Modules') +
-    ggtitle('Number of Enriched Modules vs. Edge Weight Cutoff')
-```
-
-## Ratio of enriched modules
-
-```{r ratio_enriched_modules}
-dat_ratio_modules <- dat %>%
-    select(cutoff_quantile, starts_with('ratio_enriched')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='ratio_enriched_modules')
-
-ggplot(dat_ratio_modules, aes(x=cutoff_quantile, y=ratio_enriched_modules, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('Ratio Enriched Modules') +
-    ggtitle('Ratio Enriched Modules vs. Edge Weight Cutoff')
-```
-
-## Ratio of enrichment score to number of genes
-
-```{r ratio_enrichment_to_num_genes}
-# sum(-log10(adj.p.val)) over # genes vs. cutoff
-dat_ratio_enrichment <- dat %>%
-    select(cutoff_quantile, ends_with('to_num_genes')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='ratio_enrichment_to_num_genes')
-
-ggplot(dat_ratio_enrichment, aes(x=cutoff_quantile, y=ratio_enrichment_to_num_genes, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('Ratio Enrichment to Number of Genes') +
-    ggtitle('Ratio of Enrichment to Number of Genes vs. Edge Weight Cutoff')
+```{r child='child/01-filtered-consensus-net-results.Rmd'}
 ```
 
 ```{r save_rdata}
-# create data output directory if needed
-if (!dir.exists(output_datadir)) {
-    dir.create(output_datadir, recursive=TRUE)
-}
-
 # save RData files to output dir
 save(dat, dat_num_unique, dat_num_modules, dat_ratio_modules, dat_ratio_enrichment, 
-     file=file.path(output_datadir, 'results.rda'))
+     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
 
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
+html_filepath <- file.path(output_prefix, paste0('network_comparison_', MANUSCRIPT_CONFIG$output_dirname, '.html'))
+
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 01-network-comparison.pdf %s) &', output_prefix))
+    system(sprintf('(sleep 30 && mv 01-network-comparison.pdf %s) &', html_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 01-network-comparison.html %s) &', output_prefix))
+    system(sprintf('(sleep 30 && mv 01-network-comparison.html %s) &', html_filepath))
 }
 ```
 

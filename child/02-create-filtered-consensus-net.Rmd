@@ -1,0 +1,34 @@
+```{r filtered_consensus_network_setup, results='asis'}
+gene_max_edge_weights <- apply(adjmat, 1, max)
+
+cutoff <- quantile(gene_max_edge_weights, MANUSCRIPT_CONFIG$quantile_cutoff)
+cat(sprintf('- Max edge weight cutoff: %0.2f\n', cutoff))
+
+hist(gene_max_edge_weights)
+abline(v=cutoff, col='red', lty=2)
+```
+
+```{r create_filtered_adjmat}
+mask <- gene_max_edge_weights >= cutoff
+filtered_adjmat <- adjmat[mask, mask]
+cat(sprintf('- Genes passing cutoff: %d\n', sum(mask)))
+```
+
+```{r figure_1b}
+# subsample networks before constructing heatmaps to reduce memory requirements
+n1 <- min(1000, nrow(adjmat))
+n2 <- min(1000, nrow(filtered_adjmat))
+
+par(mfrow=c(2,1))
+
+# unfiltered network
+ind1 <- sample(1:nrow(adjmat), n1)
+heatmap.2(adjmat[ind1, ind1], trace='none', dendrogram='row',
+                  labRow=FALSE, labCol=FALSE, col='viridis')
+
+# filtered network
+ind2 <- sample(1:nrow(filtered_adjmat), n2)
+heatmap.2(filtered_adjmat[ind2, ind2], trace='none', dendrogram='row',
+                  labRow=FALSE, labCol=FALSE, col='viridis')
+```
+

@@ -1,0 +1,80 @@
+## Consensus co-expression network construction
+
+```{r load_consensus_nets, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+# input adjaceny matrices
+input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
+input_rdas <- sub('_adjmat', '', input_nets)
+
+# load adjacency matrix and module mapping for the first network
+load(input_rdas[1])
+
+# use module mapping to determine adjacency matrix dimensions
+matsize <- nrow(module_mapping)
+
+# create empty adjacency matrix from first network
+adjmat <- matrix(0, nrow=matsize, ncol=matsize)
+
+# note, genes are stored in the same order in the adjacency matrix and the
+# module mapping, so we can infer id's from the mapping
+rownames(adjmat) <- module_mapping$gene_id
+colnames(adjmat) <- module_mapping$gene_id
+
+# iterate over remaining networks and add to consensus net
+for (i in 1:length(input_nets)) {
+    # load saved data
+    message(sprintf("Loading network %d/%d", i, length(input_nets)))
+
+    load(input_nets[i])
+    load(input_rdas[i])
+
+    # reconstruct adjacency matrix
+    matsize <- nrow(module_mapping)
+
+    # add to existing adjacency matrix;
+    tmp <- matrix(0, nrow=matsize, ncol=matsize)
+    tmp[upper.tri(tmp)] <- adjacency_matrix
+    tmp[lower.tri(tmp)] <- t(tmp)[lower.tri(tmp)]
+
+    rownames(tmp) <- module_mapping$gene_id
+    colnames(tmp) <- module_mapping$gene_id
+
+    if ((nrow(adjmat) != nrow(tmp)) || (!all(rownames(adjmat) == rownames(tmp)))) {
+        # normalize matrix size and elements
+        tmp_missing <- rownames(adjmat)[!rownames(adjmat) %in% rownames(tmp)]
+        if (length(tmp_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(tmp)
+
+            tmp <- rbind(tmp, matrix(0, nrow=length(tmp_missing), ncol=ncol(tmp)))
+            tmp <- cbind(tmp, matrix(0, nrow=nrow(tmp), ncol=length(tmp_missing)))
+
+            rownames(tmp) <- c(gene_ids, tmp_missing)
+            colnames(tmp) <- c(gene_ids, tmp_missing)
+
+        }
+
+        adj_missing <- rownames(tmp)[!rownames(tmp) %in% rownames(adjmat)]
+        if (length(adj_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(adjmat)
+
+            adjmat <- rbind(adjmat, matrix(0, nrow=length(adj_missing), ncol=ncol(adjmat)))
+            adjmat <- cbind(adjmat, matrix(0, nrow=nrow(adjmat), ncol=length(adj_missing)))
+
+            rownames(adjmat) <- c(gene_ids, adj_missing)
+            colnames(adjmat) <- c(gene_ids, adj_missing)
+        }
+
+        # normalize row/column order
+        tmp <- tmp[order(rownames(tmp)),order(colnames(tmp))]
+        adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
+    }
+
+    # combine matrices
+    adjmat <- adjmat + tmp
+}
+
+range(adjmat)
+hist(log1p(adjmat))
+```
+

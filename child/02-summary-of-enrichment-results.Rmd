@@ -1,0 +1,34 @@
+```{r table_S2_network_module_summary, results='asis'}
+table_S2 <- module_sizes %>%
+    dplyr::rename(Module=module_id)
+
+go_stats <- sapply(module_go_enrichment, nrow) %>%
+    as.data.frame %>%
+    rownames_to_column %>%
+    setNames(c('Module', 'Num Enriched GO Terms'))
+table_S2 <- merge(table_S2, go_stats, by='Module')
+
+kegg_stats <- sapply(module_kegg_enrichment, nrow) %>%
+    as.data.frame %>%
+    rownames_to_column %>%
+    setNames(c('Module', 'Num Enriched KEGG Pathways'))
+table_S2 <- merge(table_S2, kegg_stats, by='Module')
+
+if (CONFIG$target == 'host') {
+    tf_stats <- sapply(module_coreg_enrichment, nrow) %>%
+        as.data.frame %>%
+        rownames_to_column %>%
+        setNames(c('Module', 'Num Enriched TF Regulon Genes'))
+}
+
+if (CONFIG$target == 'pathogen') {
+    table_S2 <- merge(table_S2, secreted_freqs %>% select(Module=module, `Num Secreted`=num_secreted),
+                      by='Module')
+    table_S2 <- merge(table_S2, membrane_freqs %>% select(Module=module, `Num Transmembrane`=num_membrane),
+                      by='Module')
+    table_S2 <- merge(table_S2, gpi_anchored_freqs %>% select(Module=module, `Num GPI-anchored`=num_gpi),
+                      by='Module')
+}
+
+xkable(table_S2)
+```
