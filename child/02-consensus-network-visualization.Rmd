@@ -1,10 +1,13 @@
 ```{r consensus_network_dendrogram}
-dendrogram_colors = c(module_colors)
+dendrogram_colors = module_colors
 
 # Show average change in expression across two selected stages
-combined_counts <- combine_replicates(cpm_counts, condition)
-expr_diff <- combined_counts[[CONFIG$main_comparison[2]]] - combined_counts[[CONFIG$main_comparison[1]]] 
-dendrogram_colors = cbind(dendrogram_colors, expr_diff)
+combined_counts <- combine_replicates(log2cpm_counts, condition)
+expr_diff <- combined_counts[,CONFIG$main_comparison[2]] - combined_counts[,CONFIG$main_comparison[1]] 
+
+# map continus values to discrete color scale
+x <- infotheo::discretize(expr_diff, nbins=100)[,1]
+dendrogram_colors = cbind(dendrogram_colors, viridis(100)[x])
 
 # Add GO and KEGG enrichment
 dendrogram_colors = cbind(dendrogram_colors, go_enrichment_status,
@@ -17,10 +20,8 @@ expr_diff_label <- paste(sprintf("%s - %s", CONFIG$main_comparison[2],
 dendrogram_labels = c('Modules', expr_diff_label, 'GO enrichment', 'KEGG enrichment')
 
 #sprintf("%s vs. %s\n Red = Up-regulated\n Black = Down-regulated", 
-if (CONFIG$include_plots) {
-    plotDendroAndColors(gene_tree, dendrogram_colors,
-                        groupLabels=dendrogram_labels, dendroLabels=FALSE,
-                        cex.colorLabels=1, cex.main=1, cex.axis=1, cex.lab=1,
-                        marAll=c(4,12,6,4), guideHang=0.05, main="")
-}
+plotDendroAndColors(gene_tree, dendrogram_colors,
+                    groupLabels=dendrogram_labels, dendroLabels=FALSE,
+                    cex.colorLabels=1, cex.main=1, cex.axis=1, cex.lab=1,
+                    marAll=c(4,12,6,4), guideHang=0.05, main="")
 ```

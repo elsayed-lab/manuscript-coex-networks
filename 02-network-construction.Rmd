@@ -69,6 +69,7 @@ library('gplots')
 library('ggplot2')
 library('gridExtra')
 library('hpgltools')
+library('infotheo')
 library('igraph')
 library('knitr')
 library('knitcitations')
@@ -96,7 +97,7 @@ options(stringsAsFactors=FALSE)
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r library_sizes, message=FALSE}
+```{r library_sizes, message=FALSE, dpi=192}
 # color scheme for plots
 num_conditions <- length(unique(condition))
 pal <- colorRampPalette(brewer.pal(8, 'Dark2'))(num_conditions)
@@ -190,7 +191,7 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
 
     # For single tables, save as CSV
     if (is.matrix(tbl_) || is.data.frame(tbl_)) {
-        filename <- sprintf("%s.tab", table_name)
+        filename <- sprintf("%s_%s.tab", table_name, MANUSCRIPT_CONFIG$output_dirname)
 
         # write table to file
         write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
@@ -218,7 +219,6 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
 }
 
 ```
-
 # Save table results
 write.table(clusters, file=outfile,
             row.names=FALSE, quote=FALSE, sep="\t")

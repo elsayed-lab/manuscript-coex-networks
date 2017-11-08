@@ -13,9 +13,8 @@ gene_info <- gene_info %>% filter(gene_id %in% rownames(filtered_adjmat))
 # cpm-transform raw counts
 cpm_counts <- sweep(count_table, 2, colSums(count_table), '/') * 1E6
 log2cpm_counts <- log2(cpm_counts + 1)
-```
 
-```{r large_scale_features, results='asis'}
+# create a coarse-scale clustering
 large_scale_labels <- cutreeDynamicTree(dendro=gene_tree, minModuleSize=100,
                                         deepSplit=FALSE)
 
@@ -25,11 +24,10 @@ large_scale_module_colors <- labels2colors(large_scale_labels)
 
 #### Large-scale module expression (Log2-CPM averages)
 
-```{r largescale_feature_average_expr, results='asis', include=CONFIG$include_plots, eval=CONFIG$include_plots}
+```{r figure_X3, results='asis'}
 # average expression profiles for each module
 module_averages <- get_module_averages(log2cpm_counts,
                                        large_scale_module_colors, method=median)
-
 combined_module_counts <- combine_replicates(module_averages, condition)
 
 # convert to long
@@ -40,12 +38,13 @@ module_averages_long <- melt_counts(combined_module_counts, condition_mapping)
 colnames(module_averages_long) <- c('module', 'condition', 'expression')
 
 # colormap
-cmap <- unique(module_averages_long$module)
+cmap <- as.character(unique(module_averages_long$module))
 
-# first, plot all of the clusters in color
+# large scale clusters
 ggplot(data=module_averages_long,
     aes(x=condition, y=expression, group=module, color=module)) +
-    geom_line(size=I(2)) + scale_colour_manual(values=cmap) +
+    geom_line(size=I(2)) + 
+    scale_colour_manual(values=cmap) +
     ggtitle("Module Average Log2-CPM Expression Profiles") +
     xlab("Time (hours)") +
     ylab("Expression level (log2-CPM)") +
@@ -53,10 +52,9 @@ ggplot(data=module_averages_long,
           axis.text.x=element_text(angle=0, vjust=0.5, size=16))
 ```
 
-
-```{r expression_profiles, message=FALSE, warning=FALSE, fig.show='hold', fig.height=5.0625, fig.width=9, results='hide'}
+```{r expression_profiles, message=FALSE, warning=FALSE, fig.show='hold', fig.height=5.0625, fig.width=9, dpi=192, results='hide'}
 # long version of counts
-counts_long <- cbind(gene_id=rownames(count_table), cpm_counts)
+counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
 counts_long <- melt(counts_long, id.vars='gene_id')
 
 names(counts_long) <- c('gene_id', 'condition', 'expression')
