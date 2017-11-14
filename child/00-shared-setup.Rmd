@@ -35,6 +35,9 @@ options(stringsAsFactors=FALSE)
 options(knitr.duplicate.label='allow')
 options(java.parameters="-Xmx8g" )
 
+# Increase reproducibility
+set.seed(1)
+
 # If rmarkdown.pandoc.to not specified, have it default to 'latex' output
 if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
     opts_knit$set(rmarkdown.pandoc.to='latex')
@@ -51,6 +54,7 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
     #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
     opts_chunk$set(dev=c('png'), fig.retina=1)
 }
+
 
 # plotting parameters
 cex_main <- 1.6

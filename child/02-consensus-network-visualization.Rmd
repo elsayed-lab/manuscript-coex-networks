@@ -3,7 +3,8 @@ dendrogram_colors = module_colors
 
 # Show average change in expression across two selected stages
 combined_counts <- combine_replicates(log2cpm_counts, condition)
-expr_diff <- combined_counts[,CONFIG$main_comparison[2]] - combined_counts[,CONFIG$main_comparison[1]] 
+expr_diff <- (combined_counts[,as.character(CONFIG$main_comparison[2])] - 
+              combined_counts[,as.character(CONFIG$main_comparison[1])])
 
 # map continus values to discrete color scale
 x <- infotheo::discretize(expr_diff, nbins=100)[,1]

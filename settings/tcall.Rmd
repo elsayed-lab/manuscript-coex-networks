@@ -1,7 +1,7 @@
 ```{r settings}
 #
 # T. cruzi infecting H. sapiens (all samples)
-# Updated 2017/11/07
+# Updated 2017/11/07 (cutoff 0.50)
 #
 
 #

@@ -23,7 +23,9 @@ cat(sprintf('- Number of genes associated with at least one enriched KEGG Pathwa
 
 # average number of KEGG pathways associated with each gene (only considering genes
 # associated with at least one enriched pathway...)
-hist(table(gene_kegg_pathways$gene))
+if (nrow(gene_kegg_pathways) > 0) {
+    hist(table(gene_kegg_pathways$gene))
+}
 
 # collapse module kegg path enrichment results into a single dataframe and find
 # the N pathways with the strongest enrichment

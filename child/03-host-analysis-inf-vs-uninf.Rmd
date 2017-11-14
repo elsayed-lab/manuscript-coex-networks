@@ -1,0 +1,166 @@
+```{r inf_vs_uninf_setup, results='asis'}
+# keep only genes found in both uninfected and infected networks
+common_genes <- intersect(rownames(uninf), rownames(inf))
+
+cat(sprintf("- Keeping %d genes shared by infected (%d genes) and uninfected (%d genes) networks.\n",
+            length(common_genes), nrow(inf), nrow(uninf)))
+
+ind1 <- rownames(inf) %in% common_genes
+ind2 <- rownames(uninf) %in% common_genes
+
+inf   <- inf[ind1,ind1]
+uninf <- uninf[ind2,ind2]
+
+# reorder adjacency matrices
+uninf <- uninf[rownames(inf), colnames(inf)]
+```
+
+#### Infected vs. Uninfected Difference Matrix
+
+```{r difference_heatmap}
+diff <- inf - uninf
+
+# sub-sample to speed up and better fit in display
+ind <- sample(1:nrow(diff), 750)
+heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
+          col='viridis')
+```
+
+```{r diff_matrix_clustering}
+# find positive correlations
+cor_mat <- cor(diff)
+cor_mat[cor_mat < 0] <- 0
+
+# convert to distance matrix and perform hierarchical clustering
+distmat <- 1 - cor_mat
+
+gene_tree <- flashClust(as.dist(distmat), method="average")
+gene_tree$height <- round(gene_tree$height, 6)
+
+# perform dynamic tree-cut based clustering
+module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
+
+num_labels <- length(unique(module_labels))
+pal <- c('grey', substring(rainbow(num_labels), 1, 7))
+module_colors <- (pal[module_labels + 1])
+
+module_mapping <- tbl_df(cbind(gene_id=rownames(diff), module=module_colors))
+
+# create a mapping from module id to number of genes for later use
+module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
+    group_by(module_id) %>% 
+    summarize(num_genes=n())
+
+num_modules <- length(unique(module_colors))
+```
+
+```{r module_stats, results='asis'}
+cat(sprintf("- Number of modules: %d\n", num_modules))
+cat(sprintf("- Median module size: %0.1f\n", median(module_sizes$num_genes)))
+cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
+```
+
+##### Functional Enrichment
+
+```{r create_net_annotation_df}
+# create dataframe to use for network node annotations
+gene_info <- gene_info %>% 
+    filter(gene_id %in% rownames(diff))
+
+result <- cbind(gene_info, color=module_colors)
+annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
+```
+
+### GO Enrichment
+
+```{r child='../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
+```
+
+### KEGG Enrichment
+
+```{r child='../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
+```
+
+```{r child='02-kegg-enrichment-results.Rmd'}
+```
+
+### TF regulon Enrichment
+
+```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}
+```
+
+```{r child='02-tf-regulon-enrichment-results.Rmd'}
+```
+
+##### Visualization of enriched rewired subnetworks
+
+```{r enriched_difference_subnetwork, results='asis'}
+for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
+    # show diff network
+    print(cat(sprintf("\n###### %s\n", module_color)))
+    genes <- (result %>% filter(color==module_color))$gene_id
+    ind <- rownames(diff) %in% genes
+
+    # create graph instance
+    g <- graph.adjacency(diff[ind, ind], mode='undirected', weighted=TRUE)
+
+    # get sum of edge weights for each vertex and rescale to range [-1, 1]
+    edge_flux <- graph.strength(g)
+    edge_flux <- edge_flux / max(abs(edge_flux))
+
+    # color vertices based on net edge flux
+    pal_neg <- colorRamp(c('purple', 'red'))
+    pal_pos <- colorRamp(c('purple', 'blue'))
+
+    V(g)$color <- sapply(edge_flux, FUN=function(x) {
+        if (x < 0) {
+            rgbcol <- pal_neg(abs(x))
+        } else {
+            rgbcol <- pal_pos(x)
+        }
+        rgb(rgbcol[1], rgbcol[2], rgbcol[3], 128, maxColorValue=255)
+    })
+
+    # color edges based on direction of change (red = neg, blue = pos)
+    E(g)$color <- ifelse(E(g)$weight < 0, rgb(1,0,0,0.5), rgb(0,0,1,0.5))
+    E(g)$weight <- abs(E(g)$weight)
+
+    # remove low-weight edges
+    E(g)$weight[E(g)$weight < 150] <- 0
+    g <- delete.edges(g, which(E(g)$weight==0))
+
+    # remove nodes that become disconnected
+    g <- delete.vertices(g, which(degree(g) == 0))
+
+    # relabel
+    vlabels <- gene_info[match(names(V(g)), gene_info$gene_id),]$description
+
+    # rescale edge weights
+    E(g)$weight <- E(g)$weight - min(E(g)$weight)
+    E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 5
+
+    layout_coords <- layout.fruchterman.reingold(g)
+
+    V(g)$label.cex <- 1
+
+    # network plot
+    plot(g, layout=layout_coords, vertex.size=5, vertex.label=vlabels,
+         vertex.label.dist=1,
+         edge.width=E(g)$weight)
+
+    # heatmap plot
+    adj <- diff[ind,ind]
+
+    # create diverging color ramp centered about 0 for heatmap
+    # https://stackoverflow.com/questions/10985224/r-heatmap-with-diverging-colour-palette/10986203#10986203
+    ncols <- 100
+    ramp_cols <- colorRampPalette(colors=c('red', 'purple', 'blue'), space="Lab")(ncols)
+
+    ## Make a vector with n+1 breaks
+    ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
+
+    heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
+              labRow=gene_info$description[ind], margins=c(22, 22),
+              labCol=FALSE, col=ramp_cols, breaks=ramp_breaks)
+}
+```

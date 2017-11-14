@@ -199,7 +199,7 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
     } else {
         # Otherwise, if multiple tables stored in a list, save as XLS with
         # separate sheets for each table
-        filename <- sprintf("%s.xlsx", table_name)
+        filename <- sprintf("%s_%s.xlsx", table_name, MANUSCRIPT_CONFIG$output_dirname)
         xls_filepath <- file.path(output_tabledir, filename)
 
         sheet_names <- names(tbl_)
