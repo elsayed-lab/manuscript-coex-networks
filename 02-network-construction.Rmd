@@ -55,7 +55,7 @@ Methods
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r load_libraries, message=FALSE}
+```{r load_libraries, message=FALSE, results='hide'}
 library('biomaRt')
 library('clusteval')
 library('doParallel')
@@ -160,7 +160,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ### Summary of enrichment results
 
-```{r child='child/02-summary-of-enrichment-results.Rmd'}
+```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
 ### Network Visualization
@@ -189,7 +189,7 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
     # Retrieve variable associated with table
     tbl_ <- get(table_name)
 
-    # For single tables, save as CSV
+    # For single tables, save as TSV
     if (is.matrix(tbl_) || is.data.frame(tbl_)) {
         filename <- sprintf("%s_%s.tab", table_name, MANUSCRIPT_CONFIG$output_dirname)
 
@@ -217,11 +217,6 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
         }
     }
 }
-
-```
-# Save table results
-write.table(clusters, file=outfile,
-            row.names=FALSE, quote=FALSE, sep="\t")
 ```
 
 ```{r save_rdata_results, results='asis'}
@@ -233,7 +228,7 @@ save(module_kegg_enrichment, file=file.path(output_datadir, paste0('module_kegg_
 ```
 
 ```{r save_network}
-# add secretion / GPI-anchor status cols
+# add secretion / GPI-anchor status cols (pathogen only)
 if (CONFIG$target == 'pathogen') {
     annot$gpi_anchored <- gpi_anchored_gene_status
     annot$secreted <- secreted_gene_status
@@ -260,7 +255,7 @@ g <- export_network_to_graphml(filtered_adjmat,
 
 ## Downloads
 
-```{r, results='asis'}
+```{r downloads, results='asis'}
 for (d in c(output_datadir, output_tabledir)) {
     files <- list.files(d)
     for (x in files[grepl(output_suffix, files)]) {

@@ -1,0 +1,52 @@
+```{r inf_vs_uninf_setup, results='asis'}
+# keep only genes found in both uninfected and infected networks
+common_genes <- intersect(rownames(uninf), rownames(inf))
+
+cat(sprintf("- Keeping %d genes shared by infected (%d genes) and uninfected (%d genes) networks.\n",
+            length(common_genes), nrow(inf), nrow(uninf)))
+
+ind1 <- rownames(inf) %in% common_genes
+ind2 <- rownames(uninf) %in% common_genes
+
+inf   <- inf[ind1,ind1]
+uninf <- uninf[ind2,ind2]
+
+# reorder adjacency matrices
+uninf <- uninf[rownames(inf), colnames(inf)]
+
+par(mfrow=c(2,1))
+hist(inf, main=sprintf("%s Edge Weights (Infected)", subtitle))
+hist(uninf, main=sprintf("%s Edge Weights (Uninfected)", subtitle))
+```
+
+In order to account for differences in correlation distributions due to
+differences in replicate numbers, the edge weight distibutions for each matrix
+will be quantile normalized.
+
+```{r normalize_edge_weight_distibutions}
+# create a data frame with one column per adjacency matrix
+upper_tri <- upper.tri(inf)
+lower_tri <- lower.tri(uninf)
+
+mat <- cbind(
+    inf[upper_tri],
+    uninf[upper_tri]
+)
+
+# quantile normalize
+mat <- normalize.quantiles(mat)
+
+# replace original values
+inf[upper_tri] <- mat[,1]
+inf[lower_tri] <- t(inf)[lower_tri]
+
+uninf[upper_tri] <- mat[,2]
+uninf[lower_tri] <- t(uninf)[lower_tri]
+
+rm(mat)
+
+par(mfrow=c(2,1))
+hist(inf, main=sprintf("%s Edge Weights (Infected, Normalized)", subtitle))
+hist(uninf, main=sprintf("%s Edge Weights (Uninfected, Normalized)", subtitle))
+```
+

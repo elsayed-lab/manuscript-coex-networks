@@ -1,35 +1,65 @@
-### Infected vs. Uninfected Difference Matrix
-
-```{r difference_heatmap}
-diff <- inf - uninf
+```{r difference_heatmap, eval=FALSE, include=FALSE}
+### HsTc vs. HsLm Difference Matrix
+diff <- hstc_inf - hslm_inf
 
 # sub-sample to speed up and better fit in display
 ind <- sample(1:nrow(diff), 750)
-
-heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
-          col='viridis', main=sprintf('Difference Network Adjacency Matrix:\n%s', subtitle),
-          key.xlab='Edge Weight\n (Infected - Uninfected)')
+heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
+          labCol=FALSE, col='viridis')
 ```
 
-```{r diff_matrix_clustering}
-# find positive correlations
-cor_mat <- cor(diff)
-cor_mat[cor_mat < 0] <- 0
+### Conserved infection signature network
+
+Next, we will construct a "conservation matrix" by scoring each edge based on
+its level of conservation across the networks infected networks. Edges with
+large values in both infected networks and low values in both uninfected
+networks eceieve a high conservation score.
+
+After rescaling each input network to the range [0, 1], the score is defined as:
+
+$$
+\text{score} = \frac{1}{2}(\text{HsLm + HsTc}) - \frac{1}{2}(\text{HsLmUI + HsTcUI})
+$$
+
+```{r generate_conservation_score_mat}
+i1 <- hslm_inf / max(hslm_inf)
+i2 <- hstc_inf / max(hstc_inf)
+u1 <- hslm_uninf / max(hslm_uninf)
+u2 <- hstc_uninf / max(hstc_uninf)
+
+#score_mat <- pmin(i1, i2) - pmax(u1, u2)
+score_mat <- 0.5 * (i1 + i2) - 0.5 * (u1 + u2)
+
+hist(score_mat, main="Distribution of co-expression conservation scores")
+```
+
+```{r infection_sig_heatmap}
+# sub-sample to speed up and better fit in display
+ind <- sample(1:nrow(score_mat), 750)
+heatmap.2(score_mat[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
+          labCol=FALSE, col='viridis')
+```
+
+```{r score_matrix_clustering}
+# since we are primarily interested in genes which become more strongly
+# co-regulated during infection at the moment, we will clip at 0.
+#score_mat[score_mat < 0] <- 0
 
 # convert to distance matrix and perform hierarchical clustering
-distmat <- 1 - cor_mat
+distmat <- 1 - score_mat
 
 gene_tree <- flashClust(as.dist(distmat), method="average")
 gene_tree$height <- round(gene_tree$height, 6)
 
 # perform dynamic tree-cut based clustering
-module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
+module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE,
+                                   minModuleSize=10)
 
 num_labels <- length(unique(module_labels))
 pal <- c('grey', substring(rainbow(num_labels), 1, 7))
 module_colors <- (pal[module_labels + 1])
 
-module_mapping <- tbl_df(cbind(gene_id=rownames(diff), module=module_colors))
+module_mapping <- tbl_df(cbind(gene_id=rownames(score_mat), module=module_colors))
 
 # create a mapping from module id to number of genes for later use
 module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
@@ -50,7 +80,7 @@ cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
 ```{r create_net_annotation_df}
 # create dataframe to use for network node annotations
 gene_info <- gene_info_orig %>% 
-    filter(gene_id %in% rownames(diff))
+    filter(gene_id %in% rownames(score_mat))
 
 result <- cbind(gene_info, color=module_colors)
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
@@ -77,19 +107,19 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-tf-regulon-enrichment-results.Rmd'}
 ```
 
-#### Visualization of enriched rewired subnetworks
+#### Visualization of enriched conserved subnetworks
 
-```{r enriched_difference_subnetwork, results='asis'}
+```{r enriched_conservation_subnetwork, results='asis'}
 cat('\n')
 
 for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
-    # show diff network
-    cat(sprintf("##### %s\n\n", module_color))
+    # show conservation network
+    cat(sprintf("###### %s\n", module_color))
     genes <- (result %>% filter(color==module_color))$gene_id
-    ind <- rownames(diff) %in% genes
+    ind <- rownames(score_mat) %in% genes
 
     # create graph instance
-    g <- graph.adjacency(diff[ind, ind], mode='undirected', weighted=TRUE)
+    g <- graph.adjacency(score_mat[ind, ind], mode='undirected', weighted=TRUE)
 
     # get sum of edge weights for each vertex and rescale to range [-1, 1]
     edge_flux <- graph.strength(g)
@@ -134,7 +164,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
 
     layout_coords <- layout.fruchterman.reingold(g)
 
-    V(g)$label.cex   <- 0.7
+    V(g)$label.cex   <- 0.6
     V(g)$label.color <- '#333333'
 
     # network plot
@@ -143,23 +173,11 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
          edge.width=E(g)$weight)
 
     # heatmap plot
-    adj <- diff[ind,ind]
+    adj <- score_mat[ind,ind]
 
-    # create diverging color ramp centered about 0 for heatmap
-    # https://stackoverflow.com/questions/10985224/r-heatmap-with-diverging-colour-palette/10986203#10986203
-    ncols <- 100
-    ramp_cols <- colorRampPalette(colors=c('red', 'purple', 'blue'), space="Lab")(ncols)
-
-    ## Make a vector with n+1 breaks
-    ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
-
+    pal <- colorRampPalette(c('slateblue1', 'coral1'))
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
               labRow=gene_info$description[ind], margins=c(22, 22),
-              labCol=FALSE, col=ramp_cols, breaks=ramp_breaks)
+              labCol=FALSE, col=pal)
 }
 ```
-
-```{r cleanup, include=FALSE}
-rm(inf, uninf, cor_mat, distmat)
-```
-

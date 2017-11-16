@@ -1,0 +1,70 @@
+```{r results='asis'}
+# keep only genes found in both HsLm and HsTc networks
+#common_genes <- intersect(rownames(hslm), rownames(hstc))
+common_genes <- intersect(intersect(rownames(hslm_uninf), rownames(hslm_inf)),
+                          intersect(rownames(hstc_uninf), rownames(hstc_inf)))
+
+cat(sprintf("- Keeping %d genes shared by all four networks.\n",
+            length(common_genes)))
+
+ind1 <- rownames(hstc_inf) %in% common_genes
+ind2 <- rownames(hslm_inf) %in% common_genes
+ind3 <- rownames(hstc_uninf) %in% common_genes
+ind4 <- rownames(hslm_uninf) %in% common_genes
+
+hstc_inf   <- hstc_inf[ind1,ind1]
+hslm_inf   <- hslm_inf[ind2,ind2]
+hstc_uninf <- hstc_uninf[ind3,ind3]
+hslm_uninf <- hslm_uninf[ind4,ind4]
+
+# reorder adjacency matrices
+hslm_inf   <- hslm_inf[rownames(hstc_inf), colnames(hstc_inf)]
+hstc_uninf <- hstc_uninf[rownames(hstc_inf), colnames(hstc_inf)]
+hslm_uninf <- hslm_uninf[rownames(hstc_inf), colnames(hstc_inf)]
+
+par(mfrow=c(2,2))
+hist(hslm_inf, main="HsLm (Inf)")
+hist(hstc_inf, main="HsTc (Inf)")
+hist(hslm_uninf, main="HsLm (UnInf)")
+hist(hstc_uninf, main="HsTc (UnInf)")
+```
+
+In order to account for differences in correlation distributions due to
+differences in replicate numbers, the edge weight distibutions for each matrix
+will be quantile normalized.
+
+```{r normalize_edge_weight_distibutions}
+# create a data frame with one column per adjacency matrix
+upper_tri <- upper.tri(hslm_inf)
+lower_tri <- lower.tri(hslm_inf)
+
+mat <- cbind(
+    hslm_inf[upper_tri],
+    hstc_inf[upper_tri],
+    hstc_uninf[upper_tri],
+    hstc_uninf[upper_tri]
+)
+
+# quantile normalize
+mat <- normalize.quantiles(mat)
+
+# replace original values
+hslm_inf[upper_tri] <- mat[,1]
+hslm_inf[lower_tri] <- t(hslm_inf)[lower_tri]
+
+hstc_inf[upper_tri] <- mat[,2]
+hstc_inf[lower_tri] <- t(hstc_inf)[lower_tri]
+
+hslm_uninf[upper_tri] <- mat[,3]
+hslm_uninf[lower_tri] <- t(hslm_uninf)[lower_tri]
+
+hstc_uninf[upper_tri] <- mat[,4]
+hstc_uninf[lower_tri] <- t(hstc_uninf)[lower_tri]
+
+par(mfrow=c(2,2))
+hist(hslm_inf, main="HsLm (Inf, Normalized)")
+hist(hstc_inf, main="HsTc (Inf, Normalized)")
+hist(hslm_uninf, main="HsLm (UnInf, Normalized)")
+hist(hstc_uninf, main="HsTc (UnInf, Normalized)")
+```
+

@@ -18,11 +18,6 @@ output:
     latex_engine: xelatex
 ---
 
-Introduction
-============
-
-TODO...
-
 Methods
 =======
 
@@ -34,27 +29,30 @@ Setup
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r load_libraries}
+```{r load_libraries, message=FALSE}
 library('biomaRt')
 library('doParallel')
 library('dplyr')
 library('dynamicTreeCut')
 library('flashClust')
 library('foreach')
+library('ggplot2')
 library('goseq')
 library('gplots')
 library('hpgltools')
 library('igraph')
 library('knitr')
 library('knitcitations')
+library('reshape2')
 library('readr')
+library('preprocessCore')
+library('tibble')
 library('tools')
 library('viridis')
 source('../../2015/00-shared/R/annotations.R')
 source('../../2015/00-shared/R/count_tables.R')
 source('../../2015/00-shared/R/enrichment_analysis.R')
 source('../../2015/00-shared/R/util.R')
-#source('child/03-host-analysis.Rmd')
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
@@ -63,57 +61,26 @@ source('../../2015/00-shared/R/util.R')
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
 ```
 
-```{r knitr_settings, include=FALSE}
-output_prefix <- file.path('output', params$version, "03-host-network-analysis")
+```{r}
+# keep a backup of full annotation dataframe
+gene_info_orig <- gene_info
+```
 
-output_datadir   <- file.path(output_prefix, 'data')
-output_tabledir  <- file.path(output_prefix, 'table')
-output_figprefix <- file.path(output_prefix, 'figure/')
+Load host consensus networks
+----------------------------
 
-# create output directories, if needed
-if (!dir.exists(output_datadir)) {
-    dir.create(output_datadir, recursive=TRUE)
-}
+```{r load_host_nets}
+load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-inf.rda')
+hslm_inf <- filtered_adjmat
 
-if (!dir.exists(output_tabledir)) {
-    dir.create(output_tabledir, recursive=TRUE)
-}
+load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-uninf.rda')
+hslm_uninf <- filtered_adjmat
 
-cache_dir <- file.path('cache', output_prefix)
+load('output/1.0/02-network-construction/data/adjmat_filtered_hstc-inf.rda')
+hstc_inf <- filtered_adjmat
 
-opts_chunk$set(fig.width=1920/192,
-               fig.height=1920/192,
-               fig.path=output_figprefix,
-               dpi=192,
-               cache.path=cache_dir)
-
-options(digits=3)
-options(stringsAsFactors=FALSE)
-options(knitr.duplicate.label='allow')
-options(java.parameters="-Xmx8g" )
-
-# If rmarkdown.pandoc.to not specified, have it default to 'latex' output
-if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
-    opts_knit$set(rmarkdown.pandoc.to='latex')
-}
-
-# Format-specific options
-if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    # PDF output
-    opts_chunk$set(dev=c('cairo_pdf', 'tiff'), 
-  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans"),
-                                 tiff=list(compression="lzw")))
-} else {
-    # HTML output
-    #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
-    opts_chunk$set(dev=c('png'), fig.retina=1)
-}
-
-# plotting parameters
-cex_main <- 1.6
-cex_lab  <- 1.8
-cex_axis <- 1.8
-cex_color_labels <- 1.3
+load('output/1.0/02-network-construction/data/adjmat_filtered_hstc-uninf.rda')
+hstc_uninf <- filtered_adjmat
 ```
 
 Infected vs. Uninfected Networks
@@ -121,19 +88,67 @@ Infected vs. Uninfected Networks
 
 ### Human infected with *L. major*
 
-```{r load_hslm_networks}
-# load infected and uninfected networks
-load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-inf.rda')
-inf <- filtered_adjmat
+```{r}
+inf <- hslm_inf
+uninf <- hslm_uninf
 
-load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-uninf.rda')
-uninf <- filtered_adjmat
+subtitle <- 'Human infected with L. major'
 
 # update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix, 'hslm-inf-vs-uninf'))
+opts_chunk$set(fig.path=paste0(output_figprefix, 'hslm-inf-vs-uninf-'))
+```
+
+```{r child='child/03-network-setup-inf-vs-uninf.Rmd'}
 ```
 
 ```{r child='child/03-host-analysis-inf-vs-uninf.Rmd'}
+```
+
+#### Summary of enrichment results
+
+```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
+```
+
+### Human infected with *T. cruzi*
+
+```{r}
+inf   <- hstc_inf
+uninf <- hstc_uninf
+
+subtitle <- 'Human infected with T. cruzi'
+
+# update figure prefix
+opts_chunk$set(fig.path=paste0(output_figprefix, 'hstc-inf-vs-uninf-'))
+```
+
+```{r child='child/03-network-setup-inf-vs-uninf.Rmd'}
+```
+
+```{r child='child/03-host-analysis-inf-vs-uninf.Rmd'}
+```
+
+#### Summary of enrichment results
+
+```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
+```
+
+Conserved signatures of infection: H. sapiens infected with *L. major* vs. *T. cruzi*
+-------------------------------------------------------------------------------------
+
+```{r}
+# update figure prefix
+opts_chunk$set(fig.path=paste0(output_figprefix, 'hstc_vs_hslm-'))
+```
+
+```{r child='child/03-network-setup-hstc-vs-hslm.Rmd'}
+```
+
+```{r child='child/03-host-conserved-infection-sig.Rmd'}
+```
+
+#### Summary of enrichment results
+
+```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
 Save Results

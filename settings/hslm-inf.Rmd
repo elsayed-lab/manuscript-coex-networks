@@ -1,7 +1,7 @@
 ```{r settings}
 #
 # H. sapiens infected with L. major settings
-# Updated 2017/11/07 (cutoff: 0.65)
+# Updated 2017/11/15 (cutoff: 0.49)
 #
 
 #
@@ -12,7 +12,7 @@ MANUSCRIPT_CONFIG <- list(
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'hsapiens_infected_with_lmajor-v6.0'),
     output_dirname  = 'hslm-inf',
-    quantile_cutoff = 0.65
+    quantile_cutoff = 0.49 # 0.65
 )
 
 #
