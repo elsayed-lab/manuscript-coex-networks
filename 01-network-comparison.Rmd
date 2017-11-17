@@ -34,8 +34,6 @@ constructing the consensus network.
 Methods
 =======
 
-## Setup
-
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 

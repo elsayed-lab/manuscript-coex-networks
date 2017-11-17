@@ -1,5 +1,13 @@
 ## Consensus co-expression network construction
 
+To begin with, previously generated adjaceny matrices from multiple different
+network parameterizations are loaded and combined into a single "consensus
+adjacency matrix".
+
+Each cell in the matrix represents the total support for a co-expression
+relationship between two genes across a large number of alternative network
+instantiations.
+
 ```{r load_consensus_nets, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
 # input adjaceny matrices
 input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
@@ -74,7 +82,9 @@ for (i in 1:length(input_nets)) {
     adjmat <- adjmat + tmp
 }
 
-range(adjmat)
-hist(log1p(adjmat))
+# histogram of the consensus adj matrix edge weight distribution
+#hist(log1p(adjmat))
+hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
+     xlab="Edge weight")
 ```
 

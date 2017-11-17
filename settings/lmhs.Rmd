@@ -40,7 +40,7 @@ CONFIG <- list(
 
     main_comparison     = c('amast04', 'amast72'),
 
-    verbose             = TRUE,
+    verbose             = FALSE,
     include_tables      = TRUE,
     include_plots       = FALSE,
     debug               = FALSE,

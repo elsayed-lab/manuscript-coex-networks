@@ -41,7 +41,7 @@ CONFIG <- list(
 
     main_comparison     = c(4, 72),
 
-    verbose             = TRUE,
+    verbose             = FALSE,
     include_tables      = TRUE,
     include_plots       = FALSE,
     debug               = FALSE,

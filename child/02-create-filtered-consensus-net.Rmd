@@ -8,27 +8,31 @@ hist(gene_max_edge_weights)
 abline(v=cutoff, col='red', lty=2)
 ```
 
-```{r create_filtered_adjmat}
+```{r create_filtered_adjmat, results='asis'}
 mask <- gene_max_edge_weights >= cutoff
 filtered_adjmat <- adjmat[mask, mask]
-cat(sprintf('- Genes passing cutoff: %d\n', sum(mask)))
+cat(sprintf('- Genes passing cutoff: %d/%d\n', sum(mask), length(mask)))
 ```
+
+Consensus adjacency matrix before and after filtering non-robust genes.
 
 ```{r figure_1b}
 # subsample networks before constructing heatmaps to reduce memory requirements
-n1 <- min(1000, nrow(adjmat))
-n2 <- min(1000, nrow(filtered_adjmat))
+n1 <- min(500, nrow(adjmat))
+n2 <- min(500, nrow(filtered_adjmat))
 
-par(mfrow=c(2,1))
+par(mfrow=c(1,2))
 
 # unfiltered network
 ind1 <- sample(1:nrow(adjmat), n1)
 heatmap.2(adjmat[ind1, ind1], trace='none', dendrogram='row',
-                  labRow=FALSE, labCol=FALSE, col='viridis')
+                  labRow=FALSE, labCol=FALSE, col='viridis',
+                  main='Unfiltered Consensus Adjacency Matrix')
 
 # filtered network
 ind2 <- sample(1:nrow(filtered_adjmat), n2)
 heatmap.2(filtered_adjmat[ind2, ind2], trace='none', dendrogram='row',
-                  labRow=FALSE, labCol=FALSE, col='viridis')
+                  labRow=FALSE, labCol=FALSE, col='viridis',
+                  main='Filtered Consensus Adjacency Matrix')
 ```
 

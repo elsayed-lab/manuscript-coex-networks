@@ -20,12 +20,19 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         num_kegg_enriched_modules,
         num_tf_enriched_modules
     ) %>% mutate(
-        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
-        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
-        ratio_enriched_tf_modules=num_tf_enriched_modules/num_modules,
-        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
-        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes,
-        ratio_tf_enrichment_to_num_genes=total_tf_pvals/num_genes
+        `Ratio GO-enriched modules`=num_go_enriched_modules/num_modules,
+        `Ratio KEGG-enriched modules`=num_kegg_enriched_modules/num_modules,
+        `Ratio TF-enriched modules`=num_tf_enriched_modules/num_modules,
+        `GO enrichment per gene`=total_go_pvals/num_genes,
+        `KEGG enrichment per gene`=total_kegg_pvals/num_genes,
+        `TF enrichment per gene`=total_tf_pvals/num_genes
+    ) %>% rename(
+        `# Unique GO terms`=num_unique_go_terms,
+        `# Unique KEGG pathways`=num_unique_kegg_pathways,
+        `# Unique TF's`=num_unique_tfs,
+        `GO enrichment -log10(p-val) score`=total_go_pvals,
+        `KEGG enrichment -log10(p-val) score`=total_kegg_pvals,
+        `TF enrichment -log10(p-val) score`=total_tf_pvals
     )
 } else {
     # GO, KEGG
@@ -43,10 +50,15 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         num_go_enriched_modules,
         num_kegg_enriched_modules
     ) %>% mutate(
-        ratio_enriched_go_modules=num_go_enriched_modules/num_modules,
-        ratio_enriched_kegg_modules=num_kegg_enriched_modules/num_modules,
-        ratio_go_enrichment_to_num_genes=total_go_pvals/num_genes,
-        ratio_kegg_enrichment_to_num_genes=total_kegg_pvals/num_genes
+        `Ratio GO-enriched modules`=num_go_enriched_modules/num_modules,
+        `Ratio KEGG-enriched modules`=num_kegg_enriched_modules/num_modules,
+        `GO enrichment per gene`=total_go_pvals/num_genes,
+        `KEGG enrichment per gene`=total_kegg_pvals/num_genes,
+    ) %>% rename(
+        `# Unique GO terms`=num_unique_go_terms,
+        `# Unique KEGG pathways`=num_unique_kegg_pathways,
+        `GO enrichment -log10(p-val) score`=total_go_pvals,
+        `KEGG enrichment -log10(p-val) score`=total_kegg_pvals
     )
 }
 
@@ -57,7 +69,7 @@ datatable(dat)
 
 ```{r num_unique_annotations}
 dat_num_unique <- dat %>%
-    select(cutoff_quantile, starts_with('num_unique')) %>%
+    select(cutoff_quantile, starts_with('# Unique')) %>%
     melt(id.vars='cutoff_quantile', variable.name='type',
          value.name='num_unique_annotations')
 
@@ -71,7 +83,7 @@ ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=ty
 
 ```{r pval_totals}
 dat_num_unique <- dat %>%
-    select(cutoff_quantile, starts_with('total')) %>%
+    select(cutoff_quantile, ends_with('score')) %>%
     melt(id.vars='cutoff_quantile', variable.name='type',
          value.name='pvalue_totals')
 
@@ -81,40 +93,12 @@ ggplot(dat_num_unique, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
     ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
 ```
 
-## Number of enriched modules
-
-```{r num_enriched_modules}
-dat_num_modules <- dat %>%
-    select(cutoff_quantile, ends_with('enriched_modules')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='num_enriched_modules')
-
-ggplot(dat_num_modules, aes(x=cutoff_quantile, y=num_enriched_modules, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('# Enriched Modules') +
-    ggtitle('Number of Enriched Modules vs. Edge Weight Cutoff')
-```
-
-## Ratio of enriched modules
-
-```{r ratio_enriched_modules}
-dat_ratio_modules <- dat %>%
-    select(cutoff_quantile, starts_with('ratio_enriched')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='ratio_enriched_modules')
-
-ggplot(dat_ratio_modules, aes(x=cutoff_quantile, y=ratio_enriched_modules, color=type)) +
-    geom_line() +
-    xlab('Edge Weight Cutoff Quantile') + ylab('Ratio Enriched Modules') +
-    ggtitle('Ratio Enriched Modules vs. Edge Weight Cutoff')
-```
-
 ## Ratio of enrichment score to number of genes
 
 ```{r ratio_enrichment_to_num_genes}
 # sum(-log10(adj.p.val)) over # genes vs. cutoff
 dat_ratio_enrichment <- dat %>%
-    select(cutoff_quantile, ends_with('to_num_genes')) %>%
+    select(cutoff_quantile, ends_with('per gene')) %>%
     melt(id.vars='cutoff_quantile', variable.name='type',
          value.name='ratio_enrichment_to_num_genes')
 

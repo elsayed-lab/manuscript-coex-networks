@@ -33,7 +33,8 @@ CONFIG <- list(
 
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')),
+                                             'settings', 'hsapiens_samples.csv')) %>%
+                          select(starts_with('infLM'))
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
@@ -41,7 +42,7 @@ CONFIG <- list(
 
     main_comparison     = c('infLM4', 'infLM72'),
 
-    verbose             = TRUE,
+    verbose             = FALSE,
     include_tables      = TRUE,
     include_plots       = FALSE,
     debug               = FALSE,

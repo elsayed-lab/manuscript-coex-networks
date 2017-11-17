@@ -5,7 +5,7 @@ title: "Host Consensus Network Analysis"
 params:
   version: "1.0"
   settings: "settings/host-analysis.Rmd"
-  analysis_dirname: "host-analysis"
+  analysis_dirname: "03-host-network-analysis"
 output:
   html_document:
     theme: cosmo

@@ -115,7 +115,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
     # remove low-weight edges (keep an average of 3 edges per node)
     num_edges <- 3 * length(V(g))
 
-    if (num_edge < length(E(g))) {
+    if (num_edges < length(E(g))) {
         cutoff <- as.numeric(quantile(E(g)$weight, 1 - (num_edges / length(E(g)))))
 
         E(g)$weight[E(g)$weight < cutoff] <- 0

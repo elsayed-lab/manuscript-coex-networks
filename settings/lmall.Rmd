@@ -44,7 +44,7 @@ CONFIG <- list(
 
     filter_multicopy  = FALSE,
 
-    verbose             = TRUE,
+    verbose             = FALSE,
     include_tables      = TRUE,
     include_plots       = FALSE,
     debug               = FALSE,

@@ -30,7 +30,7 @@ CONFIG <- list(
 
     main_comparison     = c('infLM4', 'infLM72'),
 
-    verbose             = TRUE,
+    verbose             = FALSE,
     include_tables      = TRUE,
     include_plots       = FALSE,
     debug               = FALSE,

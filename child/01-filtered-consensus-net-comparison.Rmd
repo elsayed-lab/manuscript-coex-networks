@@ -1,5 +1,14 @@
 ## Filtered consensus co-expression network comparison
 
+Next, we will compare the effect of filtering the consensus adjacency matrix to
+remove genes which are not strongly co-expressed with any other genes.
+Different cutoff values ranging in severity are tested and, in each case,
+functional enrichment is measured across all modules in the filtered network.
+
+Plots are then generated to show the effects of applying the varying levels of
+filtering, which can then be used to choose a specific cutoff value to apply to
+the final version of the network to be used for downstream analysis.
+
 ```{r filtered_consensus_network_setup, results='hide', message=FALSE}
 # maximum consensus edge weights for each gene
 gene_max_edge_weights <- apply(adjmat, 1, max)

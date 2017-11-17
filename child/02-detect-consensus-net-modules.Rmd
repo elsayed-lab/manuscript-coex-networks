@@ -23,7 +23,9 @@ num_modules <- length(unique(module_colors))
 ```
 
 ```{r module_stats, results='asis'}
-cat(sprintf("- Number of modules: %d\n", num_modules))
-cat(sprintf("- Median module size: %0.1f\n", median(module_sizes$num_genes)))
-cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
+template <- paste("- Number of modules: %d", 
+                  "- Median module size: %0.1f",
+                  "- Largest module size: %d\n", sep='\n')
+cat(sprintf(template, num_modules, median(module_sizes$num_genes), 
+            max(module_sizes$num_genes)))
 ```

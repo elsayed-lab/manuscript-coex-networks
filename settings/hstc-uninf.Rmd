@@ -31,7 +31,8 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '13-coex-network-hsapiens-infected-with-tcruzi',
                                              'settings',
-                                             'hsapiens_samples.csv')),
+                                             'hsapiens_samples.csv')) %>%
+                          select(starts_with('uninf')),
 
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
@@ -40,7 +41,7 @@ CONFIG <- list(
 
     main_comparison     = c('uninf04', 'uninf72'),
 
-    verbose         = TRUE,
+    verbose         = FALSE,
     include_tables  = TRUE,
     include_plots   = FALSE,
     debug           = FALSE,
