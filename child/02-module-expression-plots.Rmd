@@ -52,10 +52,13 @@ ggplot(data=module_averages_long,
           axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=16))
 ```
 
-```{r expression_profiles, message=FALSE, warning=FALSE, fig.show='hold', fig.height=5.0625, fig.width=9, dpi=192, results='hide'}
+```{r expression_profiles, message=FALSE, warning=FALSE, fig.width=18, dpi=96, results='hide'}
 # long version of counts
-counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
-counts_long <- melt(counts_long, id.vars='gene_id')
+combined_gene_counts <- combine_replicates(log2cpm_counts, condition)
+
+#counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
+#counts_long <- melt(counts_long, id.vars='gene_id')
+counts_long <- melt(combined_gene_counts, id.vars='row.names')
 
 names(counts_long) <- c('gene_id', 'condition', 'expression')
 

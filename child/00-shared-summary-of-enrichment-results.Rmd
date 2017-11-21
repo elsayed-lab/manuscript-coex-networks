@@ -1,4 +1,93 @@
-```{r table_S2_network_module_summary, results='asis'}
+### Summary of enrichment results
+
+Functionally enriched co-expression modules:
+
+```{r module_enrichment_overview, results='asis'}
+# GO enrichment P-value score
+pval_score_go   <- 0
+go_terms <- c()
+
+for (module in names(module_go_enrichment)) {
+    # over-represented terms with adj. p-val <= 0.05
+    mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
+    pval_score_go <- pval_score_go + sum(-log10(pmax(pvals, 10^-10)))
+
+    go_terms <- c(go_terms, module_go_enrichment[[module]]$category[mask])
+}
+
+# KEGG enrichment P-value score
+pval_score_kegg <- 0
+kegg_pathways <- c()
+
+for (module in names(module_kegg_enrichment)) {
+    # over-represented terms with adj. p-val <= 0.05
+    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
+    pval_score_kegg <- pval_score_kegg + sum(-log10(pmax(pvals, 10^-10)))
+
+    kegg_pathways <- c(kegg_pathways, module_kegg_enrichment[[module]]$category[mask])
+}
+
+# CPDB / Marbach TF enrichment P-value score
+if (CONFIG$target == 'host') {
+    pval_score_coreg <- 0
+    pval_score_cpdb  <- 0
+    tfs           <- c()
+    cpdb_pathways <- c()
+
+    # CPDB
+    for (module in names(module_cpdb_enrichment)) {
+        # over-represented terms with adj. p-val <= 0.05
+        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+        pval_score_cpdb <- pval_score_cpdb + sum(-log10(pmax(pvals, 10^-10)))
+
+        cpdb_pathways <- c(cpdb_pathways, module_go_enrichment[[module]]$category[mask])
+    }
+
+    # Marbach 2016
+    for (module in names(module_coreg_enrichment)) {
+        # over-represented terms with adj. p-val <= 0.05
+        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
+        pval_score_coreg <- pval_score_coreg + sum(-log10(pmax(pvals, 10^-10)))
+
+        tfs <- c(tfs, module_coreg_enrichment[[module]]$category[mask])
+    }
+}
+
+# common enrichment
+template <- paste("- Total GO enrichment P-value score: %0.1f (%d unique terms)", 
+                  "- Total KEGG enrichment P-value score: %0.1f (%d unique pathways)\n", sep='\n')
+
+# host-specific 
+if (CONFIG$target == 'host') {
+    template <- paste0(template, 
+                      "- Total CPDB enrichment P-value score: %0.1f (%d unique pathways)\n",
+                      "- Total Marbach TF enrichment P-value score: %0.1f (%d unique TF's)\n")
+    cat(sprintf(template, 
+                pval_score_go, length(unique(go_terms)),
+                pval_score_kegg, length(unique(kegg_pathways)),
+                pval_score_cpdb, length(unique(cpdb_pathways)),
+                pval_score_coreg, length(unique(tfs))))
+} else {
+    # parasite (GO/KEGG only)
+    cat(sprintf(template, 
+                pval_score_go, length(unique(go_terms)),
+                pval_score_kegg, length(unique(kegg_pathways))))
+}
+```
+
+```{r table_S2_enriched_network_modules, results='asis'}
 table_S2 <- module_sizes %>%
     dplyr::rename(Module=module_id)
 
@@ -31,5 +120,6 @@ if (CONFIG$target == 'pathogen') {
                       by='Module')
 }
 
-xkable(table_S2)
+mask <- rowSums(table_S2[,3:ncol(table_S2)]) > 0
+xkable(table_S2[mask,] %>% arrange(desc(`Num Enriched GO Terms`)))
 ```

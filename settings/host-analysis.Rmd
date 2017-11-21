@@ -28,7 +28,8 @@ CONFIG <- list(
     batch               = 'Batch',
     covariates          = c('Batch'),
 
-    main_comparison     = c('infLM4', 'infLM72'),
+    main_comparison       = c('infLM4', 'infLM72'),
+    main_comparison_label = "72 - 4 hours",
 
     verbose             = FALSE,
     include_tables      = TRUE,

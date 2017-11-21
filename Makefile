@@ -7,6 +7,9 @@ clean:
 
 comparison:
 	for rmd in settings/*.Rmd; do \
+		if [[ $$rmd == 'settings/host-analysis.Rmd' ]]; then \
+			continue; \
+		fi; \
 		echo "Processing $$rmd"; \
 		title=`grep title $$rmd | grep -o \".*\"`; \
 		params="list(settings=\"$$rmd\", title=$$title)"; \

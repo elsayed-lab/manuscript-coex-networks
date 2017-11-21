@@ -34,13 +34,14 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '13-coex-network-hsapiens-infected-with-tcruzi',
                                              'settings', 'hsapiens_samples.csv')) %>%
-                          select(starts_with('inf')),
+                          filter(startsWith(Condition, 'inf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
     covariates          = c('Batch'),
 
     main_comparison     = c('inf04', 'inf72'),
+    main_comparison_label = "72 - 4 hours",
 
     verbose             = FALSE,
     include_tables      = TRUE,

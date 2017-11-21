@@ -2,6 +2,22 @@
 #
 # L. major all samples
 #
+# Updated 2017/11/21 (cutoff: 0.48)
+# Note: 0.77 also appears to be a good cutoff, if a more stringent network is
+# desired...
+#
+
+#
+# Exclude networks without batch adjustment (performs signficantly worse for L.
+# major and has a strong negative influence on resulting consensus network
+#
+nets <- read_csv(file.path(Sys.getenv('r15'), '115-coex-network-param-opt-v6',
+                           'output', 'normal',
+                           'lmajor_all_samples-multicopy-v6.0.csv')) %>%
+    filter(batch_adjustment != 'none')
+
+nets_to_include <- sprintf('%d_adjmat.RData', nets$id)
+rdas_to_include <- sprintf('%d.RData', nets$id)
 
 #
 # Manuscript-specific configuration
@@ -11,7 +27,7 @@ MANUSCRIPT_CONFIG <- list(
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'lmajor_all_samples-multicopy-v6.0'),
     output_dirname  = 'lmajor',
-    quantile_cutoff = 0.75
+    quantile_cutoff = 0.48
 )
 
 #
@@ -41,6 +57,7 @@ CONFIG <- list(
     covariates        = c('batch', 'host', 'strain'),
 
     main_comparison     = c('proc', 'amast04'),
+    main_comparison_label = "Amastigote (4 HPI) - Procyclic",
 
     filter_multicopy  = FALSE,
 

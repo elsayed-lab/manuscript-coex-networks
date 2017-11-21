@@ -1,6 +1,7 @@
 ```{r settings}
 #
 # H. sapiens infected with L. major settings (Uninfected samples only)
+# Updated: 2017/11/20
 #
 
 #
@@ -33,13 +34,14 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '11-coex-network-hsapiens-infected-with-lmajor',
                                              'settings', 'hsapiens_samples.csv')) %>%
-                          select(starts_with('uninf')),
+                          filter(startsWith(Condition, 'uninf')),
     'sample_id'         = 'HPGL_ID',
     'condition'         = 'Condition',
     'batch'             = 'Batch',
     'covariates'        = c('Batch'),
 
     main_comparison     = c('uninf4', 'uninf72'),
+    main_comparison_label = "72 - 4 hours",
 
     verbose             = FALSE,
     include_tables      = TRUE,

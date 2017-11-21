@@ -1,4 +1,4 @@
-```{r tf_enrichment_summary, eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
+```{r tf_enrichment_summary, results='asis'}
 # get list of enriched TF regulons
 enriched_tfs <- c()
 
@@ -14,16 +14,23 @@ for (x in names(module_coreg_enrichment)) {
 gene_tfs <- gene_tf_mapping %>% 
     filter(category %in% enriched_tfs & gene %in% gene_info$gene_id)
 
-cat(sprintf('- Number of enriched TFs: %d/%d\n',
+template <- paste('- Number of enriched TFs: %d/%d\n'
+                  '- Number of genes associated with at least one enriched TF: %d/%d\n', sep='\n')
+cat(sprintf(template,
             length(unique(gene_tfs$category)),
-            length(unique(gene_tf_mapping$category))))
-cat(sprintf('- Number of genes associated with at least one enriched TF: %d/%d\n',
+            length(unique(gene_tf_mapping$category)),
             length(unique(gene_tfs$gene)),
             nrow(gene_info)))
+```
 
+Histogram depicting the average number of KEGG pathways associated with each
+gene, for all those genes annotated with at least one KEGG pathway.
+
+```{r tf_enrichment_summary_ii}
 # average number of TF's associated with each gene (only considering genes
 # associated with at least one enriched TF...)
-hist(table(gene_tfs$gene))
+hist(table(gene_tfs$gene),
+     xlab='# TF\'s associated with gene')
 
 # collapse module tf enrichment results into a single dataframe and find the
 # N TF's with the strongest enrichment

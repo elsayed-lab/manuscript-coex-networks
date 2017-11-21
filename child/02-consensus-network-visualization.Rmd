@@ -1,4 +1,5 @@
-```{r consensus_network_dendrogram}
+```{r consensus_network_dendrogram, fig.height=1080/192}
+# Dendrogram bar plots and labels
 dendrogram_colors = module_colors
 
 # Show average change in expression across two selected stages
@@ -6,21 +7,61 @@ combined_counts <- combine_replicates(log2cpm_counts, condition)
 expr_diff <- (combined_counts[,as.character(CONFIG$main_comparison[2])] - 
               combined_counts[,as.character(CONFIG$main_comparison[1])])
 
-# map continus values to discrete color scale
-x <- infotheo::discretize(expr_diff, nbins=100)[,1]
+# Reorder to match tree
+#expr_diff <- expr_diff[match(names(expr_diff), gene_tree$labels)]
+
+# Show average expression diff at the module level
+module_expr_diff <- cbind(result %>% select(gene_id, color), expr=expr_diff)
+module_expr_diff <- module_expr_diff %>% 
+    group_by(color) %>% 
+    summarize(median_expr=median(expr))
+
+#ind <- match(result$color[match(names(expr_diff), result$gene_id)], 
+#             module_expr_diff$color)
+#gene_expr_diff <- module_expr_diff$median_expr[ind]
+gene_expr_diff <- rep(0, length(module_colors))
+
+for (col in unique(module_colors)) {
+    mod_expr <- module_expr_diff$median_expr[module_expr_diff$color == col]
+    gene_expr_diff[module_colors == col] <- mod_expr
+}
+
+# Map continus values to discrete color scale
+x <- infotheo::discretize(gene_expr_diff, nbins=100)[,1]
 dendrogram_colors = cbind(dendrogram_colors, viridis(100)[x])
+dendrogram_labels = c('Modules', CONFIG$main_comparison_label)
 
 # Add GO and KEGG enrichment
 dendrogram_colors = cbind(dendrogram_colors, go_enrichment_status,
                           kegg_enrichment_status)
+dendrogram_labels = c(dendrogram_labels, 'GO enrichment', 'KEGG enrichment')
 
-#dendrogram_labels = c('Modules', '4 vs. 24 hrs', '4 vs. 72 hrs', 'GO
-expr_diff_label <- paste(sprintf("%s - %s", CONFIG$main_comparison[2],
-                                CONFIG$main_comparison[1]))
+# Add CPDB / Marbach enrichment (human only)
+if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
+    dendrogram_colors = cbind(dendrogram_colors, go_enrichment_status,
+                              cpdb_enrichment_status, marbach_enrichment_status)
+    dendrogram_labels = c(dendrogram_labels, 'CPDB enrichment', 'TF enrichment')
+}
 
-dendrogram_labels = c('Modules', expr_diff_label, 'GO enrichment', 'KEGG enrichment')
+# Add Secreted, TM, and GPI-anchored protein enrichment (parasites only)
+if (CONFIG$target == 'pathogen') {
+    if (sum(secreted_module_status) > 0) {
+        dendrogram_colors = cbind(dendrogram_colors, secreted_module_status)
+        dendrogram_labels = c(dendrogram_labels, 'Secreted protein enrichment')
+    }
 
-#sprintf("%s vs. %s\n Red = Up-regulated\n Black = Down-regulated", 
+    if (sum(membrane_module_status) > 0) {
+        dendrogram_colors = cbind(dendrogram_colors, membrane_module_status)
+        dendrogram_labels = c(dendrogram_labels, 'Transmembrane protein enrichment')
+    }
+
+    if (sum(gpi_anchored_module_status) > 0) {
+        dendrogram_colors = cbind(dendrogram_colors, gpi_anchored_module_status)
+        dendrogram_labels = c(dendrogram_labels, 'GPI-anchored protein enrichment')
+    }
+}
+
+# Plot annotated network dendrogram
 plotDendroAndColors(gene_tree, dendrogram_colors,
                     groupLabels=dendrogram_labels, dendroLabels=FALSE,
                     cex.colorLabels=1, cex.main=1, cex.axis=1, cex.lab=1,

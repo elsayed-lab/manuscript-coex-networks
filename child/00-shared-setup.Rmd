@@ -4,7 +4,7 @@ library('readr')
 knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
 ```
 
-```{r knitr_settings, include=FALSE}
+```{r knitr_settings, include=FALSE, message=FALSE}
 output_prefix <- file.path('output', params$version, params$analysis_dirname)
 output_suffix <- MANUSCRIPT_CONFIG$output_dirname
 
@@ -14,11 +14,11 @@ output_figprefix <- file.path(output_prefix, 'figure', paste0(output_suffix, '-'
 
 # create output directories, if needed
 if (!dir.exists(output_datadir)) {
-    dir.create(output_datadir, recursive=TRUE)
+    dir.create(file.path('..', output_datadir), recursive=TRUE)
 }
 
 if (!dir.exists(output_tabledir)) {
-    dir.create(output_tabledir, recursive=TRUE)
+    dir.create(file.path('..', output_tabledir), recursive=TRUE)
 }
 
 cache_dir <- file.path('cache', output_prefix, output_suffix)

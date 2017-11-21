@@ -52,9 +52,6 @@ Methods
 
 ## Setup
 
-```{r child='child/00-shared-setup.Rmd'}
-```
-
 ```{r load_libraries, message=FALSE, results='hide'}
 library('biomaRt')
 library('clusteval')
@@ -92,6 +89,9 @@ source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
 
 options(stringsAsFactors=FALSE)
+```
+
+```{r child='child/00-shared-setup.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
@@ -134,12 +134,8 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ## Functional enrichment
 
-### GO Enrichment
-
 ```{r child='../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
 ```
-
-### KEGG Enrichment
 
 ```{r child='../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
 ```
@@ -147,18 +143,17 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/02-kegg-enrichment-results.Rmd'}
 ```
 
-### TF regulon Enrichment
-
 ```{r child='../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
 ```
 
-```{r child='child/02-tf-regulon-enrichment-results.Rmd'}
+```{r child='child/02-tf-regulon-enrichment-results.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
+```
+
+```{r child='../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/results/secreted_proteins.Rmd', eval=CONFIG$target == 'pathogen'}
 ```
-
-### Summary of enrichment results
 
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
@@ -168,7 +163,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/02-consensus-network-visualization.Rmd'}
 ```
 
-## Save results
+### Save results
 
 ```{r table_s1_module_membership}
 # all(gene_info$gene_id == gene_tree$labels)                                                                                                                                                                   
@@ -179,19 +174,25 @@ table_S1 <- data.frame(gene_id=gene_info$gene_id,
                        description=gene_info$description)
 ```
 
-```{r save_table_results, include=FALSE}
-for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
-    if (table_name == 'table_name') {
-        next
-    }
-    message(sprintf("Saving %s", table_name))
+```{r save_table_results, message=FALSE}
+# Get a list of variables starts with "table_" and save each one to file
+tbl_vars <- ls()[grepl('^table_[XS]?[0-9]', ls())]
+
+for (tbl_name in tbl_vars) {
+    message(sprintf("Saving %s", tbl_name))
 
     # Retrieve variable associated with table
-    tbl_ <- get(table_name)
+    tbl_ <- get(tbl_name)
+
+    # Convert tbl's to  basic data frames; 
+    # Prevents issues relating to the format() function
+    if (is.tbl(tbl_)) {
+        tbl_ <- as.data.frame(tbl_)
+    }
 
     # For single tables, save as TSV
     if (is.matrix(tbl_) || is.data.frame(tbl_)) {
-        filename <- sprintf("%s_%s.tab", table_name, MANUSCRIPT_CONFIG$output_dirname)
+        filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
 
         # write table to file
         write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
@@ -199,7 +200,7 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
     } else {
         # Otherwise, if multiple tables stored in a list, save as XLS with
         # separate sheets for each table
-        filename <- sprintf("%s_%s.xlsx", table_name, MANUSCRIPT_CONFIG$output_dirname)
+        filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
         xls_filepath <- file.path(output_tabledir, filename)
 
         sheet_names <- names(tbl_)
@@ -219,25 +220,23 @@ for (table_name in ls()[grepl('^table_[XS]?[0-9]', ls())]) {
 }
 ```
 
-```{r save_rdata_results, results='asis'}
+```{r save_rdata_results, message=FALSE}
 #save(adjmat, file=file.path(output_datadir, 'adjmat_unfiltered.rda'))
+message("Saving RData objects")
 save(filtered_adjmat, file=file.path(output_datadir, paste0('adjmat_filtered_', output_suffix, '.rda')))
 save(gene_info, file=file.path(output_datadir, paste0('gene_info_', output_suffix, '.rda')))
 save(module_go_enrichment, file=file.path(output_datadir, paste0('module_go_enrichment_', output_suffix, '.rda')))
 save(module_kegg_enrichment, file=file.path(output_datadir, paste0('module_kegg_enrichment_', output_suffix, '.rda')))
 ```
 
-```{r save_network}
+```{r save_network, message=FALSE}
+message("Saving consensus network GraphML")
+
 # add secretion / GPI-anchor status cols (pathogen only)
 if (CONFIG$target == 'pathogen') {
     annot$gpi_anchored <- gpi_anchored_gene_status
     annot$secreted <- secreted_gene_status
 }
-
-# remove unclustered genes
-#mask <- annot$color != 'grey'
-#filtered_adjmat <- filtered_adjmat[mask, mask]
-#annot <- annot[mask,]
 
 # rescale edge weights to 0 - 1 and save network
 filtered_adjmat <- log1p(filtered_adjmat)
@@ -264,7 +263,7 @@ for (d in c(output_datadir, output_tabledir)) {
 }
 ```
 
-```{r save_output, include=FALSE}
+```{r save_output}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
 html_filepath <- file.path(output_prefix, paste0('consesus_network_', MANUSCRIPT_CONFIG$output_dirname, '.html'))

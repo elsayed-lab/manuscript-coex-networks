@@ -10,7 +10,7 @@
 MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: H. sapiens infected with T. cruzi (Uninfected Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'hsapiens_infected_with_tcruzi-uninf-v6.0'),
+                                'hsapiens_infected_with_tcruzi-uninf-v6.1'),
     output_dirname  = 'hstc-uninf',
     quantile_cutoff = 0.40
 )
@@ -32,7 +32,7 @@ CONFIG <- list(
                                              '13-coex-network-hsapiens-infected-with-tcruzi',
                                              'settings',
                                              'hsapiens_samples.csv')) %>%
-                          select(starts_with('uninf')),
+                          filter(startsWith(Condition, 'uninf')),
 
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
@@ -40,6 +40,7 @@ CONFIG <- list(
     covariates          = c('Batch'),
 
     main_comparison     = c('uninf04', 'uninf72'),
+    main_comparison_label = "72 - 4 hours",
 
     verbose         = FALSE,
     include_tables  = TRUE,

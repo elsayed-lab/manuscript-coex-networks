@@ -9,7 +9,7 @@ Plots are then generated to show the effects of applying the varying levels of
 filtering, which can then be used to choose a specific cutoff value to apply to
 the final version of the network to be used for downstream analysis.
 
-```{r filtered_consensus_network_setup, results='hide', message=FALSE}
+```{r filtered_consensus_network_setup, results='hide', message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
 # maximum consensus edge weights for each gene
 gene_max_edge_weights <- apply(adjmat, 1, max)
 
@@ -70,6 +70,8 @@ for (quantile_cutoff in quantile_cutoffs) {
     gene_tree <- flashClust(as.dist(distmat), method="average")
     gene_tree$height <- round(gene_tree$height, 6)
 
+    # TESTING 2017/11/21
+    #module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=TRUE, minModuleSize=10)
     module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
 
     num_labels <- length(unique(module_labels))
@@ -83,8 +85,11 @@ for (quantile_cutoff in quantile_cutoffs) {
     #module_colors <- module_colors[mask]
     #filtered_adjmat <- filtered_adjmat[mask, mask]
 
-    # relevant gene annotations
-    gene_info <- gene_info_orig %>% filter(gene_id %in% rownames(filtered_adjmat))
+    # load relevant gene annotations and restore order
+    gene_info <- gene_info_orig %>% 
+        filter(gene_id %in% rownames(filtered_adjmat)) %>%
+        arrange(gene_id)
+
     result <- cbind(gene_info, color=module_colors)
 
     # create a mapping from module id to number of genes for later use

@@ -12,12 +12,10 @@ heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=F
 ```
 
 ```{r diff_matrix_clustering}
-# find positive correlations
-cor_mat <- cor(diff)
-cor_mat[cor_mat < 0] <- 0
-
 # convert to distance matrix and perform hierarchical clustering
-distmat <- 1 - cor_mat
+# take absolute value of difference adjacency matrix; sets of genes which are
+# all changing direction together, will still be separated out
+distmat <- 1 - abs(diff)
 
 gene_tree <- flashClust(as.dist(distmat), method="average")
 gene_tree$height <- round(gene_tree$height, 6)
@@ -48,9 +46,10 @@ cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
 ### Functional Enrichment
 
 ```{r create_net_annotation_df}
-# create dataframe to use for network node annotations
+# load relevant gene annotations and restore order
 gene_info <- gene_info_orig %>% 
-    filter(gene_id %in% rownames(diff))
+    filter(gene_id %in% rownames(diff)) %>%
+    arrange(gene_id)
 
 result <- cbind(gene_info, color=module_colors)
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
@@ -160,6 +159,6 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
 ```
 
 ```{r cleanup, include=FALSE}
-rm(inf, uninf, cor_mat, distmat)
+rm(inf, uninf, distmat)
 ```
 

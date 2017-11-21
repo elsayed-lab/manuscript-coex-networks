@@ -11,17 +11,19 @@ abline(v=cutoff, col='red', lty=2)
 ```{r create_filtered_adjmat, results='asis'}
 mask <- gene_max_edge_weights >= cutoff
 filtered_adjmat <- adjmat[mask, mask]
-cat(sprintf('- Genes passing cutoff: %d/%d\n', sum(mask), length(mask)))
+cat(sprintf('\n- Genes passing cutoff: %d/%d\n', sum(mask), length(mask)))
 ```
 
 Consensus adjacency matrix before and after filtering non-robust genes.
+
+### Unfiltered consesnsus adjacency matrix
 
 ```{r figure_1b}
 # subsample networks before constructing heatmaps to reduce memory requirements
 n1 <- min(500, nrow(adjmat))
 n2 <- min(500, nrow(filtered_adjmat))
 
-par(mfrow=c(1,2))
+par(mfrow=c(2,1))
 
 # unfiltered network
 ind1 <- sample(1:nrow(adjmat), n1)

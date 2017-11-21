@@ -13,6 +13,12 @@ instantiations.
 input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
 input_rdas <- sub('_adjmat', '', input_nets)
 
+# filter input nets and rdas (optional)
+if ('nets_to_include' %in% ls()) {
+   input_nets <- input_nets[basename(input_nets) %in% nets_to_include] 
+   input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
+}
+
 # load adjacency matrix and module mapping for the first network
 load(input_rdas[1])
 

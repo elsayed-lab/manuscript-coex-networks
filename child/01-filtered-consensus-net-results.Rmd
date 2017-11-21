@@ -26,7 +26,7 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         `GO enrichment per gene`=total_go_pvals/num_genes,
         `KEGG enrichment per gene`=total_kegg_pvals/num_genes,
         `TF enrichment per gene`=total_tf_pvals/num_genes
-    ) %>% rename(
+    ) %>% dplyr::rename(
         `# Unique GO terms`=num_unique_go_terms,
         `# Unique KEGG pathways`=num_unique_kegg_pathways,
         `# Unique TF's`=num_unique_tfs,
@@ -54,7 +54,7 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         `Ratio KEGG-enriched modules`=num_kegg_enriched_modules/num_modules,
         `GO enrichment per gene`=total_go_pvals/num_genes,
         `KEGG enrichment per gene`=total_kegg_pvals/num_genes,
-    ) %>% rename(
+    ) %>% dplyr::rename(
         `# Unique GO terms`=num_unique_go_terms,
         `# Unique KEGG pathways`=num_unique_kegg_pathways,
         `GO enrichment -log10(p-val) score`=total_go_pvals,

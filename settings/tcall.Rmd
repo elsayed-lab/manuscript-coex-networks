@@ -1,7 +1,10 @@
 ```{r settings}
 #
 # T. cruzi infecting H. sapiens (all samples)
-# Updated 2017/11/07 (cutoff 0.50)
+#
+# Updated 2017/11/20:
+# - CPM=TRUE
+# - Cutoff: ?
 #
 
 #
@@ -11,9 +14,21 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: T. cruzi infecting H. sapiens", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'tcruzi_all_samples-multicopy-v6.0'),
-    output_dirname  = 'tchs',
-    quantile_cutoff = 0.50
+    output_dirname  = 'tcruzi',
+    quantile_cutoff = 0.25
 )
+
+#
+# Only include networks constructed from CPM-transformed counts (performs much
+# better for T. cruzi
+#
+nets <- read_csv(file.path(Sys.getenv('r15'), '115-coex-network-param-opt-v6',
+                           'output', 'normal',
+                           'tcruzi_all_samples-multicopy-v6.0.csv')) %>%
+    filter(cpm_transform == TRUE)
+
+nets_to_include <- sprintf('%d_adjmat.RData', nets$id)
+rdas_to_include <- sprintf('%d.RData', nets$id)
 
 #
 # Base co-expression analysis configuration
@@ -40,6 +55,7 @@ CONFIG <- list(
     filter_multicopy  = FALSE,
 
     main_comparison     = c(4, 72),
+    main_comparison_label = "72 - 4 hours",
 
     verbose             = FALSE,
     include_tables      = TRUE,
