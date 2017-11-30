@@ -38,7 +38,7 @@ dendrogram_labels = c(dendrogram_labels, 'GO enrichment', 'KEGG enrichment')
 
 # Add CPDB / Marbach enrichment (human only)
 if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
-    dendrogram_colors = cbind(dendrogram_colors, go_enrichment_status,
+    dendrogram_colors = cbind(dendrogram_colors, 
                               cpdb_enrichment_status, marbach_enrichment_status)
     dendrogram_labels = c(dendrogram_labels, 'CPDB enrichment', 'TF enrichment')
 }
@@ -52,7 +52,7 @@ if (CONFIG$target == 'pathogen') {
 
     if (sum(membrane_module_status) > 0) {
         dendrogram_colors = cbind(dendrogram_colors, membrane_module_status)
-        dendrogram_labels = c(dendrogram_labels, 'Transmembrane protein enrichment')
+        dendrogram_labels = c(dendrogram_labels, 'TM protein enrichment')
     }
 
     if (sum(gpi_anchored_module_status) > 0) {

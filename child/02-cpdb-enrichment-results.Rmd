@@ -1,0 +1,58 @@
+```{r cpdb_enrichment_summary, results='asis'}
+# get list of enriched CPDB pathwys
+enriched_cpdb_paths <- c()
+
+for (x in names(module_cpdb_enrichment)) {
+    res <- module_cpdb_enrichment[[x]]
+
+    if (nrow(res) > 0) {
+        cpdb_pathways <- (res %>% filter(over_represented_pvalue_adj < 0.05))$category
+        enriched_cpdb_paths <- unique(c(enriched_cpdb_paths, cpdb_pathways))
+    }
+}
+
+gene_cpdb_pathways <- gene_cpdb_mapping %>% 
+    filter(category %in% enriched_cpdb_paths & gene %in% gene_info$gene_id)
+
+template <- paste('- Number of enriched CPDB Pathways: %d/%d', 
+                  '- Number of genes associated with at least one enriched CPDB Pathway: %d/%d\n', sep='\n')
+cat(sprintf(template, 
+            length(unique(gene_cpdb_pathways$category)), 
+            length(unique(gene_cpdb_mapping$category)),
+            length(unique(gene_cpdb_pathways$gene)), 
+            nrow(gene_info)))
+```
+
+Histogram depicting the average number of CPDB pathways associated with each
+gene, for all those genes annotated with at least one CPDB pathway.
+
+```{r cpdb_enrichment_summary_ii, results='asis'}
+if (nrow(gene_cpdb_pathways) > 0) {
+    hist(table(gene_cpdb_pathways$gene),
+         xlab='# CPDB pathways associated with gene')
+}
+
+cat("\nMost enriched CPDB pathways / pathways related to infection:\n")
+
+# collapse module CPDB path enrichment results into a single dataframe and find
+# the N pathways with the strongest enrichment
+cpdb_enrich_df <- do.call("rbind", module_cpdb_enrichment) %>%
+    arrange(over_represented_pvalue_adj) %>%
+    select(-starts_with('under'), -over_represented_pvalue)
+
+
+# Also include pathways related to infection
+cpdb_paths_of_interest <- 'Cytokine|Antigen|TNF|immune|Chagas|Toll'
+
+cpdb_enrich_df <- cpdb_enrich_df[rownames(cpdb_enrich_df) %in% 1:5 |
+                                 grepl(cpdb_paths_of_interest, cpdb_enrich_df$name),]
+kable(cpdb_enrich_df)
+
+# add one column for each of the top enriched CPDB pathways
+for (name in cpdb_enrich_df$name) {
+    # create binary vector of enrichment status for specific CPDB pathways
+    gids <- (gene_cpdb_pathways %>% 
+        filter(name == name))$gene
+    annot[[name]] <- annot$gene_id %in% gids
+}
+```

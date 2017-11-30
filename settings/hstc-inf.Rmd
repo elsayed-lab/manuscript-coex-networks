@@ -1,7 +1,7 @@
 ```{r settings}
 #
 # H. sapiens infected with T. cruzi settings
-# Updated 2017/11/11 (cutoff: 0.5)
+# Updated 2017/11/29 (cutoff: 0.31)
 #
 
 #
@@ -12,7 +12,13 @@ MANUSCRIPT_CONFIG <- list(
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'hsapiens_infected_with_tcruzi-v6.0'),
     output_dirname  = 'hstc-inf',
-    quantile_cutoff = 0.5
+    quantile_cutoff = 0.31,
+    networks        = read_csv(file.path(
+                                  Sys.getenv('r15'), 
+                                  '115-coex-network-param-opt-v6',
+                                  'output', 'normal',
+                                  'hsapiens_infected_with_tcruzi-v6.0.csv')) %>%
+                        filter(network_type == 'signed')
 )
 
 #
@@ -41,7 +47,7 @@ CONFIG <- list(
     covariates          = c('Batch'),
 
     main_comparison     = c('inf04', 'inf72'),
-    main_comparison_label = "72 - 4 hours",
+    main_comparison_label = "ΔExpr (72 - 4 hrs)",
 
     verbose             = FALSE,
     include_tables      = TRUE,

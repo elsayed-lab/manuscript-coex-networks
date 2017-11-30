@@ -29,7 +29,7 @@ CONFIG <- list(
     covariates          = c('Batch'),
 
     main_comparison       = c('infLM4', 'infLM72'),
-    main_comparison_label = "72 - 4 hours",
+    main_comparison_label = "ΔExpr (72 - 4 hrs)",
 
     verbose             = FALSE,
     include_tables      = TRUE,

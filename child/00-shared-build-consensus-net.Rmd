@@ -14,9 +14,12 @@ input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
 input_rdas <- sub('_adjmat', '', input_nets)
 
 # filter input nets and rdas (optional)
-if ('nets_to_include' %in% ls()) {
-   input_nets <- input_nets[basename(input_nets) %in% nets_to_include] 
-   input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
+if ('networks' %in% names(MANUSCRIPT_CONFIG)) {
+    nets_to_include <- sprintf('%d_adjmat.RData', MANUSCRIPT_CONFIG$networks$id)
+    rdas_to_include <- sprintf('%d.RData', MANUSCRIPT_CONFIG$networks$id)
+
+    input_nets <- input_nets[basename(input_nets) %in% nets_to_include] 
+    input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
 }
 
 # load adjacency matrix and module mapping for the first network
@@ -43,6 +46,13 @@ for (i in 1:length(input_nets)) {
 
     # reconstruct adjacency matrix
     matsize <- nrow(module_mapping)
+
+    # check to make sure dimensions are as expected
+    if ((((matsize * matsize) - matsize) / 2) != length(adjacency_matrix)) {
+        warning(sprintf("Dimension mismatch for adjacency matrix: %s", 
+                        input_rdas[i]))
+        stop(sprintf("Incompatible adjacency matrix input: %s", input_nets[i]))
+    }
 
     # add to existing adjacency matrix;
     tmp <- matrix(0, nrow=matsize, ncol=matsize)

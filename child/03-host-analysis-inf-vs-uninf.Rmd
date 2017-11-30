@@ -68,6 +68,14 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-kegg-enrichment-results.Rmd'}
 ```
 
+#### KEGG Enrichment
+
+```{r child='../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
+```
+
+```{r child='02-cpdb-enrichment-results.Rmd'}
+```
+
 #### TF regulon Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}

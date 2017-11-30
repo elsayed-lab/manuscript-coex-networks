@@ -2,6 +2,15 @@
 
 Functionally enriched co-expression modules:
 
+```{r table_s1_module_membership}
+# all(gene_info$gene_id == gene_tree$labels)                                                                                                                                                                   
+# [1] TRUE
+table_S1 <- data.frame(gene_id=gene_info$gene_id, 
+                       color=module_colors,
+                       cluster=module_labels,
+                       description=gene_info$description)
+```
+
 ```{r module_enrichment_overview, results='asis'}
 # GO enrichment P-value score
 pval_score_go   <- 0
@@ -64,30 +73,9 @@ if (CONFIG$target == 'host') {
         tfs <- c(tfs, module_coreg_enrichment[[module]]$category[mask])
     }
 }
-
-# common enrichment
-template <- paste("- Total GO enrichment P-value score: %0.1f (%d unique terms)", 
-                  "- Total KEGG enrichment P-value score: %0.1f (%d unique pathways)\n", sep='\n')
-
-# host-specific 
-if (CONFIG$target == 'host') {
-    template <- paste0(template, 
-                      "- Total CPDB enrichment P-value score: %0.1f (%d unique pathways)\n",
-                      "- Total Marbach TF enrichment P-value score: %0.1f (%d unique TF's)\n")
-    cat(sprintf(template, 
-                pval_score_go, length(unique(go_terms)),
-                pval_score_kegg, length(unique(kegg_pathways)),
-                pval_score_cpdb, length(unique(cpdb_pathways)),
-                pval_score_coreg, length(unique(tfs))))
-} else {
-    # parasite (GO/KEGG only)
-    cat(sprintf(template, 
-                pval_score_go, length(unique(go_terms)),
-                pval_score_kegg, length(unique(kegg_pathways))))
-}
 ```
 
-```{r table_S2_enriched_network_modules, results='asis'}
+```{r table_S2_enriched_network_modules}
 table_S2 <- module_sizes %>%
     dplyr::rename(Module=module_id)
 
@@ -112,14 +100,94 @@ if (CONFIG$target == 'host') {
 }
 
 if (CONFIG$target == 'pathogen') {
-    table_S2 <- merge(table_S2, secreted_freqs %>% select(Module=module, `Num Secreted`=num_secreted),
-                      by='Module')
-    table_S2 <- merge(table_S2, membrane_freqs %>% select(Module=module, `Num Transmembrane`=num_membrane),
-                      by='Module')
-    table_S2 <- merge(table_S2, gpi_anchored_freqs %>% select(Module=module, `Num GPI-anchored`=num_gpi),
-                      by='Module')
+    enriched_secreted <- secreted_freqs %>% 
+        mutate(num_enriched=ifelse(p.value.adj < 0.05, num_secreted, 0)) %>%
+        select(Module=module, `Num Secreted`=num_enriched)
+    table_S2 <- merge(table_S2, enriched_secreted, by='Module')
+
+    enriched_membrane <- membrane_freqs %>% 
+        mutate(num_enriched=ifelse(p.value.adj < 0.05, num_membrane, 0)) %>%
+        select(Module=module, `Num Transmembrane`=num_enriched)
+    table_S2 <- merge(table_S2, enriched_membrane, by='Module')
+
+    enriched_gpi <- gpi_anchored_freqs %>% 
+        mutate(num_enriched=ifelse(p.value.adj < 0.05, num_gpi, 0)) %>%
+        select(Module=module, `Num GPI-Anchored`=num_enriched)
+    table_S2 <- merge(table_S2, enriched_gpi, by='Module')
 }
 
+# show modules with functional enrichment, in order of # enriched annotations
 mask <- rowSums(table_S2[,3:ncol(table_S2)]) > 0
-xkable(table_S2[mask,] %>% arrange(desc(`Num Enriched GO Terms`)))
+num_annot <- rowSums(table_S2[mask,] %>% select(-Module, -num_genes))
+```
+
+```{r results='asis'}
+# common enrichment
+template <- paste("- Total functionally-enriched modules: %d / %d",
+                  "- Total GO enrichment P-value score: %0.1f (%d unique terms)", 
+                  "- Total KEGG enrichment P-value score: %0.1f (%d unique pathways)\n", sep='\n')
+
+# host-specific 
+if (CONFIG$target == 'host') {
+    template <- paste0(template, 
+                      "- Total CPDB enrichment P-value score: %0.1f (%d unique pathways)\n",
+                      "- Total Marbach TF enrichment P-value score: %0.1f (%d unique TF's)\n")
+    cat(sprintf(template, 
+                nrow(table_S2[mask,]), nrow(module_sizes),
+                pval_score_go, length(unique(go_terms)),
+                pval_score_kegg, length(unique(kegg_pathways)),
+                pval_score_cpdb, length(unique(cpdb_pathways)),
+                pval_score_coreg, length(unique(tfs))))
+} else {
+    # parasite (GO/KEGG/Secreted/TM/GPI)
+    template <- paste0(template, 
+                      "- Number enriched secreted proteins: %d\n",
+                      "- Number enriched transmembrane proteins: %d\n",
+                      "- Number enriched GPI-anchored proteins: %d\n")
+    cat(sprintf(template, 
+                nrow(table_S2[mask,]), nrow(module_sizes),
+                pval_score_go, length(unique(go_terms)),
+                pval_score_kegg, length(unique(kegg_pathways)),
+                sum(enriched_secreted$num_enriched),
+                sum(enriched_membrane$num_enriched),
+                sum(enriched_gpi$num_enriched)))
+}
+```
+
+```{r table_S2_output, results='asis'}
+table_S2[mask,] %>% 
+    arrange(desc(num_annot)) %>%
+    filter(Module != 'grey') %>%
+    xkable
+```
+
+### Gene descriptions for top-enriched modules
+
+```{r top_enriched_modules, results='asis'}
+n <- 3
+
+top_enriched <- table_S2[mask,] %>% 
+    arrange(desc(num_annot)) %>%
+    filter(Module != 'grey') %>%
+    head(n) %>%
+    pull(Module)
+
+
+for (mod in top_enriched) {
+    cat (sprintf("Module: %s\n", mod))
+
+    print(module_profile_plot(counts_long, mod, line_color='#333333',
+                              white_background=TRUE))
+    cat('\n')
+
+    table_S1 %>% 
+        filter(color==mod) %>% 
+        group_by(description) %>% 
+        summarize(n=n()) %>% 
+        arrange(desc(n)) %>%
+        kable %>%
+        print
+
+    cat('\n')
+}
 ```

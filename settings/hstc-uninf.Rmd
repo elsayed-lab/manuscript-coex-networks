@@ -1,7 +1,8 @@
 ```{r}
 #
 # H. sapiens infected with T. cruzi (Uninfected samples only)
-# Updated 2017/11/15 (cutoff: 0.40)
+# Updated 2017/11/?? (cutoff: 0.42)
+# TODO: update to v6.1 (when data is ready)
 #
 
 #
@@ -10,9 +11,14 @@
 MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: H. sapiens infected with T. cruzi (Uninfected Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'hsapiens_infected_with_tcruzi-uninf-v6.1'),
+                                'hsapiens_infected_with_tcruzi-uninf-v6.0'),
     output_dirname  = 'hstc-uninf',
-    quantile_cutoff = 0.40
+    quantile_cutoff = 0.42,
+    networks        = read_csv(file.path(
+                                  Sys.getenv('r15'), 
+                                  '115-coex-network-param-opt-v6',
+                                  'output', 'normal',
+                                  'hsapiens_infected_with_tcruzi-uninf-v6.0.csv'))
 )
 
 # setup expected CONFIG object 
@@ -40,7 +46,7 @@ CONFIG <- list(
     covariates          = c('Batch'),
 
     main_comparison     = c('uninf04', 'uninf72'),
-    main_comparison_label = "72 - 4 hours",
+    main_comparison_label = "ΔExpr (72 - 4 hrs)",
 
     verbose         = FALSE,
     include_tables  = TRUE,

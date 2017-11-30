@@ -46,6 +46,7 @@ heatmap.2(score_mat[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
 #score_mat[score_mat < 0] <- 0
 
 # convert to distance matrix and perform hierarchical clustering
+# use abs(score_mat)?
 distmat <- 1 - score_mat
 
 gene_tree <- flashClust(as.dist(distmat), method="average")

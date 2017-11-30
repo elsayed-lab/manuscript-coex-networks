@@ -2,32 +2,24 @@
 #
 # L. major all samples
 #
-# Updated 2017/11/21 (cutoff: 0.48)
-# Note: 0.77 also appears to be a good cutoff, if a more stringent network is
-# desired...
+# Updated 2017/11/27 (cutoff: 0.35)
 #
-
-#
-# Exclude networks without batch adjustment (performs signficantly worse for L.
-# major and has a strong negative influence on resulting consensus network
-#
-nets <- read_csv(file.path(Sys.getenv('r15'), '115-coex-network-param-opt-v6',
-                           'output', 'normal',
-                           'lmajor_all_samples-multicopy-v6.0.csv')) %>%
-    filter(batch_adjustment != 'none')
-
-nets_to_include <- sprintf('%d_adjmat.RData', nets$id)
-rdas_to_include <- sprintf('%d.RData', nets$id)
 
 #
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Consensus Co-expression Network Comparison: L. major (All samples)", 
+    title           = "Consensus Co-expression Network Comparison: L. major (All Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'lmajor_all_samples-multicopy-v6.0'),
+                                'lmajor_all_samples-multicopy-v6.1'),
     output_dirname  = 'lmajor',
-    quantile_cutoff = 0.48
+    quantile_cutoff = 0.35,
+    networks        = read_csv(file.path(
+                                  Sys.getenv('r15'), 
+                                  '115-coex-network-param-opt-v6',
+                                  'output', 'normal',
+                                  'lmajor_all_samples-multicopy-v6.1.csv')) %>%
+    filter(batch_adjustment != 'none')
 )
 
 #
@@ -57,7 +49,7 @@ CONFIG <- list(
     covariates        = c('batch', 'host', 'strain'),
 
     main_comparison     = c('proc', 'amast04'),
-    main_comparison_label = "Amastigote (4 HPI) - Procyclic",
+    main_comparison_label = "ΔExpr (Amast 4 HPI - Proc)",
 
     filter_multicopy  = FALSE,
 

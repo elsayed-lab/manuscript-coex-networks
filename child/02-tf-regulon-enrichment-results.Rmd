@@ -14,7 +14,7 @@ for (x in names(module_coreg_enrichment)) {
 gene_tfs <- gene_tf_mapping %>% 
     filter(category %in% enriched_tfs & gene %in% gene_info$gene_id)
 
-template <- paste('- Number of enriched TFs: %d/%d\n'
+template <- paste('- Number of enriched TFs: %d/%d\n',
                   '- Number of genes associated with at least one enriched TF: %d/%d\n', sep='\n')
 cat(sprintf(template,
             length(unique(gene_tfs$category)),

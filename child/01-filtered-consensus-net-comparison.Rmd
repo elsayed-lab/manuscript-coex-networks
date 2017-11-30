@@ -24,23 +24,26 @@ largest_module_sizes <- c()
 # number of unique annotations
 num_unique_go_terms <- c()
 num_unique_kegg_pathways <- c()
+num_unique_cpdb_pathways <- c()
 num_unique_tfs <- c()
 
 # -log10(adj.pval) totals
 total_go_pvals <- c()
 total_kegg_pvals <- c()
+total_cpdb_pvals <- c()
 total_tf_pvals <- c()
 
 # number of enriched modules in each network
 num_go_enriched_modules <- c()
 num_kegg_enriched_modules <- c()
+num_cpdb_enriched_modules <- c()
 num_tf_enriched_modules <- c()
 
 # create a copy of the original full gene annotation dataframe
 gene_info_orig <- gene_info
 
 # cutoffs to compare
-quantile_cutoffs <- seq(0.01, 0.99, by=0.01)
+quantile_cutoffs <- seq(0.0, 0.99, by=0.01)
 
 # iterate over cutoffs and construct and evaluate filtered co-expression 
 # networks for each cutoff
@@ -147,9 +150,10 @@ for (quantile_cutoff in quantile_cutoffs) {
     num_kegg_enriched_modules <- c(num_kegg_enriched_modules,
                                  length(enriched_colors_kegg))
 
-    # TF Regulon (human only)
+    # TF Regulon / CPDB (human only)
     if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
-        knit('../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd')
+        # Marbach TF regulon
+        knit('../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', quiet=TRUE, output=tempfile())
 
         num_tf <- length(unique(unlist(sapply(module_coreg_enrichment, function(x) { x$category }))))
         num_unique_tfs <- c(num_unique_tfs, num_tf)
@@ -168,6 +172,28 @@ for (quantile_cutoff in quantile_cutoffs) {
 
         num_tf_enriched_modules <- c(num_tf_enriched_modules,
                                      sum(sapply(module_coreg_enrichment, nrow) > 0))
+
+        # CPDB
+        knit('../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
+
+        num_cpdb <- length(unique(unlist(sapply(module_cpdb_enrichment, function(x) { x$category }))))
+        num_unique_cpdb_pathways <- c(num_unique_cpdb_pathways, num_cpdb)
+
+        cpdb_pval_total <- 0
+
+        for (module in names(module_cpdb_enrichment)) {
+            # over-represented terms with adj. p-val <= 0.05
+            mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+            # -log10pvals (limit to 1E-10)
+            pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+            cpdb_pval_total <- cpdb_pval_total + sum(-log10(pmax(pvals, 10^-10)))
+        }
+        total_cpdb_pvals <- c(total_cpdb_pvals, cpdb_pval_total)
+
+        num_cpdb_enriched_modules <- c(num_cpdb_enriched_modules,
+                                       sum(sapply(module_cpdb_enrichment, nrow) > 0))
     }
 }
 ```
+

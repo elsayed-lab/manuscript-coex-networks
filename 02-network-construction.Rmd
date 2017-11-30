@@ -94,6 +94,10 @@ options(stringsAsFactors=FALSE)
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
+```{r include=FALSE}
+opts_chunk$set(fig.width=1080/192, fig.height=1080/192)
+```
+
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
@@ -149,7 +153,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/02-tf-regulon-enrichment-results.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
+```{r child='../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', eval=CONFIG$target == 'host'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/results/secreted_proteins.Rmd', eval=CONFIG$target == 'pathogen'}
@@ -164,15 +168,6 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```
 
 ### Save results
-
-```{r table_s1_module_membership}
-# all(gene_info$gene_id == gene_tree$labels)                                                                                                                                                                   
-# [1] TRUE
-table_S1 <- data.frame(gene_id=gene_info$gene_id, 
-                       color=module_colors,
-                       cluster=module_labels,
-                       description=gene_info$description)
-```
 
 ```{r save_table_results, message=FALSE}
 # Get a list of variables starts with "table_" and save each one to file

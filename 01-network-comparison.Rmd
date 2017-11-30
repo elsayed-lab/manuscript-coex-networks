@@ -86,8 +86,14 @@ Results
 
 ```{r save_rdata}
 # save RData files to output dir
-save(dat, dat_num_unique,  dat_ratio_enrichment, 
+save(dat, dat_num_unique,  dat_ratio_enrichment, adjmat,
      file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
+```
+
+```{r save_tables}
+# save tables to output dir
+write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_suffix, '.csv')),
+          quote=FALSE, row.names=FALSE)
 ```
 
 ```{r save_output, include=FALSE}
