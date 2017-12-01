@@ -30,7 +30,7 @@ opts_chunk$set(fig.width=1920/192,
                cache.path=cache_dir,
 			   echo=CONFIG$verbose)
 
-options(digits=3)
+options(digits=5)
 options(stringsAsFactors=FALSE)
 options(knitr.duplicate.label='allow')
 options(java.parameters="-Xmx8g" )

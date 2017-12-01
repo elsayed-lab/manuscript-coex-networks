@@ -1,10 +1,11 @@
 ---
-author: V. Keith Hughitt
+author: "V. Keith Hughitt"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 title: "Host Consensus Network Analysis"
 params:
   version: "1.0"
   settings: "settings/host-analysis.Rmd"
+  title: "Host consensus network comparison"
   analysis_dirname: "03-host-network-analysis"
 output:
   html_document:

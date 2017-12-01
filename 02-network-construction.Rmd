@@ -162,6 +162,9 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
+```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hslm-inf'}
+```
+
 ### Network Visualization
 
 ```{r child='child/02-consensus-network-visualization.Rmd'}
@@ -195,6 +198,9 @@ for (tbl_name in tbl_vars) {
     } else {
         # Otherwise, if multiple tables stored in a list, save as XLS with
         # separate sheets for each table
+        library('xlsx')
+
+        # output filepath
         filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
         xls_filepath <- file.path(output_tabledir, filename)
 
@@ -222,6 +228,11 @@ save(filtered_adjmat, file=file.path(output_datadir, paste0('adjmat_filtered_', 
 save(gene_info, file=file.path(output_datadir, paste0('gene_info_', output_suffix, '.rda')))
 save(module_go_enrichment, file=file.path(output_datadir, paste0('module_go_enrichment_', output_suffix, '.rda')))
 save(module_kegg_enrichment, file=file.path(output_datadir, paste0('module_kegg_enrichment_', output_suffix, '.rda')))
+
+if (CONFIG$target == 'host') {
+    save(module_cpdb_enrichment, file=file.path(output_datadir, paste0('module_cpdb_enrichment_', output_suffix, '.rda')))
+    save(module_coreg_enrichment, file=file.path(output_datadir, paste0('module_coreg_enrichment_', output_suffix, '.rda')))
+}
 ```
 
 ```{r save_network, message=FALSE}

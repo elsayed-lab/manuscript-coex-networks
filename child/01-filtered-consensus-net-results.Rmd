@@ -73,6 +73,10 @@ datatable(dat)
 
 ## Number of unique annotations
 
+```{r ggplot_setup}
+theme_set(theme_bw(base_size=16))
+```
+
 ```{r num_unique_annotations, fig.width=1600/192, fig.height=1080/192}
 dat_num_unique <- dat %>%
     select(cutoff_quantile, starts_with('# Unique')) %>%
@@ -82,6 +86,7 @@ dat_num_unique <- dat %>%
 ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
+    theme_bw() +
     xlab('Edge Weight Cutoff Percentile') + ylab('# Unique annotations') +
     ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
 ```
@@ -97,6 +102,7 @@ dat_pval_scores <- dat %>%
 ggplot(dat_pval_scores, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
+    theme_bw() +
     xlab('Edge Weight Cutoff Percentile') + ylab('Total -log10(Adj. P-values)') +
     ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
 ```
@@ -113,6 +119,7 @@ dat_ratio_enrichment <- dat %>%
 ggplot(dat_ratio_enrichment, aes(x=cutoff_quantile, y=ratio_enrichment_to_num_genes, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
+    theme_bw() +
     xlab('Edge Weight Cutoff Percentile') + ylab('Ratio Enrichment to Number of Genes') +
     ggtitle('Ratio of Enrichment to Number of Genes vs. Edge Weight Cutoff')
 ```
@@ -158,11 +165,20 @@ if ('total_go_pval' %in% colnames(nets)) {
     } else {
         # parasite consensus network scores
         consensus_scores <- data.frame(
-            type=c('total_go_pval', 'total_kegg_pval'),
+            type=c("GO Terms", "KEGG Pathways"),
             score=c(dat$`GO enrichment -log10(p-val) score`[1], 
                     dat$`KEGG enrichment -log10(p-val) score`[1])
         )
     }
+    # replace labels
+    label_mapping <- data.frame(
+        from=c('total_go_pval', 'total_kegg_pval', 
+                'total_cpdb_pval', 'total_marbach_pval', 'total_leishcyc_pval'),
+        to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes",
+             "LeishCyc Pathways")
+    )
+    indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
+
 } else {
     # total unique annotation counts by annotation type
     indiv_scores <- nets %>%
@@ -188,21 +204,25 @@ if ('total_go_pval' %in% colnames(nets)) {
                     dat$`# Unique KEGG pathways`[1])
         )
     }
+    # replace labels
+    label_mapping <- data.frame(
+        from=c('unique_go_terms', 'unique_kegg_terms', 
+                'unique_cpdb_terms', 'unique_marbach_terms'),
+        to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes")
+    )
+    indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
 }
 
-# replace labels
-label_mapping <- data.frame(
-    from=c('unique_go_terms', 'unique_kegg_terms', 
-            'unique_cpdb_terms', 'unique_marbach_terms'),
-    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes")
-)
-indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
+# Exclude LeishCyc for now (sparesely annotated)
+indiv_scores <- indiv_scores %>% 
+    filter(type %in% c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"))
 
 # plot of p-value scores by annotation type
 ggplot(indiv_scores, aes(x=total, fill=type)) +
     geom_density() +
     geom_vline(data=consensus_scores, aes(xintercept=score), 
                 linetype='dashed', color='red') +
+    theme_bw() +
     facet_wrap(~ type, scale = 'free_x')
 
 # Comparison of unfiltered consensus network score to distribution of

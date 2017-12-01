@@ -1,8 +1,7 @@
 ```{r}
 #
 # H. sapiens infected with T. cruzi (Uninfected samples only)
-# Updated 2017/11/?? (cutoff: 0.42)
-# TODO: update to v6.1 (when data is ready)
+# Updated 2017/12/01 (cutoff: 0.32)
 #
 
 #
@@ -13,7 +12,7 @@ MANUSCRIPT_CONFIG <- list(
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'hsapiens_infected_with_tcruzi-uninf-v6.0'),
     output_dirname  = 'hstc-uninf',
-    quantile_cutoff = 0.42,
+    quantile_cutoff = 0.32,
     networks        = read_csv(file.path(
                                   Sys.getenv('r15'), 
                                   '115-coex-network-param-opt-v6',

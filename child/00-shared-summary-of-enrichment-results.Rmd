@@ -18,10 +18,10 @@ go_terms <- c()
 
 for (module in names(module_go_enrichment)) {
     # over-represented terms with adj. p-val <= 0.05
-    mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
+    mask <- module_go_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
     # -log10pvals (limit to 1E-10)
-    pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
+    pvals <- module_go_enrichment[[module]]$over_represented_pvalue_adj[mask]
     pval_score_go <- pval_score_go + sum(-log10(pmax(pvals, 10^-10)))
 
     go_terms <- c(go_terms, module_go_enrichment[[module]]$category[mask])
@@ -33,10 +33,10 @@ kegg_pathways <- c()
 
 for (module in names(module_kegg_enrichment)) {
     # over-represented terms with adj. p-val <= 0.05
-    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
+    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
     # -log10pvals (limit to 1E-10)
-    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
+    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj[mask]
     pval_score_kegg <- pval_score_kegg + sum(-log10(pmax(pvals, 10^-10)))
 
     kegg_pathways <- c(kegg_pathways, module_kegg_enrichment[[module]]$category[mask])
@@ -52,10 +52,10 @@ if (CONFIG$target == 'host') {
     # CPDB
     for (module in names(module_cpdb_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj[mask]
         pval_score_cpdb <- pval_score_cpdb + sum(-log10(pmax(pvals, 10^-10)))
 
         cpdb_pathways <- c(cpdb_pathways, module_go_enrichment[[module]]$category[mask])
@@ -64,10 +64,10 @@ if (CONFIG$target == 'host') {
     # Marbach 2016
     for (module in names(module_coreg_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj[mask]
         pval_score_coreg <- pval_score_coreg + sum(-log10(pmax(pvals, 10^-10)))
 
         tfs <- c(tfs, module_coreg_enrichment[[module]]$category[mask])
@@ -123,7 +123,9 @@ num_annot <- rowSums(table_S2[mask,] %>% select(-Module, -num_genes))
 
 ```{r results='asis'}
 # common enrichment
-template <- paste("- Total functionally-enriched modules: %d / %d",
+template <- paste("- Number of genes: %d",
+                  "- Number of modules: %d",
+                  "- Total functionally-enriched modules: %d / %d",
                   "- Total GO enrichment P-value score: %0.1f (%d unique terms)", 
                   "- Total KEGG enrichment P-value score: %0.1f (%d unique pathways)\n", sep='\n')
 
@@ -133,6 +135,7 @@ if (CONFIG$target == 'host') {
                       "- Total CPDB enrichment P-value score: %0.1f (%d unique pathways)\n",
                       "- Total Marbach TF enrichment P-value score: %0.1f (%d unique TF's)\n")
     cat(sprintf(template, 
+                nrow(filtered_adjmat), num_modules,
                 nrow(table_S2[mask,]), nrow(module_sizes),
                 pval_score_go, length(unique(go_terms)),
                 pval_score_kegg, length(unique(kegg_pathways)),
@@ -141,16 +144,20 @@ if (CONFIG$target == 'host') {
 } else {
     # parasite (GO/KEGG/Secreted/TM/GPI)
     template <- paste0(template, 
-                      "- Number enriched secreted proteins: %d\n",
-                      "- Number enriched transmembrane proteins: %d\n",
-                      "- Number enriched GPI-anchored proteins: %d\n")
+                      "- Number of modules enriched for secreted proteins: %d (%d secreted proteins)\n",
+                      "- Number of modules enriched for transmembrane proteins: %d (%d TM proteins)\n",
+                      "- Number of modules enriched for GPI-anchored proteins: %d (%d GPI-anchored proteins)\n")
     cat(sprintf(template, 
+                nrow(filtered_adjmat), num_modules,
                 nrow(table_S2[mask,]), nrow(module_sizes),
                 pval_score_go, length(unique(go_terms)),
                 pval_score_kegg, length(unique(kegg_pathways)),
-                sum(enriched_secreted$num_enriched),
-                sum(enriched_membrane$num_enriched),
-                sum(enriched_gpi$num_enriched)))
+                sum(enriched_secreted$`Num Secreted` > 0),
+                sum(enriched_secreted$`Num Secreted`),
+                sum(enriched_membrane$`Num Transmembrane` > 0),
+                sum(enriched_membrane$`Num Transmembrane`),
+                sum(enriched_gpi$`Num GPI-Anchored` > 0),
+                sum(enriched_gpi$`Num GPI-Anchored`)))
 }
 ```
 
@@ -159,6 +166,19 @@ table_S2[mask,] %>%
     arrange(desc(num_annot)) %>%
     filter(Module != 'grey') %>%
     xkable
+```
+
+```{r table_S3}
+# save enrichment results as tabular output;
+# list of tables will be saved as an XLS file
+table_S3 <- list()
+
+# iterate over enrichment results
+for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
+    # enrichment type ("go", "kegg", etc.)
+    label <- unlist(strsplit(enrichment_result, "_"))[2]
+    table_S3[[label]] <- do.call("rbind", get(enrichment_result))
+}
 ```
 
 ### Gene descriptions for top-enriched modules
@@ -176,7 +196,11 @@ top_enriched <- table_S2[mask,] %>%
 for (mod in top_enriched) {
     cat (sprintf("Module: %s\n", mod))
 
+    # replace condition labels
+    #...
+
     print(module_profile_plot(counts_long, mod, line_color='#333333',
+                              font_size=16, line_width=0.3,
                               white_background=TRUE))
     cat('\n')
 
@@ -191,3 +215,4 @@ for (mod in top_enriched) {
     cat('\n')
 }
 ```
+

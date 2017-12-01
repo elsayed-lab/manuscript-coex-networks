@@ -1,4 +1,4 @@
-```{r consensus_network_dendrogram, fig.height=1080/192}
+```{r consensus_network_dendrogram, fig.height=1080/192, fig.width=1920/192}
 # Dendrogram bar plots and labels
 dendrogram_colors = module_colors
 
@@ -65,5 +65,5 @@ if (CONFIG$target == 'pathogen') {
 plotDendroAndColors(gene_tree, dendrogram_colors,
                     groupLabels=dendrogram_labels, dendroLabels=FALSE,
                     cex.colorLabels=1, cex.main=1, cex.axis=1, cex.lab=1,
-                    marAll=c(4,12,6,4), guideHang=0.05, main="")
+                    marAll=c(4,14,6,4), guideHang=0.05, main="")
 ```
