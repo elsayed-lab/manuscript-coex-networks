@@ -1,0 +1,36 @@
+### Infection-related co-expression modules
+
+```{r modules_of_interest, results='asis', fig.width=1080/192, fig.height=1080/192, dpi=192}
+#
+# Leishmania modules of interest
+#
+# Excluding MHCII enriched module, #FF0070; it just proteasome components..
+#
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2889653/
+modules_of_interest <- unique(c(
+    '#FFCB00', '#FFA100', # Leishmaniasis
+    '#FF7700',            # NF-kabba B signalling (parasite wants to down-reg); 
+    '#FF7700',            # IL-12 (parasite wants to down-reg)
+    '#FFCB00', '#FFA100'  # MHC Class II (parasite wants to down-reg; same two as for Leishmaniasis KEGG path above..)
+))
+
+for (mod in modules_of_interest) {
+    cat (sprintf("Module: %s\n", mod))
+
+    # TODO 2017/11/30 - Use human readable axes labels...
+    print(module_profile_plot(counts_long, mod, line_color='#333333',
+                                white_background=TRUE))
+    cat('\n')
+
+    table_S1 %>% 
+        filter(color==mod) %>% 
+        group_by(description) %>% 
+        summarize(n=n()) %>% 
+        arrange(desc(n)) %>%
+        kable %>%
+        print
+
+    cat('\n')
+}
+```
+
