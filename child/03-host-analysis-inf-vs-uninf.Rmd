@@ -4,24 +4,24 @@
 diff <- inf - uninf
 
 # sub-sample to speed up and better fit in display
-ind <- sample(1:nrow(diff), 750)
+ind <- sample(1:nrow(diff), 250)
 
+# with legend
 heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
           col='plasma', main=sprintf('Difference Network Adjacency Matrix:\n%s', subtitle),
           margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
-          #key=FALSE,
           key.title='', key.ylab='', keysize=2,
           key.xlab='Edge Weight\n (Infected - Uninfected)')
 
+# without legend
+heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
+          col='plasma', margin=c(6, 6),  key=FALSE)
 ```
 
 ```{r diff_matrix_clustering}
 # convert to distance matrix and perform hierarchical clustering
 # take absolute value of difference adjacency matrix; sets of genes which are
 # all changing direction together, will still be separated out
-#distmat <- 1 - abs(diff)
-
-# TESTING 2017/12/01
 distmat <- (1 + diff) / 2
 
 gene_tree <- flashClust(as.dist(distmat), method="average")
@@ -42,39 +42,52 @@ module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>%
     summarize(num_genes=n())
 
 num_modules <- length(unique(module_colors))
+```
 
-# cpm-transform raw counts
-cpm_counts <- sweep(count_table, 2, colSums(count_table), '/') * 1E6
-cpm_counts <- cpm_counts[rownames(cpm_counts) %in% gene_tree$labels,]
+```{r generate_long_counts}
+# cpm-transform raw counts (infected)
+cpm_counts_inf <- sweep(counts_inf, 2, colSums(counts_inf), '/') * 1E6
+cpm_counts_inf <- cpm_counts_inf[rownames(cpm_counts_inf) %in% gene_tree$labels,]
 
-log2cpm_counts <- log2(cpm_counts + 1)
+log2cpm_counts_inf <- log2(cpm_counts_inf + 1)
 
-combined_gene_counts <- combine_replicates(log2cpm_counts, condition)
-
-#counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
-#counts_long <- melt(counts_long, id.vars='gene_id')
-counts_long <- melt(combined_gene_counts, id.vars='row.names')
-
-names(counts_long) <- c('gene_id', 'condition', 'expression')
+combined_gene_counts_inf <- combine_replicates(log2cpm_counts_inf,
+                                               condition_inf)
+counts_long_inf <- melt(combined_gene_counts_inf, id.vars='row.names')
+names(counts_long_inf) <- c('gene_id', 'condition', 'expression')
 
 # Human-readable labels
-expr_xlab <- "Condition"
-
-if ("CONFIG_EXTRA" %in% ls()) {
-    mapping <- CONFIG_EXTRA$condition_mapping
-    counts_long$condition <- mapping$short[match(counts_long$condition, mapping$long)]
-
-    expr_xlab <- CONFIG_EXTRA$xlabel
-}
+counts_long_inf$condition <- mapping_inf$to[match(counts_long_inf$condition, mapping_inf$from)]
 
 # If non-numeric conditions (e.g. 'procyclic') are included, convert to
 # factor and reorder levels of dataframe for better plotting
-if (!is.numeric(counts_long$condition)) {
-    counts_long$condition <- factor(counts_long$condition)
-}
+#if (!is.numeric(counts_long$condition)) {
+#    counts_long$condition <- factor(counts_long$condition)
+#}
 
-counts_long <- cbind(counts_long, cluster=as.factor(module_colors))
+counts_long_inf <- cbind(counts_long_inf, cluster=as.factor(module_colors))
 module_order <- unique(module_colors[gene_tree$order])
+
+# uninfected
+cpm_counts_uninf <- sweep(counts_uninf, 2, colSums(counts_uninf), '/') * 1E6
+cpm_counts_uninf <- cpm_counts_uninf[rownames(cpm_counts_uninf) %in% gene_tree$labels,]
+
+log2cpm_counts_uninf <- log2(cpm_counts_uninf + 1)
+combined_gene_counts_uninf <- combine_replicates(log2cpm_counts_uninf, condition_uninf)
+
+counts_long_uninf <- melt(combined_gene_counts_uninf, id.vars='row.names')
+
+names(counts_long_uninf) <- c('gene_id', 'condition', 'expression')
+
+# Human-readable labels
+counts_long_uninf$condition <- mapping_uninf$to[match(counts_long_uninf$condition, mapping_uninf$from)]
+
+# If non-numeric conditions (e.g. 'procyclic') are included, convert to
+# factor and reorder levels of dataframe for better plotting
+#if (!is.numeric(counts_long$condition)) {
+#    counts_long$condition <- factor(counts_long$condition)
+#}
+counts_long_uninf <- cbind(counts_long_uninf, cluster=as.factor(module_colors))
 ```
 
 ```{r module_stats, results='asis'}
@@ -181,7 +194,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
 
     layout_coords <- layout.fruchterman.reingold(g)
 
-    V(g)$label.cex   <- 0.7
+    V(g)$label.cex   <- 0.8
     V(g)$label.color <- '#333333'
 
     # network plot
@@ -206,6 +219,18 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
               xlab='Gene', ylab='Gene', density='none',
               key.title='', key.ylab='',  keysize=2,
               key.xlab='Edge Weight\n (Infected - Uninfected)')
+
+    cat('\n')
+    print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
+                                font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                                include_title=FALSE,
+                                white_background=TRUE))
+    cat('\n')
+    print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
+                                font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                                include_title=FALSE,
+                                white_background=TRUE))
+    cat('\n')
 }
 ```
 

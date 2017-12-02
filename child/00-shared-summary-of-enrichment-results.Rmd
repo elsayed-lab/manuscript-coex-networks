@@ -181,39 +181,6 @@ for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
 }
 ```
 
-### Gene descriptions for top-enriched modules
-
-```{r top_enriched_modules, results='asis'}
-n <- 3
-
-top_enriched <- table_S2[mask,] %>% 
-    arrange(desc(num_annot)) %>%
-    filter(Module != 'grey') %>%
-    head(n) %>%
-    pull(Module)
-
-
-for (mod in top_enriched) {
-    cat (sprintf("Module: %s\n", mod))
-
-    print(module_profile_plot(counts_long, mod, line_color='#333333',
-                              font_size=13, line_width=0.3, xlabel=expr_xlab,
-                              include_title=FALSE,
-                              white_background=TRUE))
-    cat('\n')
-
-    table_S1 %>% 
-        filter(color==mod) %>% 
-        group_by(description) %>% 
-        summarize(n=n()) %>% 
-        arrange(desc(n)) %>%
-        kable %>%
-        print
-
-    cat('\n')
-}
-```
-
 ```{r save_enrichment_table}
 # list of tables will be saved as an XLS file
 table_01 <- list()
@@ -240,7 +207,9 @@ for (sheet in sheet_names[2:length(table_01)]) {
     # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
     .jcall("java/lang/System", method = "gc")
 
-    write.xlsx(as.data.frame(table_01[[sheet]]), file=xls_filepath,
-                sheetName=sheet, row.names=FALSE)
+    if (nrow(table_01[[sheet]]) > 0) {
+        write.xlsx(as.data.frame(table_01[[sheet]]), file=xls_filepath,
+                    sheetName=sheet, row.names=FALSE)
+    }
 }
 ```

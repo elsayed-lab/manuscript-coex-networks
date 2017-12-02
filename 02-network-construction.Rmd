@@ -79,6 +79,7 @@ library('tools')
 library('venneuler')
 library('viridis')
 library('WGCNA')
+library('xlsx')
 
 source('../../2015/00-shared/R/annotations.R')
 source('../../2015/00-shared/R/count_tables.R')
@@ -162,6 +163,9 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
+```{r child='child/02-top-enriched-modules.Rmd'}
+```
+
 ```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hslm-inf'}
 ```
 
@@ -201,7 +205,6 @@ for (tbl_name in tbl_vars) {
     } else {
         # Otherwise, if multiple tables stored in a list, save as XLS with
         # separate sheets for each table
-        library('xlsx')
 
         # output filepath
         filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_dirname)

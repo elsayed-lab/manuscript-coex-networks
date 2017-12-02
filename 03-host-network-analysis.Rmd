@@ -37,6 +37,7 @@ library('foreach')
 library('ggplot2')
 library('goseq')
 library('gplots')
+library('gridExtra')
 library('hpgltools')
 library('igraph')
 library('knitr')
@@ -64,7 +65,9 @@ options(digits=4)
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
+<!-- {r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'} -->
+
+```{r child='child/03-load-counts.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
@@ -101,6 +104,15 @@ Infected vs. Uninfected Networks
 inf <- hslm_inf
 uninf <- hslm_uninf
 
+counts_inf   <- hslm_inf_count_table
+counts_uninf <- hslm_uninf_count_table
+
+mapping_inf   <- CONFIG_HSLM$condition_mapping
+mapping_uninf <- CONFIG_HSLMUI$condition_mapping
+
+condition_inf   <- factor(CONFIG_HSLM$samples[['Condition']])
+condition_uninf <- factor(CONFIG_HSLMUI$samples[['Condition']])
+
 subtitle <- 'Human infected with L. major'
 
 output_suffix <- 'hslm_inf_vs_uninf'
@@ -121,12 +133,20 @@ opts_chunk$set(fig.path=paste0(output_figprefix, 'hslm-inf-vs-uninf-'))
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
-
 ### Human infected with *T. cruzi*
 
 ```{r}
 inf   <- hstc_inf
 uninf <- hstc_uninf
+
+counts_inf   <- hstc_inf_count_table
+counts_uninf <- hstc_uninf_count_table
+
+mapping_inf <- CONFIG_HSTC$condition_mapping
+mapping_uninf <- CONFIG_HSTCUI$condition_mapping
+
+condition_inf   <- factor(CONFIG_HSTC$samples[['Condition']])
+condition_uninf <- factor(CONFIG_HSTCUI$samples[['Condition']])
 
 subtitle <- 'Human infected with T. cruzi'
 
