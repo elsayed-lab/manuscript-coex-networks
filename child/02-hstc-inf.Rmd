@@ -1,0 +1,49 @@
+### Infection-related co-expression modules
+
+```{r modules_of_interest, results='asis', fig.width=1080/192, fig.height=1080/192, dpi=192}
+#
+# Leishmania modules of interest
+# T. cruzi modules of interest
+#
+# Notes
+# -----
+#
+# General
+#   - https://www.hindawi.com/journals/jir/2015/178947/
+#
+# IL-17
+#   - http://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0000604
+#   - http://www.jimmunol.org/content/185/2/1150.short
+#
+modules_of_interest <- unique(c(
+    '#FF1300',   # Chagas disease / NFKB TF
+    '#FF4E00',   # T cell activation / JAK-STAT
+    '#FFB900',   # NF-kappa B / antigen processing / IRF TF's / MHC I / STAT3? (could be interesting..)
+    '#8CFF00',   # MHC I / antigen processing / response to IFN
+    '#00FF99',   # IL-17 / IL-12 (down-reg by parasite)
+    '#FF6B00'    # NF-Kb / MHC I
+))
+
+
+for (mod in modules_of_interest) {
+    cat (sprintf("Module: %s\n", mod))
+
+    # TODO 2017/11/30 - Use human readable axes labels...
+    print(module_profile_plot(counts_long, mod, line_color='#333333',
+                              font_size=13, line_width=0.3, xlabel=expr_xlab,
+                              include_title=FALSE,
+                              white_background=TRUE))
+    cat('\n')
+
+    table_S1 %>% 
+        filter(color==mod) %>% 
+        group_by(description) %>% 
+        summarize(n=n()) %>% 
+        arrange(desc(n)) %>%
+        kable %>%
+        print
+
+    cat('\n')
+}
+```
+
