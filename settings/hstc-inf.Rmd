@@ -21,6 +21,19 @@ MANUSCRIPT_CONFIG <- list(
                         filter(network_type == 'signed')
 )
 
+# TEMP WORK-AROUND (avoid touching cache for a couple days..)
+# Can merge back into main cache later on.
+CONFIG_EXTRA <- list(
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('uninf04', 'uninf06', 'uninf12', 'uninf20', 'uninf24',
+               'uninf48', 'uninf72', 'inf04', 'inf06', 'inf12', 'inf20',
+               'inf24', 'inf48', 'inf72'),
+        to=c(4, 6, 12, 20, 24, 48, 72, 4, 6, 12, 20, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)'
+)
+
 #
 # Base co-expression analysis configuration
 #

@@ -21,6 +21,17 @@ MANUSCRIPT_CONFIG <- list(
                                          'tcruzi_all_samples-multicopy-v6.1.csv'))
 )
 
+# TEMP WORK-AROUND (avoid touching cache for a couple days..)
+# Can merge back into main cache later on.
+CONFIG_EXTRA <- list(
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('4', '6', '12', '20', '24', '48', '72'),
+        to=c(4, 6, 12, 20, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)'
+)
+
 #
 # Base co-expression analysis configuration
 #

@@ -165,6 +165,9 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hslm-inf'}
 ```
 
+```{r child='child/02-hstc-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hstc-inf'}
+```
+
 ### Network Visualization
 
 ```{r child='child/02-consensus-network-visualization.Rmd'}

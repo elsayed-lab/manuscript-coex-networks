@@ -196,11 +196,9 @@ top_enriched <- table_S2[mask,] %>%
 for (mod in top_enriched) {
     cat (sprintf("Module: %s\n", mod))
 
-    # replace condition labels
-    #...
-
     print(module_profile_plot(counts_long, mod, line_color='#333333',
-                              font_size=16, line_width=0.3,
+                              font_size=13, line_width=0.3, xlabel=expr_xlab,
+                              include_title=FALSE,
                               white_background=TRUE))
     cat('\n')
 
@@ -216,3 +214,33 @@ for (mod in top_enriched) {
 }
 ```
 
+```{r save_enrichment_table}
+# list of tables will be saved as an XLS file
+table_01 <- list()
+
+# iterate over enrichment results
+for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
+    # enrichment type ("go", "kegg", etc.)
+    label <- unlist(strsplit(enrichment_result, "_"))[2]
+    table_01[[label]] <- do.call("rbind", get(enrichment_result))
+}
+
+
+# output filepath
+output_filename <- sprintf('enrichment_results_%s.xls', output_suffix)
+xls_filepath <- file.path('..', output_tabledir, output_filename)
+
+sheet_names <- names(table_01)
+
+write.xlsx(as.data.frame(table_01[[sheet_names[1]]]), file=xls_filepath,
+            sheetName=sheet_names[1], row.names=FALSE)
+
+for (sheet in sheet_names[2:length(table_01)]) {
+    # free up Java memory on each loop iteration
+    # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
+    .jcall("java/lang/System", method = "gc")
+
+    write.xlsx(as.data.frame(table_01[[sheet]]), file=xls_filepath,
+                sheetName=sheet, row.names=FALSE)
+}
+```

@@ -1,4 +1,4 @@
-```{r inf_vs_uninf_setup, results='asis'}
+```{r inf_vs_uninf_setup, results='asis', fig.height=1080/192}
 # keep only genes found in both uninfected and infected networks
 common_genes <- intersect(rownames(uninf), rownames(inf))
 
@@ -15,15 +15,15 @@ uninf <- uninf[ind2,ind2]
 uninf <- uninf[rownames(inf), colnames(inf)]
 
 par(mfrow=c(2,1))
-hist(inf, main=sprintf("%s Edge Weights (Infected)", subtitle))
-hist(uninf, main=sprintf("%s Edge Weights (Uninfected)", subtitle))
+hist(inf, main="Raw Edge Weights (Infected)", xlab='Edge Weight', cex=1.5)
+hist(uninf, main="Raw Edge Weights (Uninfected)", xlab='Edge Weight', cex=1.5)
 ```
 
 In order to account for differences in correlation distributions due to
 differences in replicate numbers, the edge weight distibutions for each matrix
 will be quantile normalized.
 
-```{r normalize_edge_weight_distibutions}
+```{r normalize_edge_weight_distibutions, fig.height=1080/192}
 # create a data frame with one column per adjacency matrix
 upper_tri <- upper.tri(inf)
 lower_tri <- lower.tri(uninf)
@@ -45,8 +45,8 @@ uninf[lower_tri] <- t(uninf)[lower_tri]
 
 rm(mat)
 
-par(mfrow=c(2,1))
-hist(inf, main=sprintf("%s Edge Weights (Infected, Normalized)", subtitle))
-hist(uninf, main=sprintf("%s Edge Weights (Uninfected, Normalized)", subtitle))
+par(mfrow=c(1,2))
+hist(inf, main="Normalized Edge Weights (Infected)", xlab='Edge Weight', cex=1.5)
+hist(uninf, main="Normalized Edge Weights (Uninfected)", xlab='Edge Weight', cex=1.5)
 ```
 

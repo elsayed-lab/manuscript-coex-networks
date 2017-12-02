@@ -22,6 +22,22 @@ MANUSCRIPT_CONFIG <- list(
     filter(batch_adjustment != 'none')
 )
 
+# TEMP WORK-AROUND (avoid touching cache for a couple days..)
+# Can merge back into main cache later on.
+CONFIG_EXTRA <- list(
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        to=c('Procyclic', 'Metacyclic', 'Ama  4hrs', 'Ama 24hrs', 'Ama 48hrs', 
+               'Ama 72 hrs', 'Footpad Ama', 'Sandfly day 2', 'Sandfly day 4',
+               'Sandfly day 15', 'Released Ama', 'Inf Neutrophils', 'Axenic Metacyclic'),
+        from=c('proc', 'meta', 'amast04', 'amast24', 'amast48', 'amast72',
+               'footpad_amast', 'sandfly_day2', 'sandfly_day4',
+               'sandfly_day15', 'released_amast', 'inf_neutrophils',
+               'sacks_meta')
+    ),
+    xlabel='Developmental Stage'
+)
+
 #
 # Base co-expression analysis configuration
 #

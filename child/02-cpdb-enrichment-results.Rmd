@@ -11,14 +11,14 @@ for (x in names(module_cpdb_enrichment)) {
     }
 }
 
-gene_cpdb_pathways <- gene_cpdb_mapping %>% 
-    filter(category %in% enriched_cpdb_paths & gene %in% gene_info$gene_id)
+gene_cpdb_pathways <- cpdb_mapping %>% 
+    filter(category %in% enriched_cpdb_paths & gene_id %in% gene_info$gene_id)
 
 template <- paste('- Number of enriched CPDB Pathways: %d/%d', 
                   '- Number of genes associated with at least one enriched CPDB Pathway: %d/%d\n', sep='\n')
 cat(sprintf(template, 
             length(unique(gene_cpdb_pathways$category)), 
-            length(unique(gene_cpdb_mapping$category)),
+            length(unique(cpdb_mapping$category)),
             length(unique(gene_cpdb_pathways$gene)), 
             nrow(gene_info)))
 ```
@@ -40,9 +40,13 @@ cpdb_enrich_df <- do.call("rbind", module_cpdb_enrichment) %>%
     arrange(over_represented_pvalue_adj) %>%
     select(-starts_with('under'), -over_represented_pvalue)
 
+# add pathway descriptions
+cpdb_pathway_names <- cpdb %>% 
+    select(name=pathway, category=external_id)
+cpdb_enrich_df <- merge(cpdb_enrich_df, cpdb_pathway_names, by='category')
 
 # Also include pathways related to infection
-cpdb_paths_of_interest <- 'Cytokine|Antigen|TNF|immune|Chagas|Toll'
+cpdb_paths_of_interest <- 'Cytokine|Antigen|TNF|immune|Chagas|Toll|NF-kappaB|Apoptosis'
 
 cpdb_enrich_df <- cpdb_enrich_df[rownames(cpdb_enrich_df) %in% 1:5 |
                                  grepl(cpdb_paths_of_interest, cpdb_enrich_df$name),]

@@ -22,6 +22,18 @@ MANUSCRIPT_CONFIG <- list(
                                   'hsapiens_infected_with_lmajor-uninf-v6.0.csv'))
 )
 
+# TEMP WORK-AROUND (avoid touching cache for a couple days..)
+# Can merge back into main cache later on.
+CONFIG_EXTRA <- list(
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)'
+)
+
 #
 # Base co-expression analysis configuration
 #

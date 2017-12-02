@@ -1,4 +1,4 @@
-### Infected vs. Uninfected Difference Matrix
+#### Infected vs. Uninfected Difference Matrix
 
 ```{r difference_heatmap}
 diff <- inf - uninf
@@ -7,15 +7,22 @@ diff <- inf - uninf
 ind <- sample(1:nrow(diff), 750)
 
 heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
-          col='viridis', main=sprintf('Difference Network Adjacency Matrix:\n%s', subtitle),
+          col='plasma', main=sprintf('Difference Network Adjacency Matrix:\n%s', subtitle),
+          margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
+          #key=FALSE,
+          key.title='', key.ylab='', keysize=2,
           key.xlab='Edge Weight\n (Infected - Uninfected)')
+
 ```
 
 ```{r diff_matrix_clustering}
 # convert to distance matrix and perform hierarchical clustering
 # take absolute value of difference adjacency matrix; sets of genes which are
 # all changing direction together, will still be separated out
-distmat <- 1 - abs(diff)
+#distmat <- 1 - abs(diff)
+
+# TESTING 2017/12/01
+distmat <- (1 + diff) / 2
 
 gene_tree <- flashClust(as.dist(distmat), method="average")
 gene_tree$height <- round(gene_tree$height, 6)
@@ -35,6 +42,39 @@ module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>%
     summarize(num_genes=n())
 
 num_modules <- length(unique(module_colors))
+
+# cpm-transform raw counts
+cpm_counts <- sweep(count_table, 2, colSums(count_table), '/') * 1E6
+cpm_counts <- cpm_counts[rownames(cpm_counts) %in% gene_tree$labels,]
+
+log2cpm_counts <- log2(cpm_counts + 1)
+
+combined_gene_counts <- combine_replicates(log2cpm_counts, condition)
+
+#counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
+#counts_long <- melt(counts_long, id.vars='gene_id')
+counts_long <- melt(combined_gene_counts, id.vars='row.names')
+
+names(counts_long) <- c('gene_id', 'condition', 'expression')
+
+# Human-readable labels
+expr_xlab <- "Condition"
+
+if ("CONFIG_EXTRA" %in% ls()) {
+    mapping <- CONFIG_EXTRA$condition_mapping
+    counts_long$condition <- mapping$short[match(counts_long$condition, mapping$long)]
+
+    expr_xlab <- CONFIG_EXTRA$xlabel
+}
+
+# If non-numeric conditions (e.g. 'procyclic') are included, convert to
+# factor and reorder levels of dataframe for better plotting
+if (!is.numeric(counts_long$condition)) {
+    counts_long$condition <- factor(counts_long$condition)
+}
+
+counts_long <- cbind(counts_long, cluster=as.factor(module_colors))
+module_order <- unique(module_colors[gene_tree$order])
 ```
 
 ```{r module_stats, results='asis'}
@@ -43,7 +83,7 @@ cat(sprintf("- Median module size: %0.1f\n", median(module_sizes$num_genes)))
 cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
 ```
 
-### Functional Enrichment
+#### Functional Enrichment
 
 ```{r create_net_annotation_df}
 # load relevant gene annotations and restore order
@@ -55,12 +95,12 @@ result <- cbind(gene_info, color=module_colors)
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```
 
-#### GO Enrichment
+##### GO Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
 ```
 
-#### KEGG Enrichment
+##### KEGG Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
 ```
@@ -68,7 +108,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-kegg-enrichment-results.Rmd'}
 ```
 
-#### KEGG Enrichment
+##### CPDB Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
 ```
@@ -76,7 +116,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-cpdb-enrichment-results.Rmd'}
 ```
 
-#### TF regulon Enrichment
+##### TF regulon Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}
 ```
@@ -84,7 +124,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-tf-regulon-enrichment-results.Rmd'}
 ```
 
-#### Visualization of enriched rewired subnetworks
+##### Visualization of enriched rewired subnetworks
 
 ```{r enriched_difference_subnetwork, results='asis'}
 cat('\n')
@@ -161,12 +201,35 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
     ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
 
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(22, 22),
-              labCol=FALSE, col=ramp_cols, breaks=ramp_breaks)
+              labRow=gene_info$description[ind], margins=c(6, 16),
+              labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
+              xlab='Gene', ylab='Gene', density='none',
+              key.title='', key.ylab='',  keysize=2,
+              key.xlab='Edge Weight\n (Infected - Uninfected)')
 }
 ```
 
+```{r save_network, message=FALSE}
+message("Saving difference network GraphML...")
+
+# rescale edge weights to [-1, 1] and save network
+#diff <- log1p(diff)
+diff <- diff / max(abs(diff))
+
+message("CURRENT DIR")
+message(getwd())
+outfile <- file.path('..', output_datadir, paste0('difference_network_', output_suffix, '.graphml'))
+
+# annotations
+annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
+
+g <- export_network_to_graphml(diff,
+                               outfile,
+                               threshold=0, max_edge_ratio=4,
+                               nodeAttrDataFrame=annot)
+```
+
 ```{r cleanup, include=FALSE}
-rm(inf, uninf, distmat)
+rm(g, inf, uninf, distmat)
 ```
 

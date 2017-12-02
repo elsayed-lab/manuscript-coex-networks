@@ -22,7 +22,9 @@ CONFIG <- list(
 
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')),
+                                             'settings', 'hsapiens_samples.csv')) %>%
+                          filter(startsWith(Condition, 'infLM') | 
+                                 startsWith(Condition, 'uninf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',

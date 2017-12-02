@@ -3,9 +3,13 @@
 diff <- hstc_inf - hslm_inf
 
 # sub-sample to speed up and better fit in display
-ind <- sample(1:nrow(diff), 750)
+ind <- sample(1:nrow(diff), 500)
 heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
-          labCol=FALSE, col='viridis')
+          labCol=FALSE, col='viridis',
+          margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
+          #key=FALSE,
+          key.title='', key.ylab='',  keysize=2,
+          key.xlab='Edge Weight\n (HsTc - HsLm)')
 ```
 
 ### Conserved infection signature network
@@ -13,7 +17,7 @@ heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
 Next, we will construct a "conservation matrix" by scoring each edge based on
 its level of conservation across the networks infected networks. Edges with
 large values in both infected networks and low values in both uninfected
-networks eceieve a high conservation score.
+networks receieve a high conservation score.
 
 After rescaling each input network to the range [0, 1], the score is defined as:
 
@@ -37,7 +41,11 @@ hist(score_mat, main="Distribution of co-expression conservation scores")
 # sub-sample to speed up and better fit in display
 ind <- sample(1:nrow(score_mat), 750)
 heatmap.2(score_mat[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
-          labCol=FALSE, col='viridis')
+          labCol=FALSE, col='viridis',
+          margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
+          #key=FALSE,
+          key.title='', key.ylab='',  keysize=2,
+          key.xlab='Co-ex Conservation Score\n (HsTc / HsLm)')
 ```
 
 ```{r score_matrix_clustering}
@@ -47,7 +55,7 @@ heatmap.2(score_mat[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
 
 # convert to distance matrix and perform hierarchical clustering
 # use abs(score_mat)?
-distmat <- 1 - score_mat
+distmat <- 1 - ((1 + score_mat) / 2)
 
 gene_tree <- flashClust(as.dist(distmat), method="average")
 gene_tree$height <- round(gene_tree$height, 6)
@@ -68,6 +76,39 @@ module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>%
     summarize(num_genes=n())
 
 num_modules <- length(unique(module_colors))
+
+# cpm-transform raw counts
+cpm_counts <- sweep(count_table, 2, colSums(count_table), '/') * 1E6
+cpm_counts <- cpm_counts[rownames(cpm_counts) %in% gene_tree$labels,]
+
+log2cpm_counts <- log2(cpm_counts + 1)
+
+combined_gene_counts <- combine_replicates(log2cpm_counts, condition)
+
+#counts_long <- cbind(gene_id=rownames(count_table), log2cpm_counts)
+#counts_long <- melt(counts_long, id.vars='gene_id')
+counts_long <- melt(combined_gene_counts, id.vars='row.names')
+
+names(counts_long) <- c('gene_id', 'condition', 'expression')
+
+# Human-readable labels
+expr_xlab <- "Condition"
+
+if ("CONFIG_EXTRA" %in% ls()) {
+    mapping <- CONFIG_EXTRA$condition_mapping
+    counts_long$condition <- mapping$short[match(counts_long$condition, mapping$long)]
+
+    expr_xlab <- CONFIG_EXTRA$xlabel
+}
+
+# If non-numeric conditions (e.g. 'procyclic') are included, convert to
+# factor and reorder levels of dataframe for better plotting
+if (!is.numeric(counts_long$condition)) {
+    counts_long$condition <- factor(counts_long$condition)
+}
+
+counts_long <- cbind(counts_long, cluster=as.factor(module_colors))
+module_order <- unique(module_colors[gene_tree$order])
 ```
 
 ```{r module_stats, results='asis'}
@@ -179,6 +220,28 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
     pal <- colorRampPalette(c('slateblue1', 'coral1'))
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
               labRow=gene_info$description[ind], margins=c(22, 22),
-              labCol=FALSE, col=pal)
+              labCol=FALSE, col=pal,
+              margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
+              #key=FALSE,
+              key.title='', key.ylab='', keysize=2,
+              key.xlab='Co-ex Conservation Score\n (HsTc / HsLm)')
 }
+```
+
+```{r save_network, message=FALSE}
+message("Saving difference network GraphML...")
+
+# rescale edge weights to [-1, 1] and save network
+#score_mat <- log1p(score_mat)
+score_mat <- score_mat / max(abs(score_mat))
+
+outfile <- file.path(output_datadir, paste0('coex_conservation_network_', output_suffix, '.graphml'))
+
+# annotations
+annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
+
+g <- export_network_to_graphml(score_mat,
+                               outfile,
+                               threshold=0, max_edge_ratio=4,
+                               nodeAttrDataFrame=annot)
 ```

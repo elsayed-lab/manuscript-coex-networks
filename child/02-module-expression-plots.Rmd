@@ -66,6 +66,16 @@ counts_long <- melt(combined_gene_counts, id.vars='row.names')
 
 names(counts_long) <- c('gene_id', 'condition', 'expression')
 
+# Human-readable labels
+expr_xlab <- "Condition"
+
+if ("CONFIG_EXTRA" %in% ls()) {
+    mapping <- CONFIG_EXTRA$condition_mapping
+    counts_long$condition <- mapping$to[match(counts_long$condition, mapping$from)]
+
+    expr_xlab <- CONFIG_EXTRA$xlabel
+}
+
 # If non-numeric conditions (e.g. 'procyclic') are included, convert to
 # factor and reorder levels of dataframe for better plotting
 if (!is.numeric(counts_long$condition)) {
@@ -75,6 +85,8 @@ if (!is.numeric(counts_long$condition)) {
 counts_long <- cbind(counts_long, cluster=as.factor(module_colors))
 
 module_order <- unique(module_colors[gene_tree$order])
-module_expression_profile_plot(counts_long, module_colors, module_order,
-                               modules_per_plot=4, ncols=2)
+
+# Disable for now (not very helpful; better to print individually as needed)
+#module_expression_profile_plot(counts_long, module_colors, module_order,
+#                               modules_per_plot=4, ncols=2)
 ```
