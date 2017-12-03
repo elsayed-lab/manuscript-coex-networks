@@ -1,6 +1,6 @@
 #### Infected vs. Uninfected Difference Matrix
 
-```{r difference_heatmap}
+```{r difference_heatmap, results='asis'}
 diff <- inf - uninf
 
 # sub-sample to speed up and better fit in display
@@ -16,6 +16,10 @@ heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=F
 # without legend
 heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
           col='plasma', margin=c(6, 6),  key=FALSE)
+
+# edge weight range
+cat(sprintf('\n- Minimum edge weight: %0.3f\n', min(diff)))
+cat(sprintf('\n- Maximum edge weight: %0.3f\n', max(diff)))
 ```
 
 ```{r diff_matrix_clustering}
@@ -139,14 +143,19 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ##### Visualization of enriched rewired subnetworks
 
-```{r enriched_difference_subnetwork, results='asis'}
+```{r enriched_difference_subnetwork, results='asis', message=FALSE, fig.height=1600/192}
 cat('\n')
 
-for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
+for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
+                              enriched_colors_cpdb, enriched_colors_marbach))) {
     # show diff network
-    cat(sprintf("##### %s\n\n", module_color))
     genes <- (result %>% filter(color==module_color))$gene_id
     ind <- rownames(diff) %in% genes
+
+    med_edge_weight <- median(diff[ind, ind])
+
+    cat(sprintf("##### %s (median edge weight = %0.2f)\n", module_color, med_edge_weight))
+    message(sprintf("%s\n", module_color))
 
     # create graph instance
     g <- graph.adjacency(diff[ind, ind], mode='undirected', weighted=TRUE)
@@ -179,18 +188,22 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
         cutoff <- as.numeric(quantile(E(g)$weight, 1 - (num_edges / length(E(g)))))
 
         E(g)$weight[E(g)$weight < cutoff] <- 0
-        g <- delete.edges(g, which(E(g)$weight==0))
 
-        # remove nodes that become disconnected
+        # remove nodes and edges that become disconnected from pruning
+        g <- delete.edges(g, which(E(g)$weight == 0))
         g <- delete.vertices(g, which(degree(g) == 0))
     }
 
     # relabel
     vlabels <- gene_info[match(names(V(g)), gene_info$gene_id),]$description
 
-    # rescale edge weights
+    # rescale edge weights 
     E(g)$weight <- E(g)$weight - min(E(g)$weight)
     E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 5
+
+    # remove any nodes or edges that become disconnected from scaling
+    g <- delete.edges(g, which(E(g)$weight == 0))
+    g <- delete.vertices(g, which(degree(g) == 0))
 
     layout_coords <- layout.fruchterman.reingold(g)
 
@@ -214,22 +227,25 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
     ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
 
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(6, 16),
+              labRow=gene_info$description[ind], margins=c(6, 18),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
-              xlab='Gene', ylab='Gene', density='none',
-              key.title='', key.ylab='',  keysize=2,
+              key.title='', key.ylab='',  keysize=2, 
               key.xlab='Edge Weight\n (Infected - Uninfected)')
+
+    # Normalize y-scales
+    ylims <- c(0, max(max(counts_long_inf$expression), max(counts_long_uninf$expression)))
 
     cat('\n')
     print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
-                                font_size=12, line_width=0.3, xlabel='Time (hrs)',
-                                include_title=FALSE,
-                                white_background=TRUE))
+                              font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                              include_title=FALSE, ylimits=ylims,
+                              white_background=TRUE))
+
     cat('\n')
     print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
-                                font_size=12, line_width=0.3, xlabel='Time (hrs)',
-                                include_title=FALSE,
-                                white_background=TRUE))
+                              font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                              include_title=FALSE, ylimits=ylims,
+                              white_background=TRUE))
     cat('\n')
 }
 ```

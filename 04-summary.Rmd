@@ -1,0 +1,162 @@
+---
+author: V. Keith Hughitt
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "Host-parasite consensus network analysis results"
+params:
+  version: "1.0"
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: true
+    code_folding: hide
+  pdf_document:
+    toc: true
+    latex_engine: xelatex
+---
+
+Overview
+========
+
+```{r load_libraries, message=FALSE}
+library('dplyr')
+library('igraph')
+library('knitr')
+library('readr')
+library('printr')
+
+output_tabledir <- 'output/1.0/04-summary/table'
+
+if (!dir.exists(output_tabledir)) {
+    dir.create(output_tabledir, recursive=TRUE)
+}
+
+options(stringsAsFactors=FALSE)
+
+set.seed(1)
+
+# knitr options
+opts_chunk$set(fig.width=1080/92, fig.height=1080/92, fig.dpi=92)
+
+# igraph plot options
+#igraph.options(vertex.size=2, vertex.label=NA, edge.width=0.75)
+igraph.options(vertex.color='#3C02F0', vertex.label.color='black',
+               vertex.label.dist=5, vertex.size=25, vertex.label.degree=2 * pi)
+```
+
+```{r setup}
+datasets <- data.frame(
+    short=c('HsLm-inf', 'HsLm-uninf', 'HsTc-inf', 'HsTc-uninf', 'Lmajor', 'Tcruzi'),
+    long =c('Human infected with L. major', 'Human infected with L. major (uninfected samples)',
+            'Human infected with T. cruzi', 'Human infected with T. cruzi (uninfected samples)',
+            'L. major (all samples)', 'T. cruzi (all samples)')
+)
+```
+
+### Consensus Network Construction
+
+```{r figure_1a}
+# example of network stacking approach
+ind <- c(2, 7, 8, 12)
+
+a1 <- matrix(0, 4, 4)
+a1[ind] <- c(2, 7, 1, 2)
+n1 <- graph.adjacency(a1, mode='undirected', weighted=TRUE)
+
+a2 <- matrix(0, 4, 4)
+a2[ind] <- c(4, 6, 0, 1)
+n2 <- graph.adjacency(a2, mode='undirected', weighted=TRUE)
+
+a3 <- matrix(0, 4, 4)
+a3[ind] <- c(3, 4, 2, 1)
+n3 <- graph.adjacency(a3, mode='undirected', weighted=TRUE)
+
+nn <- graph.adjacency(a1 + a2 + a3, mode='undirected', weighted=TRUE)
+
+coords <- layout.auto(nn)
+node_labels <- paste("Gene ", c("A", "B", "C", "D"))
+
+par(mfrow=c(1,4))
+
+plot(n1, layout=coords, edge.width=E(n1)$weight, vertex.label=node_labels)
+plot(n2, layout=coords, edge.width=E(n2)$weight, vertex.label=node_labels)
+plot(n3, layout=coords, edge.width=E(n3)$weight, vertex.label=node_labels)
+plot(nn, layout=coords, edge.width=E(nn)$weight, vertex.label=node_labels)
+```
+
+Results
+=======
+
+### Consensus network vs. Individual networks
+
+```{r consensus_network_vs_indiv_nets, results='asis', message=FALSE}
+# load tables for each dataset
+#for (x in Sys.glob('output/1.0/01-network-comparison/table/table_01_*')) {
+table_01 <- data.frame(type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"))
+
+for (ds in datasets$short) {
+    infile <- sprintf("output/1.0/01-network-comparison/table/table_01_%s.csv", tolower(ds))
+
+    # skip if file doesn't exist
+    if (!file.exists(infile)) {
+        next
+    }
+
+    #long <- datasets$long[match(ds, datasets$short)]
+    dat <- read_csv(infile) %>%
+        select(-score)
+    colnames(dat) <- c('type', ds)
+
+    table_01 <- merge(table_01, dat, by='type', all=TRUE)
+}
+
+kable(table_01, digits=2)
+```
+
+```{r save_tables, message=FALSE}
+# Get a list of variables starts with "table_" and save each one to file
+tbl_vars <- ls()[grepl('^table_[XS]?[0-9]', ls())]
+
+for (tbl_name in tbl_vars) {
+    message(sprintf("Saving %s", tbl_name))
+
+    # Retrieve variable associated with table
+    tbl_ <- get(tbl_name)
+
+    # Convert tbl's to  basic data frames; 
+    # Prevents issues relating to the format() function
+    if (is.tbl(tbl_)) {
+        tbl_ <- as.data.frame(tbl_)
+    }
+
+    # For single tables, save as TSV
+    if (is.matrix(tbl_) || is.data.frame(tbl_)) {
+        filename <- sprintf("%s.tab", tbl_name)
+
+        # write table to file
+        write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
+                    row.names=FALSE, quote=FALSE, sep="\t")
+    } else {
+        # Otherwise, if multiple tables stored in a list, save as XLS with
+        # separate sheets for each table
+        filename <- sprintf("%s.xlsx", tbl_name)
+        xls_filepath <- file.path(output_tabledir, filename)
+
+        sheet_names <- names(tbl_)
+
+        write.xlsx(as.data.frame(tbl_[[sheet_names[1]]]), file=xls_filepath,
+                   sheetName=sheet_names[1], row.names=FALSE)
+
+        for (sheet in sheet_names[2:length(tbl_)]) {
+            # free up Java memory on each loop iteration
+            # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
+            .jcall("java/lang/System", method = "gc")
+
+            write.xlsx(as.data.frame(tbl_[[sheet]]), file=xls_filepath,
+                       sheetName=sheet, row.names=FALSE)
+        }
+    }
+}
+```
+

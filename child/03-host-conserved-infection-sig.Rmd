@@ -1,19 +1,3 @@
-```{r difference_heatmap, eval=FALSE, include=FALSE}
-### HsTc vs. HsLm Difference Matrix
-diff <- hstc_inf - hslm_inf
-
-# sub-sample to speed up and better fit in display
-ind <- sample(1:nrow(diff), 250)
-heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
-          labCol=FALSE, col='viridis',
-          margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
-          key.title='', key.ylab='',  keysize=2,
-          key.xlab='Edge Weight\n (HsTc - HsLm)')
-
-heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
-          col='viridis', margin=c(6, 6),  key=FALSE)
-```
-
 ### Conserved infection signature network
 
 Next, we will construct a "conservation matrix" by scoring each edge based on
@@ -41,13 +25,18 @@ hist(score_mat, main="Distribution of co-expression conservation scores")
 
 ```{r infection_sig_heatmap}
 # sub-sample to speed up and better fit in display
-ind <- sample(1:nrow(score_mat), 750)
+ind <- sample(1:nrow(score_mat), 250)
+
 heatmap.2(score_mat[ind, ind], trace='none', dendrogram='row', labRow=FALSE,
           labCol=FALSE, col='viridis',
           margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
           #key=FALSE,
           key.title='', key.ylab='',  keysize=2,
           key.xlab='Co-ex Conservation Score\n (HsTc / HsLm)')
+
+# edge weight range
+cat(sprintf('\n- Minimum edge weight: %0.3f\n', min(score_mat)))
+cat(sprintf('\n- Maximum edge weight: %0.3f\n', max(score_mat)))
 ```
 
 ```{r score_matrix_clustering}
@@ -111,6 +100,14 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-kegg-enrichment-results.Rmd'}
 ```
 
+#### CPDB Enrichment
+
+```{r child='../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
+```
+
+```{r child='02-kegg-enrichment-results.Rmd'}
+```
+
 #### TF regulon Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}
@@ -124,11 +121,16 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r enriched_conservation_subnetwork, results='asis'}
 cat('\n')
 
-for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
+# heatmap color palette
+pal <- colorRampPalette(c('slateblue1', 'coral1'))
+
+for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
+                              enriched_colors_cpdb, enriched_colors_marbach))) {
     # show conservation network
-    cat(sprintf("###### %s\n", module_color))
     genes <- (result %>% filter(color==module_color))$gene_id
     ind <- rownames(score_mat) %in% genes
+
+    cat(sprintf("###### %s (median score = %0.2f)\n", module_color, median(score_mat[ind, ind])))
 
     # create graph instance
     g <- graph.adjacency(score_mat[ind, ind], mode='undirected', weighted=TRUE)
@@ -187,12 +189,10 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg))) {
     # heatmap plot
     adj <- score_mat[ind,ind]
 
-    pal <- colorRampPalette(c('slateblue1', 'coral1'))
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(22, 22),
+              labRow=gene_info$description[ind], margins=c(6, 16),
               labCol=FALSE, col=pal,
-              margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
-              #key=FALSE,
+              xlab='Gene', ylab='Gene', 
               key.title='', key.ylab='', keysize=2,
               key.xlab='Co-ex Conservation Score\n (HsTc / HsLm)')
 }

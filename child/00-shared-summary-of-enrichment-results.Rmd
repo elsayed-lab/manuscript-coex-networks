@@ -123,6 +123,8 @@ num_annot <- rowSums(table_S2[mask,] %>% select(-Module, -num_genes))
 
 ```{r results='asis'}
 # common enrichment
+# TODO 2017/12/02: update variable used to deterimine # of genes to work
+# with diff net analyses as well.
 template <- paste("- Number of genes: %d",
                   "- Number of modules: %d",
                   "- Total functionally-enriched modules: %d / %d",
