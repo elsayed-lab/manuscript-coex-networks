@@ -3,6 +3,11 @@
 ```{r difference_heatmap, results='asis'}
 diff <- inf - uninf
 
+# set diagonal to zero for all networks
+diag(inf) <- 0
+diag(uninf) <- 0
+diag(diff) <- 0
+
 # sub-sample to speed up and better fit in display
 ind <- sample(1:nrow(diff), 250)
 
@@ -237,22 +242,42 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     gene_ids    <- gene_info$gene_id[ind]
     gene_labels[is.na(gene_labels)] <- gene_ids[is.na(gene_labels)] 
 
+    # diff heatmap
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_labels, margins=c(6, 20),
+              labRow=gene_labels, margins=c(8, 20),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
+              symm=TRUE, symkey=TRUE, symbreaks=TRUE,
               key.title='', key.ylab='',  keysize=2, 
               key.xlab='Edge Weight\n (Infected - Uninfected)')
+
+    # inf heatmap
+    #heatmap.2(inf[ind, ind], trace='none', dendrogram='row', cexRow=30/nrow(adj),
+    #          labRow=gene_labels, margins=c(8, 20),
+    #          labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
+    #          key.title='', key.ylab='',  keysize=2, 
+    #          key.xlab='Edge Weight\n (Infected)')
+
+    ## uninf heatmap
+    #heatmap.2(uninf[ind, ind], trace='none', dendrogram='row', cexRow=30/nrow(adj),
+    #          labRow=gene_labels, margins=c(8, 20),
+    #          labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
+    #          key.title='', key.ylab='',  keysize=2, 
+    #          key.xlab='Edge Weight\n (Infected)')
 
     # Normalize y-scales
     ylims <- c(0, max(max(counts_long_inf$expression), max(counts_long_uninf$expression)))
 
     cat('\n')
+
+    # infected expression plot
     print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
                               font_size=12, line_width=0.3, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
                               white_background=TRUE))
 
     cat('\n')
+
+    # uninfected expression plot
     print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
                               font_size=12, line_width=0.3, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
