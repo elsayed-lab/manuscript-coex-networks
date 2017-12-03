@@ -190,7 +190,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     adj <- score_mat[ind,ind]
 
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(6, 16),
+              labRow=gene_info$description[ind], margins=c(6, 20),
               labCol=FALSE, col=pal,
               xlab='Gene', ylab='Gene', 
               key.title='', key.ylab='', keysize=2,

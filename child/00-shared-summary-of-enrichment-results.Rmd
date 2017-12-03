@@ -211,7 +211,7 @@ for (sheet in sheet_names[2:length(table_01)]) {
 
     if (nrow(table_01[[sheet]]) > 0) {
         write.xlsx(as.data.frame(table_01[[sheet]]), file=xls_filepath,
-                    sheetName=sheet, row.names=FALSE)
+                    sheetName=sheet, row.names=FALSE, append=TRUE)
     }
 }
 ```

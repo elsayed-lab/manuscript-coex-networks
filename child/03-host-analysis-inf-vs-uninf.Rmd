@@ -207,6 +207,13 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     layout_coords <- layout.fruchterman.reingold(g)
 
+    # TEMP WORK-AROUND FOR FIGURE (2017/12/02)
+    # DEAD-Box helicase 10 only has one extremely low-weight edge; skews
+    # the plot layout..
+    #if (module_color == "#00FF77") {
+    #    g <- delete.vertices(g, "ENSG00000178105")
+    #}
+
     V(g)$label.cex   <- 0.8
     V(g)$label.color <- '#333333'
 
@@ -226,8 +233,12 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     ## Make a vector with n+1 breaks
     ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
 
+    gene_labels <- gene_info$description[ind]
+    gene_ids    <- gene_info$gene_id[ind]
+    gene_labels[is.na(gene_labels)] <- gene_ids[is.na(gene_labels)] 
+
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(6, 18),
+              labRow=gene_labels, margins=c(6, 20),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
               key.title='', key.ylab='',  keysize=2, 
               key.xlab='Edge Weight\n (Infected - Uninfected)')

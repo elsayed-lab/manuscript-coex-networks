@@ -215,13 +215,13 @@ for (tbl_name in tbl_vars) {
         write.xlsx(as.data.frame(tbl_[[sheet_names[1]]]), file=xls_filepath,
                    sheetName=sheet_names[1], row.names=FALSE)
 
-        for (sheet in sheet_names[2:length(tbl_)]) {
+        for (sheet in sheet_names[2:length(sheet_names)]) {
             # free up Java memory on each loop iteration
             # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
             .jcall("java/lang/System", method = "gc")
 
             write.xlsx(as.data.frame(tbl_[[sheet]]), file=xls_filepath,
-                       sheetName=sheet, row.names=FALSE)
+                       sheetName=sheet, row.names=FALSE, append=TRUE)
         }
     }
 }

@@ -154,7 +154,7 @@ for (tbl_name in tbl_vars) {
             .jcall("java/lang/System", method = "gc")
 
             write.xlsx(as.data.frame(tbl_[[sheet]]), file=xls_filepath,
-                       sheetName=sheet, row.names=FALSE)
+                       sheetName=sheet, row.names=FALSE, append=TRUE)
         }
     }
 }
