@@ -157,9 +157,12 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     genes <- (result %>% filter(color==module_color))$gene_id
     ind <- rownames(diff) %in% genes
 
+    min_edge_weight <- min(diff[ind, ind])
+    max_edge_weight <- max(diff[ind, ind])
     med_edge_weight <- median(diff[ind, ind])
 
-    cat(sprintf("##### %s (median edge weight = %0.2f)\n", module_color, med_edge_weight))
+    cat(sprintf("##### %s (median edge weight = %0.2f, min = %0.2f, max = %0.2f)\n", 
+                module_color, med_edge_weight, min_edge_weight, max_edge_weight))
     message(sprintf("%s\n", module_color))
 
     # create graph instance
@@ -204,7 +207,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # rescale edge weights 
     E(g)$weight <- E(g)$weight - min(E(g)$weight)
-    E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 5
+    E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 4
 
     # remove any nodes or edges that become disconnected from scaling
     g <- delete.edges(g, which(E(g)$weight == 0))
@@ -219,11 +222,11 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     #    g <- delete.vertices(g, "ENSG00000178105")
     #}
 
-    V(g)$label.cex   <- 0.8
+    V(g)$label.cex   <- 0.5
     V(g)$label.color <- '#333333'
 
     # network plot
-    plot(g, layout=layout_coords, vertex.size=5, vertex.label=vlabels,
+    plot(g, layout=layout_coords, vertex.size=3, vertex.label=vlabels,
          vertex.label.dist=1,
          edge.width=E(g)$weight)
 
@@ -244,7 +247,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # diff heatmap
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_labels, margins=c(8, 20),
+              labRow=gene_labels, margins=c(8, 24),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
               symm=TRUE, symkey=TRUE, symbreaks=TRUE,
               key.title='', key.ylab='',  keysize=2, 
@@ -271,7 +274,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # infected expression plot
     print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
-                              font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                              font_size=18, line_width=0.5, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
                               white_background=TRUE))
 
@@ -279,7 +282,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # uninfected expression plot
     print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
-                              font_size=12, line_width=0.3, xlabel='Time (hrs)',
+                              font_size=18, line_width=0.5, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
                               white_background=TRUE))
     cat('\n')

@@ -178,11 +178,11 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     layout_coords <- layout.fruchterman.reingold(g)
 
-    V(g)$label.cex   <- 0.8
+    V(g)$label.cex   <- 0.6
     V(g)$label.color <- '#333333'
 
     # network plot
-    plot(g, layout=layout_coords, vertex.size=5, vertex.label=vlabels,
+    plot(g, layout=layout_coords, vertex.size=4, vertex.label=vlabels,
          vertex.label.dist=1,
          edge.width=E(g)$weight)
 
@@ -190,7 +190,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     adj <- score_mat[ind,ind]
 
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_info$description[ind], margins=c(6, 20),
+              labRow=gene_info$description[ind], margins=c(6, 22),
               labCol=FALSE, col=pal,
               xlab='Gene', ylab='Gene', 
               key.title='', key.ylab='', keysize=2,

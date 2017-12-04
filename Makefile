@@ -28,6 +28,7 @@ construction:
 		params="list(settings=\"$$rmd\", title=$$title)"; \
 		cmd="Rscript -e 'rmarkdown::render(\"02-network-construction.Rmd\", params=$$params)'"; \
 		echo $$cmd; \
+		#eval $$cmd; \
 	done
 
 host:

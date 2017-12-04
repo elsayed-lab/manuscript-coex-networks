@@ -179,39 +179,14 @@ table_S3 <- list()
 for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
     # enrichment type ("go", "kegg", etc.)
     label <- unlist(strsplit(enrichment_result, "_"))[2]
-    table_S3[[label]] <- do.call("rbind", get(enrichment_result))
+
+    # get annotation-specific enrichment data frame; for now, only include
+    # over-represented annotations and adjusted p-valus
+    df <- do.call("rbind", get(enrichment_result)) %>%
+        select(-starts_with("under"), -over_represented_pvalue) %>%
+        dplyr::rename(pval_adj=over_represented_pvalue_adj)
+    df$pval_adj <- round(df$pval_adj, 5)
+    table_S3[[label]] <- data.frame(df)
 }
 ```
 
-```{r save_enrichment_table}
-# list of tables will be saved as an XLS file
-table_01 <- list()
-
-# iterate over enrichment results
-for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
-    # enrichment type ("go", "kegg", etc.)
-    label <- unlist(strsplit(enrichment_result, "_"))[2]
-    table_01[[label]] <- do.call("rbind", get(enrichment_result))
-}
-
-
-# output filepath
-output_filename <- sprintf('enrichment_results_%s.xls', output_suffix)
-xls_filepath <- file.path('..', output_tabledir, output_filename)
-
-sheet_names <- names(table_01)
-
-write.xlsx(as.data.frame(table_01[[sheet_names[1]]]), file=xls_filepath,
-            sheetName=sheet_names[1], row.names=FALSE)
-
-for (sheet in sheet_names[2:length(table_01)]) {
-    # free up Java memory on each loop iteration
-    # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
-    .jcall("java/lang/System", method = "gc")
-
-    if (nrow(table_01[[sheet]]) > 0) {
-        write.xlsx(as.data.frame(table_01[[sheet]]), file=xls_filepath,
-                    sheetName=sheet, row.names=FALSE, append=TRUE)
-    }
-}
-```
