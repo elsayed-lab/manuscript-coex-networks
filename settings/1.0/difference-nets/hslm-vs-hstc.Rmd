@@ -3,8 +3,8 @@
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Host network analysis", 
-    output_dirname  = 'host-analysis'
+    title           = "Shared signatures of infection (HsTc vs. HsLm)", 
+    output_prefix  = 'host-analysis'
 )
 
 CONFIG <- list(

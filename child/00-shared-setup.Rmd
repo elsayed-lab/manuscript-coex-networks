@@ -2,11 +2,12 @@
 library('knitr')
 library('readr')
 knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+knit('', quiet=TRUE, output=tempfile())
 ```
 
 ```{r knitr_settings, include=FALSE, message=FALSE}
 output_prefix <- file.path('output', params$version, params$analysis_dirname)
-output_suffix <- MANUSCRIPT_CONFIG$output_dirname
+output_suffix <- MANUSCRIPT_CONFIG$output_prefix
 
 output_datadir   <- file.path(output_prefix, 'data')
 output_tabledir  <- file.path(output_prefix, 'table')
@@ -23,10 +24,12 @@ if (!dir.exists(output_tabledir)) {
 
 cache_dir <- file.path('cache', output_prefix, output_suffix)
 
-opts_chunk$set(fig.width=1920/192,
-               fig.height=1920/192,
-               fig.path=output_figprefix,
-               dpi=192,
+opts_chunk$set(fig.path=output_figprefix,
+               dev=c('png', 'pdf'),
+               fig.width=6,
+               fig.height=6,
+               fig.retina=1,
+               dpi=600,
                cache.path=cache_dir,
 			   echo=CONFIG$verbose)
 
@@ -38,23 +41,13 @@ options(java.parameters="-Xmx8g" )
 # Increase reproducibility
 set.seed(1)
 
-# If rmarkdown.pandoc.to not specified, have it default to 'latex' output
-if (is.null(opts_knit$get("rmarkdown.pandoc.to"))) {
-    opts_knit$set(rmarkdown.pandoc.to='latex')
+# ggplot theme
+theme_bw_high_res <- function () { 
+    theme_bw(base_size=10) %+replace% 
+        theme(
+            plot.title  = element_text(size=10,  vjust=0.5)
+        )
 }
-
-# Format-specific options
-if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    # PDF output
-    opts_chunk$set(dev=c('cairo_pdf', 'tiff'), 
-  				   dev.args=list(cairo_pdf=list(family="DejaVu Sans"),
-                                 tiff=list(compression="lzw")))
-} else {
-    # HTML output
-    #opts_chunk$set(dev=c('png', 'tiff'), fig.retina=1)
-    opts_chunk$set(dev=c('png'), fig.retina=1)
-}
-
 
 # plotting parameters
 cex_main <- 1.6

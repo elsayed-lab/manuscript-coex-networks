@@ -1,30 +1,25 @@
 ```{r settings}
 #
-# H. sapiens infected with L. major settings (Uninfected samples only)
-# Updated: 2017/11/28 (cutoff = 0.32)
+# H. sapiens infected with L. major settings
 #
-# TODO: Update to v6.1 when data ready.
+# - unfiltered version of networks...
 #
 
 #
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major (Uninfected Samples)", 
+    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'hsapiens_infected_with_lmajor-uninf-v6.0'),
-    output_dirname  = 'hslm-uninf',
-    quantile_cutoff = 0.32,
+                                'hsapiens_infected_with_lmajor-v6.0'),
+    output_prefix  = 'hslm-inf',
+    quantile_cutoff = 0,
     networks        = read_csv(file.path(
                                   Sys.getenv('r15'), 
                                   '115-coex-network-param-opt-v6',
                                   'output', 'normal',
-                                  'hsapiens_infected_with_lmajor-uninf-v6.0.csv'))
-)
+                                  'hsapiens_infected_with_lmajor-v6.0.csv')),
 
-# TEMP WORK-AROUND (avoid touching cache for a couple days..)
-# Can merge back into main cache later on.
-CONFIG_EXTRA <- list(
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
         from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
@@ -32,6 +27,8 @@ CONFIG_EXTRA <- list(
         to=c(4, 24, 48, 72, 4, 24, 48, 72)
     ),
     xlabel='Time (hrs)'
+    xangle=90,
+    xhjust=1
 )
 
 #
@@ -53,13 +50,13 @@ CONFIG <- list(
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
                                              '11-coex-network-hsapiens-infected-with-lmajor',
                                              'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'uninf')),
-    'sample_id'         = 'HPGL_ID',
-    'condition'         = 'Condition',
-    'batch'             = 'Batch',
-    'covariates'        = c('Batch'),
+                          filter(startsWith(Condition, 'infLM')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
 
-    main_comparison     = c('uninf4', 'uninf72'),
+    main_comparison       = c('infLM4', 'infLM72'),
     main_comparison_label = "ΔExpr (72 - 4 hrs)",
 
     verbose             = FALSE,

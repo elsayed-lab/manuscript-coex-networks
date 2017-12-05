@@ -1,0 +1,72 @@
+```{r settings}
+#
+# H. sapiens infected with T. cruzi settings
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with T. cruzi", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'hsapiens_infected_with_tcruzi-v6.1'),
+    output_prefix  = 'hstc-inf',
+    quantile_cutoff = 0,
+    networks        = read_csv(file.path(
+                                  Sys.getenv('r15'), 
+                                  '115-coex-network-param-opt-v6',
+                                  'output', 'normal',
+                                  'hsapiens_infected_with_tcruzi-v6.1.csv')),
+
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('uninf04', 'uninf06', 'uninf12', 'uninf20', 'uninf24',
+               'uninf48', 'uninf72', 'inf04', 'inf06', 'inf12', 'inf20',
+               'inf24', 'inf48', 'inf72'),
+        to=c(4, 6, 12, 20, 24, 48, 72, 4, 6, 12, 20, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)'
+    xangle=90,
+    xhjust=1
+)
+
+# TEMP WORK-AROUND (avoid touching cache for a couple days..)
+# Can merge back into main cache later on.
+CONFIG_EXTRA <- list(
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "T. cruzi",
+    target          = "host",
+
+    organism_db     = "Homo.sapiens",
+    organism_genome = "hg19",
+    orgdb_key       = "ENSEMBL",
+    biomart_dataset = "hsapiens_gene_ensembl",
+
+    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
+                                   "counts", "hsapiens", "*.count"),
+
+    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
+                                             '13-coex-network-hsapiens-infected-with-tcruzi',
+                                             'settings', 'hsapiens_samples.csv')) %>%
+                          filter(startsWith(Condition, 'inf')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+
+    main_comparison     = c('inf04', 'inf72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)",
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

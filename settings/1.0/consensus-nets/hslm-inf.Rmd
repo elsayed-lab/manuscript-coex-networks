@@ -14,7 +14,7 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'hsapiens_infected_with_lmajor-v6.0'),
-    output_dirname  = 'hslm-inf',
+    output_prefix  = 'hslm-inf',
     quantile_cutoff = 0.40,
     networks        = read_csv(file.path(
                                   Sys.getenv('r15'), 

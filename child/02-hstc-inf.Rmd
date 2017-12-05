@@ -1,6 +1,6 @@
 ### Infection-related co-expression modules
 
-```{r modules_of_interest, results='asis', fig.width=1080/192, fig.height=1080/192, dpi=192}
+```{r modules_of_interest, results='asis'}
 #
 # Leishmania modules of interest
 # T. cruzi modules of interest
@@ -32,7 +32,7 @@ for (mod in modules_of_interest) {
     print(module_profile_plot(counts_long, mod, line_color='#333333',
                               font_size=13, line_width=0.3, xlabel=expr_xlab,
                               include_title=FALSE,
-                              white_background=TRUE))
+                              white_background=TRUE) + theme_bw_high_res())
     cat('\n')
 
     table_S1 %>% 

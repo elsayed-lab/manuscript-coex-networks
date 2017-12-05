@@ -148,7 +148,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ##### Visualization of enriched rewired subnetworks
 
-```{r enriched_difference_subnetwork, results='asis', message=FALSE, fig.height=1600/192}
+```{r enriched_difference_subnetwork, results='asis', message=FALSE, fig.height=1600/300}
 cat('\n')
 
 for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
@@ -276,6 +276,8 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
                               font_size=18, line_width=0.5, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
+                              xangle=MANUSCRIPT_CONFIG$xangle,
+                              xhjust=MANUSCRIPT_CONFIG$xhjust,
                               white_background=TRUE))
 
     cat('\n')
@@ -284,6 +286,8 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
                               font_size=18, line_width=0.5, xlabel='Time (hrs)',
                               include_title=FALSE, ylimits=ylims,
+                              xangle=MANUSCRIPT_CONFIG$xangle,
+                              xhjust=MANUSCRIPT_CONFIG$xhjust,
                               white_background=TRUE))
     cat('\n')
 }

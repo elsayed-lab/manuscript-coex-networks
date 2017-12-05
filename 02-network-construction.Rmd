@@ -3,8 +3,8 @@ author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
   settings: ""
-  title: "Consensus Co-expression Network Construction"
-  version: "1.0"
+  title: ""
+  version: ""
   analysis_dirname: "02-network-construction"
 title: "`r params$title` (`r params$version`)"
 output:
@@ -95,14 +95,10 @@ options(stringsAsFactors=FALSE)
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r include=FALSE}
-opts_chunk$set(fig.width=1080/192, fig.height=1080/192)
-```
-
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r library_sizes, message=FALSE, dpi=192}
+```{r library_sizes, message=FALSE}
 # color scheme for plots
 num_conditions <- length(unique(condition))
 pal <- colorRampPalette(brewer.pal(8, 'Dark2'))(num_conditions)
@@ -166,10 +162,10 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='child/02-top-enriched-modules.Rmd'}
 ```
 
-```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hslm-inf'}
+```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_prefix == 'hslm-inf'}
 ```
 
-```{r child='child/02-hstc-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_dirname == 'hstc-inf'}
+```{r child='child/02-hstc-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_prefix == 'hstc-inf'}
 ```
 
 ### Network Visualization
@@ -179,52 +175,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ### Save results
 
-```{r save_table_results, message=FALSE}
-# Get a list of variables starts with "table_" and save each one to file
-tbl_vars <- ls()[grepl('^table_[XS]?[0-9]', ls())]
-
-for (tbl_name in tbl_vars) {
-    message(sprintf("Saving %s", tbl_name))
-
-    # Retrieve variable associated with table
-    tbl_ <- get(tbl_name)
-
-    # Convert tbl's to  basic data frames; 
-    # Prevents issues relating to the format() function
-    if (is.tbl(tbl_)) {
-        tbl_ <- as.data.frame(tbl_)
-    }
-
-    # For single tables, save as TSV
-    if (is.matrix(tbl_) || is.data.frame(tbl_)) {
-        filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
-
-        # write table to file
-        write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
-                    row.names=FALSE, quote=FALSE, sep="\t")
-    } else {
-        # Otherwise, if multiple tables stored in a list, save as XLS with
-        # separate sheets for each table
-
-        # output filepath
-        filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
-        xls_filepath <- file.path(output_tabledir, filename)
-
-        sheet_names <- names(tbl_)
-
-        write.xlsx(as.data.frame(tbl_[[sheet_names[1]]]), file=xls_filepath,
-                   sheetName=sheet_names[1], row.names=FALSE)
-
-        for (sheet in sheet_names[2:length(sheet_names)]) {
-            # free up Java memory on each loop iteration
-            # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
-            .jcall("java/lang/System", method = "gc")
-
-            write.xlsx(as.data.frame(tbl_[[sheet]]), file=xls_filepath,
-                       sheetName=sheet, row.names=FALSE, append=TRUE)
-        }
-    }
-}
+```{r child='child/00-save-tables.Rmd'}
 ```
 
 ```{r save_rdata_results, message=FALSE}
@@ -278,7 +229,7 @@ for (d in c(output_datadir, output_tabledir)) {
 ```{r save_output}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0('consesus_network_', MANUSCRIPT_CONFIG$output_dirname, '.html'))
+html_filepath <- file.path(output_prefix, paste0('consesus_network_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
     system(sprintf('(sleep 30 && mv 02-network-construction.pdf %s) &', html_filepath))

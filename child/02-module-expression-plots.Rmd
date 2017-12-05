@@ -22,41 +22,7 @@ large_scale_labels <- cutreeDynamicTree(dendro=gene_tree, minModuleSize=100,
 large_scale_module_colors <- labels2colors(large_scale_labels)
 ```
 
-#### Large-scale module expression (Log2-CPM averages)
-
-```{r figure_X3, results='asis', fig.width=1080/192, fig.height=1080/192}
-# average expression profiles for each module
-module_averages <- get_module_averages(log2cpm_counts,
-                                       large_scale_module_colors, method=median)
-combined_module_counts <- combine_replicates(module_averages, condition)
-
-# convert to long
-condition_mapping <- data.frame(long=as.character(unique(condition)),
-                                short=as.character(unique(condition)))
-
-module_averages_long <- melt_counts(combined_module_counts, condition_mapping)
-colnames(module_averages_long) <- c('module', 'condition', 'expression')
-
-# colormap
-cmap <- as.character(unique(module_averages_long$module))
-
-# module gene counts
-mod_counts <- setNames(tbl_df(table(large_scale_module_colors)), c('color', 'n'))
-plot_labels <- sprintf("%s (n=%d)", cmap, mod_counts$n[match(cmap, mod_counts$color)])
-
-# large scale clusters
-ggplot(data=module_averages_long,
-    aes(x=condition, y=expression, group=module, color=module)) +
-    geom_line(size=I(2)) + 
-    scale_colour_manual(labels=plot_labels, values=cmap) +
-    ggtitle("Module Average Log2-CPM Expression Profiles") +
-    xlab("Time (hours)") +
-    ylab("Expression level (log2-CPM)") +
-    theme(axis.text=element_text(colour="#333333"),
-          axis.text.x=element_text(angle=90, hjust=1, vjust=0.5, size=16))
-```
-
-```{r expression_profiles, message=FALSE, warning=FALSE, fig.width=18, dpi=96, results='hide'}
+```{r expression_profiles, message=FALSE, warning=FALSE, results='hide'}
 # long version of counts
 combined_gene_counts <- combine_replicates(log2cpm_counts, condition)
 
@@ -69,12 +35,10 @@ names(counts_long) <- c('gene_id', 'condition', 'expression')
 # Human-readable labels
 expr_xlab <- "Condition"
 
-if ("CONFIG_EXTRA" %in% ls()) {
-    mapping <- CONFIG_EXTRA$condition_mapping
-    counts_long$condition <- mapping$to[match(counts_long$condition, mapping$from)]
+mapping <- MANUSCRIPT_CONFIG$condition_mapping
+counts_long$condition <- mapping$to[match(counts_long$condition, mapping$from)]
 
-    expr_xlab <- CONFIG_EXTRA$xlabel
-}
+expr_xlab <- MANUSCRIPT_CONFIG$xlabel
 
 # If non-numeric conditions (e.g. 'procyclic') are included, convert to
 # factor and reorder levels of dataframe for better plotting

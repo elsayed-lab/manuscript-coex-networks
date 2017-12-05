@@ -37,10 +37,13 @@ options(stringsAsFactors=FALSE)
 set.seed(1)
 
 # knitr options
-opts_chunk$set(fig.width=1080/92, fig.height=1080/92, fig.dpi=92)
+opts_chunk$set(dev=c('png', 'pdf'),
+               fig.width=6,
+               fig.height=6,
+               fig.retina=1,
+               dpi=600)
 
 # igraph plot options
-#igraph.options(vertex.size=2, vertex.label=NA, edge.width=0.75)
 igraph.options(vertex.color='#3C02F0', vertex.label.color='black',
                vertex.label.dist=5, vertex.size=25, vertex.label.degree=2 * pi)
 ```

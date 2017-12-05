@@ -2,8 +2,6 @@
 #
 # L. major all samples
 #
-# Updated 2017/11/27 (cutoff: 0.35)
-#
 
 #
 # Manuscript-specific configuration
@@ -12,21 +10,21 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: L. major (All Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'lmajor_all_samples-multicopy-v6.1'),
-    output_dirname  = 'lmajor',
-    quantile_cutoff = 0.35,
+    output_prefix  = 'lmajor',
+    quantile_cutoff = 0,
     networks        = read_csv(file.path(
                                   Sys.getenv('r15'), 
                                   '115-coex-network-param-opt-v6',
                                   'output', 'normal',
                                   'lmajor_all_samples-multicopy-v6.1.csv')) %>%
-    filter(batch_adjustment != 'none')
-)
+    # DEBUGGING 2017/12/05
+    #filter(batch_adjustment != 'none'),
+    filter(batch_adjustment != 'none') %>%
+    head(5),
 
-# TEMP WORK-AROUND (avoid touching cache for a couple days..)
-# Can merge back into main cache later on.
-CONFIG_EXTRA <- list(
+
     # Alternate condition values to use for plotting, etc.
-    "condition_mapping" = data.frame(
+    condition_mapping = data.frame(
         to=c('Procyclic', 'Metacyclic', 'Ama  4hrs', 'Ama 24hrs', 'Ama 48hrs', 
                'Ama 72 hrs', 'Footpad Ama', 'Sandfly day 2', 'Sandfly day 4',
                'Sandfly day 15', 'Released Ama', 'Inf Neutrophils', 'Axenic Metacyclic'),
@@ -35,7 +33,9 @@ CONFIG_EXTRA <- list(
                'sandfly_day15', 'released_amast', 'inf_neutrophils',
                'sacks_meta')
     ),
-    xlabel='Developmental Stage'
+    xlabel='Developmental Stage',
+    xangle=90,
+    xhjust=1
 )
 
 #

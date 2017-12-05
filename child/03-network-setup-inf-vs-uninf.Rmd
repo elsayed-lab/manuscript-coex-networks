@@ -1,4 +1,4 @@
-```{r inf_vs_uninf_setup, results='asis', fig.height=1080/192}
+```{r inf_vs_uninf_setup, results='asis'}
 # keep only genes found in both uninfected and infected networks
 common_genes <- intersect(rownames(uninf), rownames(inf))
 
@@ -23,7 +23,7 @@ In order to account for differences in correlation distributions due to
 differences in replicate numbers, the edge weight distibutions for each matrix
 will be quantile normalized.
 
-```{r normalize_edge_weight_distibutions, fig.height=1080/192}
+```{r normalize_edge_weight_distibutions}
 # create a data frame with one column per adjacency matrix
 upper_tri <- upper.tri(inf)
 lower_tri <- lower.tri(uninf)

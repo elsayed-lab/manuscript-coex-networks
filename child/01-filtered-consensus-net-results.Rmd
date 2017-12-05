@@ -35,10 +35,10 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         `# Unique KEGG pathways`=num_unique_kegg_pathways,
         `# Unique CPDB pathways`=num_unique_cpdb_pathways,
         `# Unique TF's`=num_unique_tfs,
-        `GO enrichment -log10(p-val) score`=total_go_pvals,
-        `KEGG enrichment -log10(p-val) score`=total_kegg_pvals,
-        `CPDB enrichment -log10(p-val) score`=total_cpdb_pvals,
-        `TF enrichment -log10(p-val) score`=total_tf_pvals
+        `GO enrichment \n-log10(p-val) score`=total_go_pvals,
+        `KEGG enrichment \n-log10(p-val) score`=total_kegg_pvals,
+        `CPDB enrichment \n-log10(p-val) score`=total_cpdb_pvals,
+        `TF enrichment \n-log10(p-val) score`=total_tf_pvals
     )
 } else {
     # GO, KEGG
@@ -63,8 +63,8 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
     ) %>% dplyr::rename(
         `# Unique GO terms`=num_unique_go_terms,
         `# Unique KEGG pathways`=num_unique_kegg_pathways,
-        `GO enrichment -log10(p-val) score`=total_go_pvals,
-        `KEGG enrichment -log10(p-val) score`=total_kegg_pvals
+        `GO enrichment \n-log10(p-val) score`=total_go_pvals,
+        `KEGG enrichment \n-log10(p-val) score`=total_kegg_pvals
     )
 }
 
@@ -73,19 +73,7 @@ datatable(dat)
 
 ## Number of unique annotations
 
-```{r ggplot_setup}
-theme_large <- function () { 
-    theme_bw(base_size=14) %+replace% 
-        theme(
-            axis.text.x = element_text(size=13),
-            axis.text.y = element_text(size=13),
-            legend.text  = element_text(size=12),
-            legend.title = element_text(size=13)
-        )
-}
-```
-
-```{r num_unique_annotations, fig.width=1600/192, fig.height=1080/192}
+```{r num_unique_annotations, fig.width=1600/300, fig.height=1080/300}
 dat_num_unique <- dat %>%
     select(cutoff_quantile, starts_with('# Unique')) %>%
     melt(id.vars='cutoff_quantile', variable.name='type',
@@ -94,14 +82,14 @@ dat_num_unique <- dat %>%
 ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
-    theme_large() +
+    theme_bw_high_res() +
     xlab('Edge Weight Cutoff Percentile') + ylab('# Unique annotations') +
     ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
 ```
 
 ## -log10(Adj. P-value) totals
 
-```{r pval_totals, fig.width=1600/192, fig.height=1080/192}
+```{r pval_totals, fig.width=1600/300, fig.height=1080/300}
 dat_pval_scores <- dat %>%
     select(cutoff_quantile, ends_with('score')) %>%
     melt(id.vars='cutoff_quantile', variable.name='type',
@@ -110,14 +98,14 @@ dat_pval_scores <- dat %>%
 ggplot(dat_pval_scores, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
-    theme_large() +
+    theme_bw_high_res() +
     xlab('Edge Weight Cutoff Percentile') + ylab('Total -log10(Adj. P-values)') +
     ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
 ```
 
 ## Ratio of enrichment score to number of genes
 
-```{r ratio_enrichment_to_num_genes, fig.width=1600/192, fig.height=1080/192}
+```{r ratio_enrichment_to_num_genes, fig.width=1600/300, fig.height=1080/300}
 # sum(-log10(adj.p.val)) over # genes vs. cutoff
 dat_ratio_enrichment <- dat %>%
     select(cutoff_quantile, ends_with('per gene')) %>%
@@ -127,7 +115,7 @@ dat_ratio_enrichment <- dat %>%
 ggplot(dat_ratio_enrichment, aes(x=cutoff_quantile, y=ratio_enrichment_to_num_genes, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
-    theme_large() +
+    theme_bw_high_res() +
     xlab('Edge Weight Cutoff Percentile') + ylab('Ratio Enrichment to Number of Genes') +
     ggtitle('Ratio of Enrichment to Number of Genes vs. Edge Weight Cutoff')
 ```
@@ -145,7 +133,7 @@ consensus networks.
 As such, we will only compare filtered consensus networks with half or more of
 the original genes present.
 
-```{r comparison_to_individual_networks, fig.width=1600/192, fig.height=ifelse(CONFIG$target == 'host', 1080/192, 540/192)}
+```{r comparison_to_individual_networks, fig.width=6, fig.height=ifelse(CONFIG$target == 'host', 3, 2.5)}
 nets <- MANUSCRIPT_CONFIG$networks
 
 # compute score for each network using -log10 p-value scores, if available, or
@@ -231,7 +219,7 @@ ggplot(indiv_scores, aes(x=total, fill=type)) +
     geom_density() +
     geom_vline(data=consensus_scores, aes(xintercept=score), 
                 linetype='dashed', color='red') +
-    theme_large() +
+    theme_bw_high_res() +
     facet_wrap(~ type, scale = 'free_x')
 
 # Comparison of unfiltered consensus network score to distribution of

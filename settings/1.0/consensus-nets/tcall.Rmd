@@ -13,7 +13,7 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: T. cruzi (All Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'tcruzi_all_samples-multicopy-v6.1'),
-    output_dirname  = 'tcruzi',
+    output_prefix  = 'tcruzi',
     quantile_cutoff = 0.22,
     networks        = read_csv(file.path(Sys.getenv('r15'),
                                          '115-coex-network-param-opt-v6',

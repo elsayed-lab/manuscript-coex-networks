@@ -13,10 +13,15 @@ top_enriched <- table_S2[mask,] %>%
 for (mod in top_enriched) {
     cat (sprintf("Module: %s\n", mod))
 
-    print(module_profile_plot(counts_long, mod, line_color='#333333',
-                              font_size=12, line_width=0.3, xlabel=expr_xlab,
-                              include_title=FALSE,
-                              white_background=TRUE))
+    plt <- module_profile_plot(counts_long, mod, line_color='#333333',
+                               font_size=12, line_width=0.3, xlabel=expr_xlab,
+                               xangle=MANUSCRIPT_CONFIG$xangle,
+                               xhjust=MANUSCRIPT_CONFIG$xhjust,
+                               include_title=FALSE,
+                               white_background=TRUE) +
+        theme_bw_high_res()
+
+    print(plt)
     cat('\n')
 
     table_S1 %>% 

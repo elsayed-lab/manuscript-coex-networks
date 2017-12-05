@@ -1,12 +1,12 @@
 ---
 author: "V. Keith Hughitt"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-title: "Host Consensus Network Analysis"
+title: "Differential Co-expression Network - Infected vs. Uninfected"
 params:
-  version: "1.0"
-  settings: "settings/host-analysis.Rmd"
-  title: "Host consensus network comparison"
-  analysis_dirname: "03-host-network-analysis"
+  analysis_dirname: "03-infected-vs-uninfected"
+  settings: ""
+  title: ""
+  version: ""
 output:
   html_document:
     theme: cosmo
@@ -64,8 +64,6 @@ options(digits=4)
 
 ```{r child='child/00-shared-setup.Rmd'}
 ```
-
-<!-- {r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'} -->
 
 ```{r child='child/03-load-counts.Rmd'}
 ```
@@ -139,74 +137,6 @@ table_S2_hslm_inf_vs_uninf <- table_S2
 table_S3_hslm_inf_vs_uninf <- table_S3
 ```
 
-### Human infected with *T. cruzi*
-
-```{r}
-inf   <- hstc_inf
-uninf <- hstc_uninf
-
-counts_inf   <- hstc_inf_count_table
-counts_uninf <- hstc_uninf_count_table
-
-mapping_inf <- CONFIG_HSTC$condition_mapping
-mapping_uninf <- CONFIG_HSTCUI$condition_mapping
-
-condition_inf   <- factor(CONFIG_HSTC$samples[['Condition']])
-condition_uninf <- factor(CONFIG_HSTCUI$samples[['Condition']])
-
-subtitle <- 'Human infected with T. cruzi'
-
-output_suffix <- 'hstc_inf_vs_uninf'
-
-# update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix, 'hstc-inf-vs-uninf-'))
-```
-
-```{r child='child/03-network-setup-inf-vs-uninf.Rmd'}
-```
-
-```{r child='child/03-host-analysis-inf-vs-uninf.Rmd'}
-```
-
-#### Summary of enrichment results
-
-```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
-```
-
-```{r save_tables}
-table_S1_hstc_inf_vs_uninf <- table_S1
-table_S2_hstc_inf_vs_uninf <- table_S2
-table_S3_hstc_inf_vs_uninf <- table_S3
-```
-
-Conserved signatures of infection: H. sapiens infected with *L. major* vs. *T. cruzi*
--------------------------------------------------------------------------------------
-
-```{r}
-# update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix, 'hstc_vs_hslm-'))
-output_suffix <- 'hstc_vs_hslm'
-```
-
-```{r child='child/03-network-setup-hstc-vs-hslm.Rmd'}
-```
-
-```{r child='child/03-host-conserved-infection-sig.Rmd'}
-```
-
-#### Summary of enrichment results
-
-```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
-```
-
-```{r save_tables}
-table_S1_hslm_vs_hstc <- table_S1
-table_S2_hslm_vs_hstc <- table_S2
-table_S3_hslm_vs_hstc <- table_S3
-
-rm(table_S1, table_S2, table_S3)
-```
-
 Save Results
 ------------
 
@@ -228,7 +158,7 @@ for (tbl_name in tbl_vars) {
 
     # For single tables, save as TSV
     if (is.matrix(tbl_) || is.data.frame(tbl_)) {
-        filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
+        filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_suffix)
 
         # write table to file
         write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
@@ -238,7 +168,7 @@ for (tbl_name in tbl_vars) {
         # separate sheets for each table
 
         # output filepath
-        filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_dirname)
+        filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_suffix)
         xls_filepath <- file.path(output_tabledir, filename)
 
         sheet_names <- names(tbl_)
@@ -266,7 +196,7 @@ for (tbl_name in tbl_vars) {
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_dirname, '.html'))
+html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_suffix, '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
     system(sprintf('(sleep 30 && mv 03-host-network-analysis.pdf %s) &', html_filepath))

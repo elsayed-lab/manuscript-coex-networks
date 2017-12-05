@@ -1,4 +1,4 @@
-```{r consensus_network_dendrogram, fig.width=1920/192, fig.height=1080/192}
+```{r consensus_network_dendrogram, fig.height=4}
 # Dendrogram bar plots and labels
 dendrogram_colors = module_colors
 
