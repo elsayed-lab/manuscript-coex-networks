@@ -19,13 +19,7 @@ output:
     latex_engine: xelatex
 ---
 
-Methods
-=======
-
-Setup
------
-
-## Setup
+### Setup
 
 ```{r load_libraries, message=FALSE}
 library('biomaRt')
@@ -57,27 +51,26 @@ source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
 ```
 
-```{r}
-#theme_set(theme_bw(base_size=16))
-options(digits=4)
-```
-
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
 ```{r child='child/03-load-counts.Rmd'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
+```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd'}
 ```
 
 ```{r}
+# update figure prefix
+opts_chunk$set(fig.path=paste0(output_figprefix,
+                               paste0(MANUSCRIPT_CONFIG$output_suffix, '-')))
+options(digits=4)
+
 # keep a backup of full annotation dataframe
 gene_info_orig <- gene_info
 ```
 
-Load host consensus networks
-----------------------------
+### Load host consensus networks
 
 ```{r load_host_nets}
 load(MANUSCRIPT_CONFIG$adjmat_inf)
@@ -87,8 +80,7 @@ load(MANUSCRIPT_CONFIG$adjmat_uninf)
 uninf <- adjmat
 ```
 
-Infected vs. Uninfected Networks
---------------------------------
+### Construct difference network
 
 ```{r}
 mapping_inf   <- CONFIG_INF$condition_mapping
@@ -110,13 +102,13 @@ opts_chunk$set(fig.path=paste0(output_figprefix,
 ```{r child='child/03-host-analysis-inf-vs-uninf.Rmd'}
 ```
 
-#### Summary of enrichment results
+### Summary of enrichment results
 
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
-Save Results
-------------
+### Save Results
+
 
 ```{r child='child/00-save-tables.Rmd'}
 ```

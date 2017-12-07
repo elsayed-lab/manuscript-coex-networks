@@ -13,10 +13,12 @@ uninf <- uninf[ind2,ind2]
 
 # reorder adjacency matrices
 uninf <- uninf[rownames(inf), colnames(inf)]
+```
 
-par(mfrow=c(1,2))
-hist(inf, main="Raw Edge Weights (Infected)", xlab='Edge Weight', cex=1.6)
-hist(uninf, main="Raw Edge Weights (Uninfected)", xlab='Edge Weight', cex=1.6)
+```{r edge_weights_raw, fig.height=3.375}
+par(mfrow=c(1,2), cex=1.5, cex.main=1)
+hist(inf, main="Raw Edge Weights (Infected)", xlab='Edge Weight')
+hist(uninf, main="Raw Edge Weights (Uninfected)", xlab='Edge Weight')
 ```
 
 In order to account for differences in correlation distributions due to
@@ -44,9 +46,11 @@ uninf[upper_tri] <- mat[,2]
 uninf[lower_tri] <- t(uninf)[lower_tri]
 
 rm(mat)
+```
 
-par(mfrow=c(1,2))
-hist(inf, main="Normalized Edge Weights (Infected)", xlab='Edge Weight', cex=1.6)
-hist(uninf, main="Normalized Edge Weights (Uninfected)", xlab='Edge Weight', cex=1.6)
+```{r edge_weights_normalized, fig.height=3.375}
+par(mfrow=c(1,2), cex=1.5, cex.main=1)
+hist(inf, main="Normalized Edge Weights (Infected)", xlab='Edge Weight')
+hist(uninf, main="Normalized Edge Weights (Uninfected)", xlab='Edge Weight')
 ```
 

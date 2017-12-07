@@ -1,29 +1,24 @@
-#### Infected vs. Uninfected Difference Matrix
+**Infected vs. Uninfected Difference Matrix**
 
 ```{r difference_heatmap, results='asis'}
 diff <- inf - uninf
-
-# set diagonal to zero for all networks
-diag(inf) <- 0
-diag(uninf) <- 0
-diag(diff) <- 0
 
 # sub-sample to speed up and better fit in display
 ind <- sample(1:nrow(diff), 250)
 
 # with legend
-heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
-          col='plasma', main=sprintf('Difference Network Adjacency Matrix:\n%s', subtitle),
-          margin=c(6, 6), xlab='Gene', ylab='Gene', density='none',
+heatmap.2(diff[ind,ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
+          col='plasma', main=sprintf('Difference Network\nAdjacency Matrix:\n%s', subtitle),
+          margin=c(6, 6), density='none',
           key.title='', key.ylab='', keysize=2,
           key.xlab='Edge Weight\n (Infected - Uninfected)')
 
 # without legend
-heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
-          col='plasma', margin=c(6, 6),  key=FALSE)
+#heatmap.2(diff[ind, ind], trace='none', dendrogram='row', labRow=FALSE, labCol=FALSE,
+#          col='plasma', margin=c(6, 6),  key=FALSE)
 
 # edge weight range
-cat(sprintf('\n- Minimum edge weight: %0.3f\n', min(diff)))
+cat(sprintf('\n\n- Minimum edge weight: %0.3f\n', min(diff)))
 cat(sprintf('\n- Maximum edge weight: %0.3f\n', max(diff)))
 ```
 
@@ -105,8 +100,6 @@ cat(sprintf("- Median module size: %0.1f\n", median(module_sizes$num_genes)))
 cat(sprintf("- Largest module size: %d\n", max(module_sizes$num_genes)))
 ```
 
-#### Functional Enrichment
-
 ```{r create_net_annotation_df}
 # load relevant gene annotations and restore order
 gene_info <- gene_info_orig %>% 
@@ -117,12 +110,8 @@ result <- cbind(gene_info, color=module_colors)
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```
 
-##### GO Enrichment
-
 ```{r child='../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
 ```
-
-##### KEGG Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
 ```
@@ -130,15 +119,11 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-kegg-enrichment-results.Rmd'}
 ```
 
-##### CPDB Enrichment
-
 ```{r child='../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
 ```
 
 ```{r child='02-cpdb-enrichment-results.Rmd'}
 ```
-
-##### TF regulon Enrichment
 
 ```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}
 ```
@@ -146,9 +131,9 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='02-tf-regulon-enrichment-results.Rmd'}
 ```
 
-##### Visualization of enriched rewired subnetworks
+### Visualization of enriched rewired subnetworks
 
-```{r enriched_difference_subnetwork, results='asis', message=FALSE, fig.height=1600/300}
+```{r enriched_difference_subnetwork, results='asis', message=FALSE}
 cat('\n')
 
 for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
@@ -157,19 +142,24 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     genes <- (result %>% filter(color==module_color))$gene_id
     ind <- rownames(diff) %in% genes
 
-    min_edge_weight <- min(diff[ind, ind])
-    max_edge_weight <- max(diff[ind, ind])
-    med_edge_weight <- median(diff[ind, ind])
+    # diff subnetwork
+    diff_subnet <- diff[ind, ind]
 
-    cat(sprintf("##### %s (median edge weight = %0.2f, min = %0.2f, max = %0.2f)\n", 
+    min_edge_weight <- min(diff_subnet)
+    max_edge_weight <- max(diff_subnet)
+    med_edge_weight <- median(diff_subnet)
+
+    cat(sprintf("#### %s (median edge weight = %0.2f, min = %0.2f, max = %0.2f)\n", 
                 module_color, med_edge_weight, min_edge_weight, max_edge_weight))
     message(sprintf("%s\n", module_color))
 
     # create graph instance
-    g <- graph.adjacency(diff[ind, ind], mode='undirected', weighted=TRUE)
+    g <- graph.adjacency(diff_subnet, mode='undirected', weighted=TRUE)
 
     # get sum of edge weights for each vertex and rescale to range [-1, 1]
+    # edge flux distribution can have a long tail, so we log it first.
     edge_flux <- graph.strength(g)
+    edge_flux <- sign(edge_flux) * log1p(abs(edge_flux))
     edge_flux <- edge_flux / max(abs(edge_flux))
 
     # color vertices based on net edge flux
@@ -187,25 +177,59 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # color edges based on direction of change (red = neg, blue = pos)
     E(g)$color <- ifelse(E(g)$weight < 0, rgb(1,0,0,0.5), rgb(0,0,1,0.5))
-    E(g)$weight <- abs(E(g)$weight)
 
-    # remove low-weight edges (keep an average of 3 edges per node)
-    num_edges <- 3 * length(V(g))
+    # to separate groups of genes that are becoming more tightly co-expressed
+    # together from those that are becoming deregulated for igraph plot,
+    # use correlation of diff values instead of diff values themselves;
+    # this way genes with strong pos or neg diffs can have high edge weight
+    # values while genes across will have lower ones...
+    #
+    # to do this, we will create a second graph with edge weights equal
+    # to the correlations between genes, and apply the same filtering steps
+    # as we do to original graph.
+    #
+
+    # 2017/12/07 - disabling for now; will come back to this approach in
+    # the future if time allows...
+    #cor_subnet <- cor(diff_subnet)
+
+    # ensure same edges are included
+    #cor_subnet[diff_subnet == 0] <- 0
+
+    #g2 <- graph.adjacency(cor_subnet, mode='undirected', weighted=TRUE)
+
+    # remove low-weight edges (keep an average of 2.5 edges per node)
+    num_edges <- 2.5 * length(V(g))
 
     if (num_edges < length(E(g))) {
-        cutoff <- as.numeric(quantile(E(g)$weight, 1 - (num_edges / length(E(g)))))
+        cutoff <- as.numeric(quantile(abs(E(g)$weight), 
+                                      1 - (num_edges / length(E(g)))))
 
-        E(g)$weight[E(g)$weight < cutoff] <- 0
+        mask <- abs(E(g)$weight) < cutoff
+
+        #E(g)$weight[mask] <- 0
+        #E(g2)$weight[mask] <- 0
 
         # remove nodes and edges that become disconnected from pruning
         g <- delete.edges(g, which(E(g)$weight == 0))
         g <- delete.vertices(g, which(degree(g) == 0))
+
+        #g2 <- delete.edges(g2, which(E(g2)$weight == 0))
+        #g2 <- delete.vertices(g2, which(degree(g2) == 0))
     }
 
     # relabel
     vlabels <- gene_info[match(names(V(g)), gene_info$gene_id),]$description
 
-    # rescale edge weights 
+    # keep track of edge weight sign and convert to all positive values
+    edge_sign <- sign(E(g)$weight)
+
+    # Negative weights are treated are treated at non-edges by igraph, and
+    # would not be displayed. 
+    E(g)$weight <- abs(E(g)$weight)
+
+    # log and rescale edge weights 
+    E(g)$weight <- log1p(E(g)$weight)
     E(g)$weight <- E(g)$weight - min(E(g)$weight)
     E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 4
 
@@ -221,8 +245,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     #if (module_color == "#00FF77") {
     #    g <- delete.vertices(g, "ENSG00000178105")
     #}
-
-    V(g)$label.cex   <- 0.5
+    V(g)$label.cex   <- 0.3
     V(g)$label.color <- '#333333'
 
     # network plot
@@ -247,7 +270,8 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # diff heatmap
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              labRow=gene_labels, margins=c(8, 24),
+              #labRow=gene_labels, margins=c(8, 24),
+              labRow=gene_labels, margins=c(4, 6),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
               symm=TRUE, symkey=TRUE, symbreaks=TRUE,
               key.title='', key.ylab='',  keysize=2, 
@@ -267,31 +291,44 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     #          key.title='', key.ylab='',  keysize=2, 
     #          key.xlab='Edge Weight\n (Infected)')
 
+    cat('\n')
+}
+```
+
+### Expression plots for enriched rewired subnetworks
+
+```{r, fig.height=3}
+# Iterating over same modules and printing line expression plots;
+# separated from above chunk to allow for different dimensions to be used
+par(mfrow=(c(1,2)))
+
+for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
+                              enriched_colors_cpdb, enriched_colors_marbach))) {
+
+    cat(sprintf("\n\n#### %s\n\n", module_color))
+
     # Normalize y-scales
     ylims <- c(0, max(max(counts_long_inf$expression), max(counts_long_uninf$expression)))
 
-    cat('\n')
+    # uninfected expression plot
+    p1 <- module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
+                              line_width=0.4, xlabel='Time (hrs)',
+                              include_title=FALSE, ylimits=ylims) +
+        ggtitle('Uninfected') +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
 
     # infected expression plot
-    plt <- module_profile_plot(counts_long_inf, module_color, line_color='#333333',
-                               line_width=0.5, xlabel='Time (hrs)',
+    p2 <- module_profile_plot(counts_long_inf, module_color, line_color='#333333',
+                               line_width=0.4, xlabel='Time (hrs)',
                                include_title=FALSE, ylimits=ylims) +
+        ggtitle('Infected') +
         theme_bw_high_res() +
         theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
                                        hjust=MANUSCRIPT_CONFIG$xhjust))
-    print(plt)
 
-    cat('\n')
-
-    # uninfected expression plot
-    plt <- module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
-                              line_width=0.5, xlabel='Time (hrs)',
-                              include_title=FALSE, ylimits=ylims) +
-        theme_bw_high_res() +
-        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
-                                       hjust=MANUSCRIPT_CONFIG$xhjust))
-    print(plt)
-    cat('\n')
+    grid.arrange(p1, p2, ncol=2)
 }
 ```
 
@@ -300,7 +337,7 @@ message("Saving difference network GraphML...")
 
 # rescale edge weights to [-1, 1] and save network
 #diff <- log1p(diff)
-diff <- diff / max(abs(diff))
+diff_scaled <- diff / max(abs(diff))
 
 message("CURRENT DIR")
 message(getwd())
@@ -309,7 +346,7 @@ outfile <- file.path('..', output_datadir, paste0('difference_network_', output_
 # annotations
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
-g <- export_network_to_graphml(diff,
+g <- export_network_to_graphml(diff_scaled,
                                outfile,
                                threshold=0, max_edge_ratio=4,
                                nodeAttrDataFrame=annot)
