@@ -23,15 +23,11 @@ MANUSCRIPT_CONFIG <- list(
                'uninf48', 'uninf72'),
         to=c(4, 6, 12, 20, 24, 48, 72)
     ),
-    xlabel='Time (hrs)'
+    xlabel='Time (hrs)',
     xangle=90,
-    xhjust=1
+    xhjust=0.5
 )
 
-# TEMP WORK-AROUND (avoid touching cache for a couple days..)
-# Can merge back into main cache later on.
-CONFIG_EXTRA <- list(
-)
 
 # setup expected CONFIG object 
 CONFIG <- list(
@@ -40,7 +36,8 @@ CONFIG <- list(
     target          = "host",
 
     organism_db     = "Homo.sapiens",
-    organism_genome = "hg19",
+    organism_genome = "hg38",
+    txdb            = "TxDb.Hsapiens.UCSC.hg38.knownGene",
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 

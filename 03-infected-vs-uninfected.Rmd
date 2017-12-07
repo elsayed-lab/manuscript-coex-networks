@@ -58,7 +58,7 @@ source('../../2015/00-shared/R/wgcna.R')
 ```
 
 ```{r}
-theme_set(theme_bw(base_size=16))
+#theme_set(theme_bw(base_size=16))
 options(digits=4)
 ```
 
@@ -80,48 +80,32 @@ Load host consensus networks
 ----------------------------
 
 ```{r load_host_nets}
-load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-inf.rda')
-hslm_inf <- filtered_adjmat
+load(MANUSCRIPT_CONFIG$adjmat_inf)
+inf <- adjmat
 
-load('output/1.0/02-network-construction/data/adjmat_filtered_hslm-uninf.rda')
-hslm_uninf <- filtered_adjmat
-
-load('output/1.0/02-network-construction/data/adjmat_filtered_hstc-inf.rda')
-hstc_inf <- filtered_adjmat
-
-load('output/1.0/02-network-construction/data/adjmat_filtered_hstc-uninf.rda')
-hstc_uninf <- filtered_adjmat
+load(MANUSCRIPT_CONFIG$adjmat_uninf)
+uninf <- adjmat
 ```
 
 Infected vs. Uninfected Networks
 --------------------------------
 
-### Human infected with *L. major*
-
 ```{r}
-inf <- hslm_inf
-uninf <- hslm_uninf
+mapping_inf   <- CONFIG_INF$condition_mapping
+mapping_uninf <- CONFIG_UNINF$condition_mapping
 
-counts_inf   <- hslm_inf_count_table
-counts_uninf <- hslm_uninf_count_table
+condition_inf   <- factor(CONFIG_INF$samples[['Condition']])
+condition_uninf <- factor(CONFIG_UNINF$samples[['Condition']])
 
-mapping_inf   <- CONFIG_HSLM$condition_mapping
-mapping_uninf <- CONFIG_HSLMUI$condition_mapping
-
-condition_inf   <- factor(CONFIG_HSLM$samples[['Condition']])
-condition_uninf <- factor(CONFIG_HSLMUI$samples[['Condition']])
-
-subtitle <- 'Human infected with L. major'
-
-output_suffix <- 'hslm_inf_vs_uninf'
+subtitle <- MANUSCRIPT_CONFIG[['subtitle']]
 
 # update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix, 'hslm-inf-vs-uninf-'))
+opts_chunk$set(fig.path=paste0(output_figprefix,
+                               paste0(MANUSCRIPT_CONFIG$output_suffix, '-')))
 ```
 
 ```{r child='child/03-network-setup-inf-vs-uninf.Rmd'}
 ```
-
 
 ```{r child='child/03-host-analysis-inf-vs-uninf.Rmd'}
 ```
@@ -131,77 +115,21 @@ opts_chunk$set(fig.path=paste0(output_figprefix, 'hslm-inf-vs-uninf-'))
 ```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
 ```
 
-```{r save_tables}
-table_S1_hslm_inf_vs_uninf <- table_S1
-table_S2_hslm_inf_vs_uninf <- table_S2
-table_S3_hslm_inf_vs_uninf <- table_S3
-```
-
 Save Results
 ------------
 
-```{r save_table_results, message=FALSE}
-# Get a list of variables starts with "table_" and save each one to file
-tbl_vars <- ls()[grepl('^table_[XS]?[0-9]', ls())]
-
-for (tbl_name in tbl_vars) {
-    message(sprintf("Saving %s", tbl_name))
-
-    # Retrieve variable associated with table
-    tbl_ <- get(tbl_name)
-
-    # Convert tbl's to  basic data frames; 
-    # Prevents issues relating to the format() function
-    if (is.tbl(tbl_)) {
-        tbl_ <- as.data.frame(tbl_)
-    }
-
-    # For single tables, save as TSV
-    if (is.matrix(tbl_) || is.data.frame(tbl_)) {
-        filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_suffix)
-
-        # write table to file
-        write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
-                    row.names=FALSE, quote=FALSE, sep="\t")
-    } else {
-        # Otherwise, if multiple tables stored in a list, save as XLS with
-        # separate sheets for each table
-
-        # output filepath
-        filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_suffix)
-        xls_filepath <- file.path(output_tabledir, filename)
-
-        sheet_names <- names(tbl_)
-
-        write.xlsx(as.data.frame(tbl_[[sheet_names[1]]]), file=xls_filepath,
-                   sheetName=sheet_names[1], row.names=FALSE)
-
-        for (sheet in sheet_names[2:length(sheet_names)]) {
-            # skip empty sheets
-            if (nrow(tbl_[[sheet]]) == 0) {
-                next
-            }
-
-            # free up Java memory on each loop iteration
-            # http://stackoverflow.com/questions/21937640/handling-java-lang-outofmemoryerror-when-writing-to-excel-from-r
-            .jcall("java/lang/System", method = "gc")
-
-            write.xlsx(as.data.frame(tbl_[[sheet]]), file=xls_filepath,
-                       sheetName=sheet, row.names=FALSE, append=TRUE)
-        }
-    }
-}
+```{r child='child/00-save-tables.Rmd'}
 ```
 
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_suffix, '.html'))
+html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_prefix, '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-host-network-analysis.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-infected-vs-uninfected.pdf %s) &', html_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-host-network-analysis.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-infected-vs-uninfected.html %s) &', html_filepath))
 }
 ```
 

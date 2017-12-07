@@ -4,16 +4,20 @@
 #
 MANUSCRIPT_CONFIG <- list(
     title           = "Differential co-expression network - HsLm (inf. vs. uninf)", 
-    output_suffix   = 'hslm-inf-vs-uninf'
+    subtitle        = 'Human infected with L. major',
+    output_prefix   = 'hslm-inf-vs-uninf',
+    adjmat_inf          = 'output/2.0/01-network-comparison/data/adjmat_hslm-inf.rda',
+    adjmat_uninf        = 'output/2.0/01-network-comparison/data/adjmat_hslm-uninf.rda'
 )
 
 CONFIG <- list(
     host            = "H. sapiens",
-    pathogen        = c("L. major", "T. cruzi"),
+    pathogen        = L. major,
     target          = "host",
 
     organism_db     = "Homo.sapiens",
-    organism_genome = "hg19",
+    organism_genome = "hg38",
+    txdb            = "TxDb.Hsapiens.UCSC.hg38.knownGene",
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 

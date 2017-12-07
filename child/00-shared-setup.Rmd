@@ -25,7 +25,8 @@ if (!dir.exists(output_tabledir)) {
 cache_dir <- file.path('cache', output_prefix, output_suffix)
 
 opts_chunk$set(fig.path=output_figprefix,
-               dev=c('png', 'pdf'),
+               dev=c('png', 'cairo_pdf'),
+               dev.args=list(pdf=list(family="DejaVu Sans")),
                fig.width=6,
                fig.height=6,
                fig.retina=1,
@@ -43,9 +44,9 @@ set.seed(1)
 
 # ggplot theme
 theme_bw_high_res <- function () { 
-    theme_bw(base_size=10) %+replace% 
+    theme_bw(base_size=11) %+replace% 
         theme(
-            plot.title  = element_text(size=10,  vjust=0.5)
+            plot.title=element_text(size=10)
         )
 }
 

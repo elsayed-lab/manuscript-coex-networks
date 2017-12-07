@@ -1,0 +1,40 @@
+### Gene descriptions for top-enriched modules
+
+```{r top_enriched_modules, results='asis'}
+n <- 3
+
+top_enriched <- table_S2[mask,] %>% 
+    arrange(desc(num_annot)) %>%
+    filter(Module != 'grey') %>%
+    head(n) %>%
+    pull(Module)
+
+for (mod in top_enriched) {
+    cat (sprintf("Module: %s\n", mod))
+
+    plt1 <- module_profile_plot(counts_long_inf, mod, line_color='#333333',
+                                line_width=0.3, xlabel=expr_xlab,
+                                include_title=FALSE) +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+    plt2 <- module_profile_plot(counts_long_uninf, mod, line_color='#333333',
+                                line_width=0.3, xlabel=expr_xlab,
+                                include_title=FALSE) +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+    print(grid.arrange(plt1, plt2, ncol=2))
+    cat('\n')
+
+    table_S1 %>% 
+        filter(color==mod) %>% 
+        group_by(description) %>% 
+        summarize(n=n()) %>% 
+        arrange(desc(n)) %>%
+        kable %>%
+        print
+
+    cat('\n')
+}
+```

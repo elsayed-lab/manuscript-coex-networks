@@ -23,18 +23,25 @@ Consensus adjacency matrix before and after filtering non-robust genes.
 n1 <- min(500, nrow(adjmat))
 n2 <- min(500, nrow(filtered_adjmat))
 
-par(mfrow=c(2,1))
+is_filtered <- MANUSCRIPT_CONFIG$quantile_cutoff > 0
 
 # unfiltered network
 ind1 <- sample(1:nrow(adjmat), n1)
-heatmap.2(adjmat[ind1, ind1], trace='none', dendrogram='row',
-                  labRow=FALSE, labCol=FALSE, col='viridis',
-                  main='Unfiltered Consensus Adjacency Matrix')
+par(cex.main=0.3)
+heatmap.2(adjmat[ind1, ind1], trace='none', dendrogram='row', labRow=FALSE,
+          labCol=FALSE, col='viridis', 
+          main='Unfiltered Consensus Adjacency  Matrix')
+```
 
+```{r figure1c, eval=is_filtered, include=is_filtered, results='asis'}
 # filtered network
+cat("\n### Filtered consensus adjacency matrix\n")
+
 ind2 <- sample(1:nrow(filtered_adjmat), n2)
+par(cex.main=0.5)
 heatmap.2(filtered_adjmat[ind2, ind2], trace='none', dendrogram='row',
                   labRow=FALSE, labCol=FALSE, col='viridis',
                   main='Filtered Consensus Adjacency Matrix')
 ```
+
 

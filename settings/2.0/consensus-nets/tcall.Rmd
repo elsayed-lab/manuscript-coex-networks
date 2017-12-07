@@ -22,9 +22,9 @@ MANUSCRIPT_CONFIG <- list(
         from=c('4', '6', '12', '20', '24', '48', '72'),
         to=c(4, 6, 12, 20, 24, 48, 72)
     ),
-    xlabel='Time (hrs)'
+    xlabel='Time (hrs)',
     xangle=90,
-    xhjust=1
+    xhjust=0.5
 )
 
 #

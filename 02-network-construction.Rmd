@@ -98,22 +98,16 @@ options(stringsAsFactors=FALSE)
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r library_sizes, message=FALSE}
-# color scheme for plots
-num_conditions <- length(unique(condition))
-pal <- colorRampPalette(brewer.pal(8, 'Dark2'))(num_conditions)
-colors <- pal[as.numeric(condition)]
-
-plot_libsize(count_table, condition, colors=colors, scale=FALSE)
-```
-
 ```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
 ```
 
-```{r child='child/00-shared-build-consensus-net.Rmd'}
+```{r load_adj_mat}
+infile <- sub('02-network-construction', '01-network-comparison',
+              file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+load(infile)
 ```
 
 ## Filtered consensus co-expression network
@@ -160,12 +154,6 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```
 
 ```{r child='child/02-top-enriched-modules.Rmd'}
-```
-
-```{r child='child/02-hslm-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_prefix == 'hslm-inf'}
-```
-
-```{r child='child/02-hstc-inf.Rmd', eval=MANUSCRIPT_CONFIG$output_prefix == 'hstc-inf'}
 ```
 
 ### Network Visualization
@@ -217,19 +205,34 @@ g <- export_network_to_graphml(filtered_adjmat,
 
 ## Downloads
 
-```{r downloads, results='asis'}
-for (d in c(output_datadir, output_tabledir)) {
-    files <- list.files(d)
-    for (x in files[grepl(output_suffix, files)]) {
-        cat(sprintf('- [%s](%s)\n', basename(x), sub(output_prefix, '', x)))
-    }
+**Tables**
+
+```{r results='asis'}
+# Tables
+files <- list.files(output_tabledir)
+for (x in files[grepl(output_suffix, files)]) {
+    uri <- file.path('table', sub(output_prefix, '', x))
+    cat(sprintf('- [%s](%s)\n', basename(x), uri))
+}
+```
+
+**RData objects**
+
+```{r results='asis'}
+# RData objects
+files <- list.files(output_datadir)
+for (x in files[grepl(output_suffix, files)]) {
+    uri <- file.path('data', sub(output_prefix, '', x))
+    cat(sprintf('- [%s](%s)\n', basename(x), uri))
 }
 ```
 
 ```{r save_output}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0('consesus_network_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
+html_filepath <- file.path(output_prefix, paste0('consesus_network_',
+                                                 MANUSCRIPT_CONFIG$output_prefix,
+                                                 '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
     system(sprintf('(sleep 30 && mv 02-network-construction.pdf %s) &', html_filepath))

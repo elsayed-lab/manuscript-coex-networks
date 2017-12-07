@@ -35,7 +35,7 @@ MANUSCRIPT_CONFIG <- list(
     ),
     xlabel='Developmental Stage',
     xangle=90,
-    xhjust=1
+    xhjust=0.5
 )
 
 #

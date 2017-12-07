@@ -14,12 +14,11 @@ for (mod in top_enriched) {
     cat (sprintf("Module: %s\n", mod))
 
     plt <- module_profile_plot(counts_long, mod, line_color='#333333',
-                               font_size=12, line_width=0.3, xlabel=expr_xlab,
-                               xangle=MANUSCRIPT_CONFIG$xangle,
-                               xhjust=MANUSCRIPT_CONFIG$xhjust,
-                               include_title=FALSE,
-                               white_background=TRUE) +
-        theme_bw_high_res()
+                               line_width=0.3, xlabel=expr_xlab,
+                               include_title=FALSE) +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
 
     print(plt)
     cat('\n')

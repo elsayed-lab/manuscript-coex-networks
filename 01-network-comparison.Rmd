@@ -86,7 +86,8 @@ Results
 
 ```{r save_rdata}
 # save RData files to output dir
-save(dat, dat_num_unique,  dat_ratio_enrichment, adjmat,
+save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+save(dat, dat_num_unique,  dat_ratio_enrichment,
      file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
 

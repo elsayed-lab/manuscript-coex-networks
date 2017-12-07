@@ -4,7 +4,10 @@
 #
 MANUSCRIPT_CONFIG <- list(
     title           = "Differential co-expression network - HsTc (inf. vs. uninf)", 
-    output_prefix  = 'hstc-inf-vs-uninf'
+    subtitle        = 'Human infected with T. cruzi',
+    output_prefix  = 'hstc-inf-vs-uninf',
+    adjmat_inf          = 'output/2.0/01-network-comparison/data/adjmat_hstc-inf.rda',
+    adjmat_uninf        = 'output/2.0/01-network-comparison/data/adjmat_hstc-uninf.rda'
 )
 
 CONFIG <- list(
@@ -13,7 +16,8 @@ CONFIG <- list(
     target          = "host",
 
     organism_db     = "Homo.sapiens",
-    organism_genome = "hg19",
+    organism_genome = "hg38",
+    txdb            = "TxDb.Hsapiens.UCSC.hg38.knownGene",
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 
@@ -25,7 +29,7 @@ CONFIG <- list(
 )
 
 # HsTc
-CONFIG_HSTC <- list(
+CONFIG_INF <- list(
     input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
                                    "counts", "hsapiens", "*.count"),
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
@@ -48,7 +52,7 @@ CONFIG_HSTC <- list(
 )
 
 # HsTcUI
-CONFIG_HSTCUI <- list(
+CONFIG_UNINF <- list(
     input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
                                    "counts", "hsapiens", "*.count"),
     samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',

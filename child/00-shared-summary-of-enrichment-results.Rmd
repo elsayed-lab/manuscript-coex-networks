@@ -122,6 +122,12 @@ num_annot <- rowSums(table_S2[mask,] %>% select(-Module, -num_genes))
 ```
 
 ```{r results='asis'}
+# get number of genes
+if ('filtered_adjmat' %in% ls()) {
+    num_genes <- nrow(filtered_adjmat)
+} else {
+    num_genes <- nrow(adjmat)
+}
 # common enrichment
 # TODO 2017/12/02: update variable used to deterimine # of genes to work
 # with diff net analyses as well.
@@ -137,7 +143,7 @@ if (CONFIG$target == 'host') {
                       "- Total CPDB enrichment P-value score: %0.1f (%d unique pathways)\n",
                       "- Total Marbach TF enrichment P-value score: %0.1f (%d unique TF's)\n")
     cat(sprintf(template, 
-                nrow(filtered_adjmat), num_modules,
+                num_genes, num_modules,
                 nrow(table_S2[mask,]), nrow(module_sizes),
                 pval_score_go, length(unique(go_terms)),
                 pval_score_kegg, length(unique(kegg_pathways)),
@@ -150,7 +156,7 @@ if (CONFIG$target == 'host') {
                       "- Number of modules enriched for transmembrane proteins: %d (%d TM proteins)\n",
                       "- Number of modules enriched for GPI-anchored proteins: %d (%d GPI-anchored proteins)\n")
     cat(sprintf(template, 
-                nrow(filtered_adjmat), num_modules,
+                num_genes, num_modules,
                 nrow(table_S2[mask,]), nrow(module_sizes),
                 pval_score_go, length(unique(go_terms)),
                 pval_score_kegg, length(unique(kegg_pathways)),

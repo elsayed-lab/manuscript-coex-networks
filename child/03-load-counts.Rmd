@@ -1,56 +1,32 @@
 ```{r load_counts, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
-# HsLm
-count_files <- Sys.glob(HSLM_CONFIG$input_count_tables)
+# Infected
+count_files <- Sys.glob(CONFIG_INF$input_count_tables)
 ids <- file_path_sans_ext(basename(count_files))
 
 # support old/new hpgltools
-hslm_inf_count_table = tryCatch({
+counts_inf = tryCatch({
     read_counts_expt(ids, count_files)
 }, error = function(e) {
     expt_read_counts(ids, count_files)
 })
-hslm_inf_sample_ids <- as.character(HSLM_CONFIG$samples[[HSLM_CONFIG$sample_id]])
-hslm_inf_count_table <- hslm_inf_count_table[,hslm_inf_sample_ids]
+sample_ids_inf <- as.character(CONFIG_INF$samples[[CONFIG_INF$sample_id]])
+counts_inf <- counts_inf[,sample_ids_inf]
 
-# HsLmUI
-count_files <- Sys.glob(HSLMUI_CONFIG$input_count_tables)
+# Uninfected
+count_files <- Sys.glob(CONFIG_UNINF$input_count_tables)
 ids <- file_path_sans_ext(basename(count_files))
 
-hslm_uninf_count_table = tryCatch({
+counts_uninf = tryCatch({
     read_counts_expt(ids, count_files)
 }, error = function(e) {
     expt_read_counts(ids, count_files)
 })
-hslm_uninf_sample_ids <- as.character(HSLMUI_CONFIG$samples[[HSLMUI_CONFIG$sample_id]])
-hslm_uninf_count_table <- hslm_uninf_count_table[,hslm_uninf_sample_ids]
+sample_ids_uninf <- as.character(CONFIG_UNINF$samples[[CONFIG_UNINF$sample_id]])
+counts_uninf <- counts_uninf[,sample_ids_uninf]
 
-# HsTc
-count_files <- Sys.glob(HSTC_CONFIG$input_count_tables)
-ids <- file_path_sans_ext(basename(count_files))
-
-hstc_inf_count_table = tryCatch({
-    read_counts_expt(ids, count_files)
-}, error = function(e) {
-    expt_read_counts(ids, count_files)
-})
-hstc_inf_sample_ids <- as.character(HSTC_CONFIG$samples[[HSTC_CONFIG$sample_id]])
-hstc_inf_count_table <- hstc_inf_count_table[,hstc_inf_sample_ids]
-
-# HsTcUI
-count_files <- Sys.glob(HSTCUI_CONFIG$input_count_tables)
-ids <- file_path_sans_ext(basename(count_files))
-
-hstc_uninf_count_table = tryCatch({
-    read_counts_expt(ids, count_files)
-}, error = function(e) {
-    expt_read_counts(ids, count_files)
-})
-hstc_uninf_sample_ids <- as.character(HSTCUI_CONFIG$samples[[HSTCUI_CONFIG$sample_id]])
-hstc_uninf_count_table <- hstc_uninf_count_table[,hstc_uninf_sample_ids]
-
-# All of the raw count tables above include the same genes, so for the purpose 
+# All of the *raw* count tables above include the same genes, so for the purpose 
 # of loading host annotations, we can use any of them:
 #  all(rownames(hslm_inf_count_table) %in% rownames(hstc_inf_count_table))
 #  TRUE
-count_table <- hslm_inf_count_table
+count_table <- counts_inf
 ```

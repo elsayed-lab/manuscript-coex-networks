@@ -273,22 +273,24 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     cat('\n')
 
     # infected expression plot
-    print(module_profile_plot(counts_long_inf, module_color, line_color='#333333',
-                              font_size=18, line_width=0.5, xlabel='Time (hrs)',
-                              include_title=FALSE, ylimits=ylims,
-                              xangle=MANUSCRIPT_CONFIG$xangle,
-                              xhjust=MANUSCRIPT_CONFIG$xhjust,
-                              white_background=TRUE))
+    plt <- module_profile_plot(counts_long_inf, module_color, line_color='#333333',
+                               line_width=0.5, xlabel='Time (hrs)',
+                               include_title=FALSE, ylimits=ylims) +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+    print(plt)
 
     cat('\n')
 
     # uninfected expression plot
-    print(module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
-                              font_size=18, line_width=0.5, xlabel='Time (hrs)',
-                              include_title=FALSE, ylimits=ylims,
-                              xangle=MANUSCRIPT_CONFIG$xangle,
-                              xhjust=MANUSCRIPT_CONFIG$xhjust,
-                              white_background=TRUE))
+    plt <- module_profile_plot(counts_long_uninf, module_color, line_color='#333333',
+                              line_width=0.5, xlabel='Time (hrs)',
+                              include_title=FALSE, ylimits=ylims) +
+        theme_bw_high_res() +
+        theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
+                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+    print(plt)
     cat('\n')
 }
 ```

@@ -11,14 +11,14 @@
 MANUSCRIPT_CONFIG <- list(
     title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major (Uninfected Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
-                                'hsapiens_infected_with_lmajor-uninf-v6.0'),
+                                'hsapiens_infected_with_lmajor-uninf-v6.1'),
     output_prefix  = 'hslm-uninf',
     quantile_cutoff = 0,
     networks        = read_csv(file.path(
                                   Sys.getenv('r15'), 
                                   '115-coex-network-param-opt-v6',
                                   'output', 'normal',
-                                  'hsapiens_infected_with_lmajor-uninf-v6.0.csv')),
+                                  'hsapiens_infected_with_lmajor-uninf-v6.1.csv')),
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
@@ -26,9 +26,9 @@ MANUSCRIPT_CONFIG <- list(
                'infLM4', 'infLM24', 'infLM48', 'infLM72'),
         to=c(4, 24, 48, 72, 4, 24, 48, 72)
     ),
-    xlabel='Time (hrs)'
+    xlabel='Time (hrs)',
     xangle=90,
-    xhjust=1
+    xhjust=0.5
 )
 
 #
@@ -40,7 +40,8 @@ CONFIG <- list(
     target          = "host",
 
     organism_db     = "Homo.sapiens",
-    organism_genome = "hg19",
+    organism_genome = "hg38",
+    txdb            = "TxDb.Hsapiens.UCSC.hg38.knownGene",
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 
