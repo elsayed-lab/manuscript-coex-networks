@@ -12,10 +12,7 @@ MANUSCRIPT_CONFIG <- list(
                                 'tcruzi_all_samples-multicopy-v6.1'),
     output_prefix  = 'tcruzi',
     quantile_cutoff = 0,
-    networks        = read_csv(file.path(Sys.getenv('r15'),
-                                         '115-coex-network-param-opt-v6',
-                                         'output', 'normal',
-                                         'tcruzi_all_samples-multicopy-v6.1.csv')),
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_tcall.csv')),
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
@@ -39,12 +36,9 @@ CONFIG <- list(
     organism_genome = "TcCLB",
     orgdb_key       = "GID",
 
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
-                                   "counts", "tcruzi", "*.count"),
+    input_count_tables  = file.path(counts_dir, "li2016", "tcruzi", "*.count"),
 
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '03-coex-network-tcruzi-infecting-hsapiens',
-                                             'settings', 'tcruzi_samples.csv')),
+    samples             = read_csv(file.path(metadata_dir, 'samples_tcall.csv')),
     sample_id         = 'HPGL_ID',
     condition         = 'Condition',
     batch             = 'Batch',

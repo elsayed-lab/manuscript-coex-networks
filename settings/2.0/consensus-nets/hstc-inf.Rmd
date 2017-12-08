@@ -12,11 +12,7 @@ MANUSCRIPT_CONFIG <- list(
                                 'hsapiens_infected_with_tcruzi-v6.1'),
     output_prefix  = 'hstc-inf',
     quantile_cutoff = 0,
-    networks        = read_csv(file.path(
-                                  Sys.getenv('r15'), 
-                                  '115-coex-network-param-opt-v6',
-                                  'output', 'normal',
-                                  'hsapiens_infected_with_tcruzi-v6.1.csv')),
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_hstc.csv')),
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
@@ -44,13 +40,10 @@ CONFIG <- list(
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
+    input_count_tables  = file.path(counts_dir, "li2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hstc.csv')) %>%
+                              filter(startsWith(Condition, 'inf')),
 
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '13-coex-network-hsapiens-infected-with-tcruzi',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'inf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',

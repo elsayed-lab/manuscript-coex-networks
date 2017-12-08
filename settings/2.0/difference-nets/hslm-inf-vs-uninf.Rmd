@@ -6,8 +6,8 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Differential co-expression network - HsLm (inf. vs. uninf)", 
     subtitle        = 'Human infected with L. major',
     output_prefix   = 'hslm-inf-vs-uninf',
-    adjmat_inf          = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
-    adjmat_uninf        = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda'
+    adjmat_inf      = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
+    adjmat_uninf    = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda'
 )
 
 CONFIG <- list(
@@ -30,12 +30,9 @@ CONFIG <- list(
 
 # HsLm
 CONFIG_INF <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'infLM')),
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                             filter(startsWith(Condition, 'infLM')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
@@ -52,12 +49,9 @@ CONFIG_INF <- list(
 
 # HsLmUI
 CONFIG_UNINF <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'uninf')),
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',

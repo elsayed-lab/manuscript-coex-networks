@@ -27,12 +27,9 @@ CONFIG <- list(
 
 # HsLm
 CONFIG_HSLM <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'infLM')),
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                             filter(startsWith(Condition, 'infLM')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
@@ -49,12 +46,9 @@ CONFIG_HSLM <- list(
 
 # HsLmUI
 CONFIG_HSLMUI <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'uninf')),
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
@@ -71,12 +65,9 @@ CONFIG_HSLMUI <- list(
 
 # HsTc
 CONFIG_HSTC <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '13-coex-network-hsapiens-infected-with-tcruzi',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'inf')),
+    input_count_tables  = file.path(counts_dir, "li2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hstc.csv')) %>%
+                              filter(startsWith(Condition, 'inf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',
@@ -94,12 +85,9 @@ CONFIG_HSTC <- list(
 
 # HsTcUI
 CONFIG_HSTCUI <- list(
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "tcruzi-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '13-coex-network-hsapiens-infected-with-tcruzi',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'uninf')),
+    input_count_tables  = file.path(counts_dir, "li2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hstc.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
     sample_id           = 'HPGL_ID',
     condition           = 'Condition',
     batch               = 'Batch',

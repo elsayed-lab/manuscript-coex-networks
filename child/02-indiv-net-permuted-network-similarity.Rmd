@@ -13,7 +13,7 @@ rownames(random_output) <- colnames(random_output) <- paste0("network_", network
 for (i in 1:nrow(networks)) {
     id_a <- networks$id[i]
     file_a <- sprintf("%d.RData", id_a)
-    load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_a))
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, file_a))
     mapping_a <- module_mapping
 
     index_a <- paste0("network_", id_a)
@@ -34,7 +34,7 @@ for (i in 1:nrow(networks)) {
         } else {
             # load network b
             file_b <- sprintf("%d.RData", id_b)
-            load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_b))
+            load(file.path(MANUSCRIPT_CONFIG$input_dir, file_b))
             mapping_b <- module_mapping
 
             # limit to randomly selected genes
@@ -64,14 +64,14 @@ diag(random_output) <- 0
 diag(random_output) <- max(random_output)
 ```
 
-```{r results='asis'}
-cat(sprintf("- Min: %0.2f\n", min(upper.tri(random_output))))
-cat(sprintf("- Max: %0.2f\n", max(upper.tri(random_output))))
-cat(sprintf("- Median: %0.2f\n", median(upper.tri(random_output))))
+```{r results='hold'}
+cat(sprintf("- Min: %0.2f\n", min(random_output[upper.tri(random_output)])))
+cat(sprintf("- Max: %0.2f\n", max(random_output[upper.tri(random_output)])))
+cat(sprintf("- Median: %0.2f\n", median(random_output[upper.tri(random_output)])))
 ```
 
 ```{r similarity_plot_permuted, cache=TRUE, autodep=TRUE}
-heatmap.2(random_output, trace='none', dendrogram='row', margin=c(12,12),
+heatmap.2(random_output, trace='none', dendrogram='row', margin=c(4,4),
           RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)

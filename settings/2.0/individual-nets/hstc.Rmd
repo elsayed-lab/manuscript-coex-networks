@@ -3,9 +3,9 @@
 MANUSCRIPT_CONFIG <- list(
     title           = "Similarity of individual co-expression networks (HsTc)",
     output_prefix   = 'hslm-inf',
-    rdata_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", "hsapiens_infected_with_tcruzi-v6.1"),
-    networks        = read_csv(file.path('..', '..', '..', 'input', 'indiv_network_stats',
-                                  'hsapiens_infected_with_tcruzi.csv')),
+    input_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", 
+                                "hsapiens_infected_with_tcruzi-v6.1"),
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_hstc.csv')),
     num_networks    = 50,
     num_genes       = 2500 
 )

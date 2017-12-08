@@ -14,11 +14,7 @@ MANUSCRIPT_CONFIG <- list(
                                 'hsapiens_infected_with_lmajor-uninf-v6.1'),
     output_prefix  = 'hslm-uninf',
     quantile_cutoff = 0,
-    networks        = read_csv(file.path(
-                                  Sys.getenv('r15'), 
-                                  '115-coex-network-param-opt-v6',
-                                  'output', 'normal',
-                                  'hsapiens_infected_with_lmajor-uninf-v6.1.csv')),
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_hslm-uninf.csv')),
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
@@ -45,19 +41,15 @@ CONFIG <- list(
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 
-    input_count_tables  = file.path(Sys.getenv("SCRATCH"), "lmajor-hsapiens",
-                                   "counts", "hsapiens", "*.count"),
-
-    samples             = read_csv(file.path(Sys.getenv('RESEARCH'), '2015',
-                                             '11-coex-network-hsapiens-infected-with-lmajor',
-                                             'settings', 'hsapiens_samples.csv')) %>%
-                          filter(startsWith(Condition, 'uninf')),
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
     'sample_id'         = 'HPGL_ID',
     'condition'         = 'Condition',
     'batch'             = 'Batch',
     'covariates'        = c('Batch'),
 
-    main_comparison     = c('uninf4', 'uninf72'),
+    main_comparison       = c('uninf4', 'uninf72'),
     main_comparison_label = "ΔExpr (72 - 4 hrs)",
 
     verbose             = FALSE,

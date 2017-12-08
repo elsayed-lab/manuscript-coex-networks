@@ -17,7 +17,7 @@ rownames(output_kappa) <- colnames(output_kappa) <- paste0("network_", networks$
 # To speed things up, we will randomly select a subset of genes to compare 
 # across each network, rather than comparing all genes
 id_a = networks$id[1]
-load(file.path(MANUSCRIPT_CONFIG$rdata_dir, sprintf("%d.RData", id_a)))
+load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%d.RData", id_a)))
 
 genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 
@@ -25,7 +25,7 @@ genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 for (i in 1:nrow(networks)) {
     id_a = networks$id[i]
     file_a <- sprintf("%d.RData", id_a)
-    load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_a))
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, file_a))
     mapping_a <- module_mapping
 
     index_a <- paste0("network_", id_a)
@@ -38,7 +38,7 @@ for (i in 1:nrow(networks)) {
 
         # load network b
         file_b <- sprintf("%d.RData", id_b)
-        load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_b))
+        load(file.path(MANUSCRIPT_CONFIG$input_dir, file_b))
         mapping_b <- module_mapping
 
         # limit to randomly selected genes
@@ -87,10 +87,10 @@ diag(output_kappa) = max(output_kappa)
 
 ## Jaccard Index
 
-```{r results='asis'}
-cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_jaccard))))
-cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_jaccard))))
-cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_jaccard))))
+```{r results='hold'}
+cat(sprintf("- Min: %0.2f\n", min(output_jaccard[upper.tri(output_jaccard)])))
+cat(sprintf("- Max: %0.2f\n", max(output_jaccard[upper.tri(output_jaccard)])))
+cat(sprintf("- Median: %0.2f\n", median(output_jaccard[upper.tri(output_jaccard)])))
 ```
 
 ```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
@@ -106,7 +106,7 @@ rownames(output_jaccard) = 1:num_networks
 #jaccard_clip <- as.numeric(quantile(output_jaccard, 0.95))
 #output_jaccard[output_jaccard > jaccard_clip] <- jaccard_clip
 
-heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(12,12),
+heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(4, 4),
           RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
@@ -114,15 +114,15 @@ heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(12,12),
 
 ## Adjusted Rand
 
-```{r results='asis'}
-cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_rand))))
-cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_rand))))
-cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_rand))))
+```{r results='hold'}
+cat(sprintf("- Min: %0.2f\n", min(output_rand[upper.tri(output_rand)])))
+cat(sprintf("- Max: %0.2f\n", max(output_rand[upper.tri(output_rand)])))
+cat(sprintf("- Median: %0.2f\n", median(output_rand[upper.tri(output_rand)])))
 ```
 
 ```{r network_module_similarity_adjusted_rand, cache=TRUE, autodep=TRUE, message=FALSE}
 rownames(output_rand) = 1:num_networks
-heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(12,12),
+heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(4,4),
           RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
@@ -130,15 +130,15 @@ heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(12,12),
 
 ## Weighted Kappa
 
-```{r results='asis'}
-cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_kappa))))
-cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_kappa))))
-cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_kappa))))
+```{r results='hold'}
+cat(sprintf("- Min: %0.2f\n", min(output_kappa[upper.tri(output_kappa)])))
+cat(sprintf("- Max: %0.2f\n", max(output_kappa[upper.tri(output_kappa)])))
+cat(sprintf("- Median: %0.2f\n", median(output_kappa[upper.tri(output_kappa)])))
 ```
 
 ```{r network_module_similarity_weighted_kappa, cache=TRUE, autodep=TRUE, message=FALSE}
 rownames(output_kappa) = 1:num_networks
-heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(12,12),
+heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(4,4),
           RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)

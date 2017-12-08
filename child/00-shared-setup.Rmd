@@ -1,6 +1,13 @@
 ```{r load_settings}
 library('knitr')
 library('readr')
+
+# input directories
+base_dir       <- normalizePath('..')
+counts_dir     <- file.path(base_dir, 'input', 'count_tables')
+metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
+indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
+
 knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
 ```
 
