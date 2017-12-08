@@ -26,7 +26,7 @@ library('knitr')
 library('readr')
 library('printr')
 
-output_tabledir <- 'output/1.0/04-summary/table'
+output_tabledir <- 'output/1.0/07-summary/table'
 
 if (!dir.exists(output_tabledir)) {
     dir.create(output_tabledir, recursive=TRUE)

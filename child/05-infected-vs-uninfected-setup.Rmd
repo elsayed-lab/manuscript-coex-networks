@@ -16,7 +16,7 @@ uninf <- uninf[rownames(inf), colnames(inf)]
 ```
 
 ```{r edge_weights_raw, fig.height=3.375}
-par(mfrow=c(1,2), cex=1.5, cex.main=1)
+par(mfrow=c(1,2), cex.main=1)
 hist(inf, main="Raw Edge Weights (Infected)", xlab='Edge Weight')
 hist(uninf, main="Raw Edge Weights (Uninfected)", xlab='Edge Weight')
 ```
@@ -49,7 +49,7 @@ rm(mat)
 ```
 
 ```{r edge_weights_normalized, fig.height=3.375}
-par(mfrow=c(1,2), cex=1.5, cex.main=1)
+par(mfrow=c(1,2), cex.main=1)
 hist(inf, main="Normalized Edge Weights (Infected)", xlab='Edge Weight')
 hist(uninf, main="Normalized Edge Weights (Uninfected)", xlab='Edge Weight')
 ```

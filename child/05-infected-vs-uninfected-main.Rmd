@@ -297,7 +297,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
 ### Expression plots for enriched rewired subnetworks
 
-```{r, fig.height=3}
+```{r, fig.height=3, results='asis'}
 # Iterating over same modules and printing line expression plots;
 # separated from above chunk to allow for different dimensions to be used
 par(mfrow=(c(1,2)))
@@ -317,7 +317,9 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
         ggtitle('Uninfected') +
         theme_bw_high_res() +
         theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
-                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+                                       hjust=MANUSCRIPT_CONFIG$xhjust,
+                                       size=9, lineheight=0.9)) +
+        theme()
 
     # infected expression plot
     p2 <- module_profile_plot(counts_long_inf, module_color, line_color='#333333',
@@ -326,7 +328,8 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
         ggtitle('Infected') +
         theme_bw_high_res() +
         theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
-                                       hjust=MANUSCRIPT_CONFIG$xhjust))
+                                       hjust=MANUSCRIPT_CONFIG$xhjust,
+                                       size=9, lineheight=0.9)) +
 
     grid.arrange(p1, p2, ncol=2)
 }

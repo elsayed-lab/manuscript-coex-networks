@@ -46,7 +46,7 @@ set.seed(1)
 theme_bw_high_res <- function () { 
     theme_bw(base_size=11) %+replace% 
         theme(
-            plot.title=element_text(size=10)
+            plot.title=element_text(size=10, vjust=0)
         )
 }
 

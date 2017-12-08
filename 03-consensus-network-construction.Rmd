@@ -3,9 +3,9 @@ author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
   settings: ""
-  title: ""
+  title: "Consensus Co-expression Network Comparison"
   version: ""
-  analysis_dirname: "03-consensus-network-construction"
+  analysis_dirname: "03-network-comparison"
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
@@ -22,74 +22,42 @@ output:
 Introduction
 ============
 
-**Overview**
+The goal of this analysis is to construct a consensus co-expression network by
+summing the adjacency matrices for multiple network parameterizations, and then
+compare the effect of pruning low-confidence network edges and genes at various
+thresholds.
 
-This goal of this analysis is to combine information from multiple alternative
-network parameterizations for the same dataset into a single consensus network.
-While it's not possible to know which, if any, single network parameterization
-is optimal, by aggregating across a large number of networks, we may be able to
-arrive at a single more robust network topology or cluster partitioning.
-
-**Consensus co-expression network construction**
-
-To construct a consensus co-expression network, we will load the stored
-adjacency matrices for each alternative network constructed, and stack them to
-create a single combined adjacency matrix. Edges with support from a large
-number of networks will thus have larger edge weights while those with less
-support will have lower combined edge weights. Hierarchical clustering and
-tree-cutting can then be used to derrive the usual network partitioning from
-this combined data.
-
-One approach to generating a robust filtered network is to prune edges from the
-network that fall below a certain limit. By applying a sufficiently stringent
-cutoff, many of the non-robust edges can be removed. Afterwards, genes which
-become completely disconnected can also be removed to reduce the size of the
-dataset.
-
+See the "Consensus co-expression network" analysis for a more thorough
+explanation of the basic approach, and some alternative methods for
+constructing the consensus network.
 
 Methods
 =======
-
-## Setup
 
 ```{r load_libraries, message=FALSE, results='hide'}
 library('biomaRt')
 library('clusteval')
 library('doParallel')
+library('plyr')
 library('dplyr')
-library('DT')
 library('dynamicTreeCut')
+library('DT')
 library('flashClust')
 library('foreach')
+library('ggplot2')
 library('goseq')
 library('gplots')
-library('ggplot2')
-library('gridExtra')
 library('hpgltools')
-library('infotheo')
-library('igraph')
 library('knitr')
 library('knitcitations')
-library('matrixStats')
-library('readr')
-library('RColorBrewer')
 library('reshape2')
-library('tibble')
 library('tools')
-library('venneuler')
-library('viridis')
-library('WGCNA')
-library('xlsx')
 
 source('../../2015/00-shared/R/annotations.R')
-source('../../2015/00-shared/R/count_tables.R')
 source('../../2015/00-shared/R/enrichment_analysis.R')
 source('../../2015/00-shared/R/filtering.R')
-source('../../2015/00-shared/R/plots.R')
 source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
-
-options(stringsAsFactors=FALSE)
 ```
 
 ```{r child='child/00-shared-setup.Rmd'}
@@ -98,145 +66,46 @@ options(stringsAsFactors=FALSE)
 ```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
-```
-
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
 ```
 
-```{r load_adj_mat}
-infile <- sub('03-consensus-network-construction', '02-consensus-network-filtering',
-              file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
-load(infile)
+```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
 ```
 
-## Filtered consensus co-expression network
-
-```{r child='child/02-create-filtered-consensus-net.Rmd'}
+```{r child='child/03-build-consensus-net.Rmd'}
 ```
 
-```{r child='child/02-detect-consensus-net-modules.Rmd'}
+```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
 ```
 
-```{r child='child/02-module-expression-plots.Rmd'}
+Results
+=======
+
+```{r child='child/03-filtered-consensus-net-results.Rmd'}
 ```
 
-```{r create_net_annotation_df}
-# create dataframe to use for network node annotations
-result <- cbind(gene_info, color=module_colors)
-annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
+```{r save_rdata}
+# save RData files to output dir
+save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+save(dat, dat_num_unique,  dat_ratio_enrichment,
+     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
 
-## Functional enrichment
-
-```{r child='../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd'}
+```{r save_tables}
+# save tables to output dir
+write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_suffix, '.csv')),
+          quote=FALSE, row.names=FALSE)
 ```
 
-```{r child='../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
-```
-
-```{r child='child/02-kegg-enrichment-results.Rmd'}
-```
-
-```{r child='../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
-```
-
-```{r child='child/02-tf-regulon-enrichment-results.Rmd', eval=CONFIG$target == 'host' && CONFIG$host == 'H. sapiens'}
-```
-
-```{r child='../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', eval=CONFIG$target == 'host'}
-```
-
-```{r child='../../2015/00-shared/Rmd/results/secreted_proteins.Rmd', eval=CONFIG$target == 'pathogen'}
-```
-
-```{r child='child/00-shared-summary-of-enrichment-results.Rmd'}
-```
-
-```{r child='child/02-top-enriched-modules.Rmd'}
-```
-
-### Network Visualization
-
-```{r child='child/02-consensus-network-visualization.Rmd'}
-```
-
-### Save results
-
-```{r child='child/00-save-tables.Rmd'}
-```
-
-```{r save_rdata_results, message=FALSE}
-#save(adjmat, file=file.path(output_datadir, 'adjmat_unfiltered.rda'))
-message("Saving RData objects")
-save(filtered_adjmat, file=file.path(output_datadir, paste0('adjmat_filtered_', output_suffix, '.rda')))
-save(gene_info, file=file.path(output_datadir, paste0('gene_info_', output_suffix, '.rda')))
-save(module_go_enrichment, file=file.path(output_datadir, paste0('module_go_enrichment_', output_suffix, '.rda')))
-save(module_kegg_enrichment, file=file.path(output_datadir, paste0('module_kegg_enrichment_', output_suffix, '.rda')))
-
-if (CONFIG$target == 'host') {
-    save(module_cpdb_enrichment, file=file.path(output_datadir, paste0('module_cpdb_enrichment_', output_suffix, '.rda')))
-    save(module_coreg_enrichment, file=file.path(output_datadir, paste0('module_coreg_enrichment_', output_suffix, '.rda')))
-}
-```
-
-```{r save_network, message=FALSE}
-message("Saving consensus network GraphML")
-
-# add secretion / GPI-anchor status cols (pathogen only)
-if (CONFIG$target == 'pathogen') {
-    annot$gpi_anchored <- gpi_anchored_gene_status
-    annot$secreted <- secreted_gene_status
-}
-
-# rescale edge weights to 0 - 1 and save network
-filtered_adjmat <- log1p(filtered_adjmat)
-filtered_adjmat <- filtered_adjmat / max(filtered_adjmat)
-
-filtered_net_filepath <- file.path(output_datadir,
-                                   paste0('edge_weight_filtered_network_', 
-                                          output_suffix, '.graphml'))
-
-g <- export_network_to_graphml(filtered_adjmat,
-                               filtered_net_filepath,
-                               threshold=0, max_edge_ratio=5,
-                               nodeAttrDataFrame=annot)
-```
-
-## Downloads
-
-**Tables**
-
-```{r results='asis'}
-# Tables
-files <- list.files(output_tabledir)
-for (x in files[grepl(output_suffix, files)]) {
-    uri <- file.path('table', sub(output_prefix, '', x))
-    cat(sprintf('- [%s](%s)\n', basename(x), uri))
-}
-```
-
-**RData objects**
-
-```{r results='asis'}
-# RData objects
-files <- list.files(output_datadir)
-for (x in files[grepl(output_suffix, files)]) {
-    uri <- file.path('data', sub(output_prefix, '', x))
-    cat(sprintf('- [%s](%s)\n', basename(x), uri))
-}
-```
-
-```{r save_output}
+```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0('consesus_network_',
-                                                 MANUSCRIPT_CONFIG$output_prefix,
-                                                 '.html'))
+html_filepath <- file.path(output_prefix, paste0('network_comparison_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-network-comparison.pdf %s) &', html_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-network-comparison.html %s) &', html_filepath))
 }
 ```
+

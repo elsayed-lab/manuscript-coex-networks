@@ -13,7 +13,7 @@ comparison:
 		echo "---------- Processing $$rmd ----------"; \
 		title=`grep title $$rmd | grep -o \".*\"`; \
 		params="list(settings=\"$$rmd\", title=$$title, version=\"$(VERSION)\")"; \
-		cmd="Rscript -e 'rmarkdown::render(\"02-consensus-network-filtering.Rmd\", params=$$params)'"; \
+		cmd="Rscript -e 'rmarkdown::render(\"03-consensus-network-construction.Rmd\", params=$$params)'"; \
 		echo $$cmd; \
 	done
 	
@@ -23,7 +23,7 @@ construction:
 		title=`grep title $$rmd | grep -o \".*\"`; \
 		title=$${title/Comparison/Construction} ; \
 		params="list(settings=\"$$rmd\", title=$$title, version=\"$(VERSION)\")"; \
-		cmd="Rscript -e 'rmarkdown::render(\"03-consensus-network-construction\", params=$$params)'"; \
+		cmd="Rscript -e 'rmarkdown::render(\"04-consensus-network-analysis\", params=$$params)'"; \
 		echo $$cmd; \
 		#eval $$cmd; \
 	done
@@ -33,6 +33,6 @@ inf-vs-uninf:
 		echo "---------- Processing $$rmd ----------"; \
 		title=`grep title $$rmd | grep -o \".*\"`; \
 		params="list(settings=\"$$rmd\", title=$$title, version=\"$(VERSION)\")"; \
-		cmd="Rscript -e 'rmarkdown::render(\"04-infected-vs-uninfected.Rmd\", params=$$params)'"; \
+		cmd="Rscript -e 'rmarkdown::render(\"05-infected-vs-uninfected.Rmd\", params=$$params)'"; \
 		echo $$cmd; \
 	done
