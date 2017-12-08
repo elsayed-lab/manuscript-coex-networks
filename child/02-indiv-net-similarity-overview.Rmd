@@ -1,0 +1,81 @@
+# Overview
+
+The purpose of this analysis is compare the highest-scoring co-expression
+networks for a single dataset, and measure the similarity between them.
+
+Initially, we will consider methods for comparing network partitionings, rather
+than the edges of the networks themselves.
+
+There are a number of ways to measure the similarity between two clusterings.
+The ones tested here include:
+
+- [Jaccard Index](https://en.wikipedia.org/wiki/Jaccard_index)
+- [Adjusted Rand Index](https://en.wikipedia.org/wiki/Rand_index)
+- [Weighted kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa#Weighted_kappa)
+
+## Jaccard Index
+
+There are a number of different ways one could measure the similarity between
+two modules.
+
+One such measure, in the Jaccard Index:
+
+$$
+\text{sim}_{A,B} = \frac{A \cap B}{A \cup B}
+$$
+
+This will result in high scores for modules that are both similar in size and
+have a high overlap being described as similar.
+
+A downside to this approach, however, is that for many networks, the module
+sizes may be very different. For instance, one network may result from many
+modules in another network being split into two. Both networks may still be
+grouping genes with similar function together, but at different scales.
+
+**Jaccard Cluster Similarity**
+
+The approach used by the `cluster_similarity` method with
+`similarity='jaccard'` is related to the above, but computed in a different
+manner.
+
+For a given pair of partionings, a contingency table is computed which counts
+the number of:
+
+1. Pairs of elements that are comembers in both clusterings
+2. Pairs of elements where the elements are together in clustering A but not B
+3. Pairs of elements where the elements are together in clustering B but not A
+4. Pairs of elements that are not together in either clustering
+
+The similarity score is then computed as the ratio of 1 / (1 + 2 + 3) above,
+i.e. it's the ratio of pairs of elements that are together in both clusterings,
+over the total where they are together in either one or both clusterings.
+
+
+```{r, eval=FALSE, include=FALSE}
+# Example:
+a <- c(1, 1, 1, 2, 2, 2)
+b <- c(1, 1, 1, 4, 5, 6)
+comembership_table(a, b)
+cluster_similarity(a, b, similarity='jaccard')
+```
+
+## Adjusted Rand Index
+
+The [Adjusted Rand Index](https://en.wikipedia.org/wiki/Rand_index#Adjusted_Rand_index)
+is a modified version of the Rand Index, which takes into account the random
+overlap between clusters that can be expected purely due to chance.
+
+The adjusted ranges from ~0 - 1 (although some values lower than 0 can also be
+observed).
+
+## Weighted Kappa
+
+A modified version of [Cohen's
+kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa), a method used to test
+[inter-rater reliability](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3900052/), and more
+recently applied to compare alternate data clusterings. Weighted kappa scores
+range from -1 to 1.
+
+See [Swift et al. (2004)](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2004-5-11-r94)
+for more information.
+

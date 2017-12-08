@@ -1,0 +1,146 @@
+# Methods
+
+Next, we will select the top N networks, and measure the cluster similarities
+for each pair of networks.
+
+```{r compare_networks, cache=TRUE, autodep=TRUE, message=FALSE}
+# Create output matrices
+output_jaccard <- matrix(nrow=num_networks, ncol=num_networks)
+rownames(output_jaccard) <- colnames(output_jaccard) <- paste0("network_", networks$id)
+
+output_rand <- matrix(nrow=num_networks, ncol=num_networks)
+rownames(output_rand) <- colnames(output_rand) <- paste0("network_", networks$id)
+
+output_kappa <- matrix(nrow=num_networks, ncol=num_networks)
+rownames(output_kappa) <- colnames(output_kappa) <- paste0("network_", networks$id)
+
+# To speed things up, we will randomly select a subset of genes to compare 
+# across each network, rather than comparing all genes
+id_a = networks$id[1]
+load(file.path(MANUSCRIPT_CONFIG$rdata_dir, sprintf("%d.RData", id_a)))
+
+genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
+
+# Iterate over top hits and construct a similarity matrix
+for (i in 1:nrow(networks)) {
+    id_a = networks$id[i]
+    file_a <- sprintf("%d.RData", id_a)
+    load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_a))
+    mapping_a <- module_mapping
+
+    index_a <- paste0("network_", id_a)
+
+    for (j in 1:i) {
+        id_b <- networks$id[j]
+        message(sprintf("...Comparing %s vs. %s", id_a, id_b))
+
+        index_b <- paste0("network_", id_b)
+
+        # load network b
+        file_b <- sprintf("%d.RData", id_b)
+        load(file.path(MANUSCRIPT_CONFIG$rdata_dir, file_b))
+        mapping_b <- module_mapping
+
+        # limit to randomly selected genes
+        mapping_a <- mapping_a[mapping_a$gene_id %in% genes_to_compare,]
+        mapping_b <- mapping_b[mapping_b$gene_id %in% genes_to_compare,]
+
+        # limit to genes in both networks
+        mapping_a <- mapping_a[mapping_a$gene_id %in% mapping_b$gene_id,]
+        mapping_b <- mapping_b[mapping_b$gene_id %in% mapping_a$gene_id,]
+
+        # TRUE
+        # all(mapping_a$gene_id == mapping_b$gene_id)
+
+        # Jaccard index:
+        #   sum(mat_a & mat_b) / sum(mat_a | mat_b) 
+        # where mat_a = comembership matrix for network a.
+        jaccard_index <- cluster_similarity(as.numeric(factor(mapping_a$color)),
+                                            as.numeric(factor(mapping_b$color)),
+                                            similarity='jaccard')
+
+        # Adjusted Rand index
+        adjusted_rand <- adjustedRandIndex(mapping_a$color, mapping_b$color)
+
+        # Weighted kappa
+        weighted_kappa <- kappa2(cbind(mapping_a$color, mapping_b$color), w='squared')$value
+
+        # compute cluster similarity scores
+        output_jaccard[index_a, index_b] <- output_jaccard[index_b, index_a] <- jaccard_index
+        output_rand[index_a, index_b]    <- output_rand[index_b, index_a]    <- adjusted_rand
+        output_kappa[index_a, index_b]   <- output_kappa[index_b, index_a]   <- weighted_kappa
+    }
+}
+# Set diagonal to maximum of off-diagonal values to increase dynamic range of
+# color scale
+diag(output_jaccard) = 0
+diag(output_jaccard) = max(output_jaccard)
+
+diag(output_rand) = 0
+diag(output_rand) = max(output_rand)
+
+diag(output_kappa) = 0
+diag(output_kappa) = max(output_kappa)
+```
+
+# Results
+
+## Jaccard Index
+
+```{r results='asis'}
+cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_jaccard))))
+cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_jaccard))))
+cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_jaccard))))
+```
+
+```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
+# Color rows by rank and columns by network number (~parameter similarity)
+rank_colors = rev(colorRampPalette(brewer.pal(9, 'Blues'))(num_networks))
+network_num = rev(colorRampPalette(brewer.pal(9, 'Purples'))(max(networks$id)))[networks$id]
+
+# Use rank for rownames
+rownames(output_jaccard) = 1:num_networks
+
+# Clip upper-end of similarity matrices to improve contrast in heatmap (doesn't
+# make too much of a difference; data behaves approximately bimodal)
+#jaccard_clip <- as.numeric(quantile(output_jaccard, 0.95))
+#output_jaccard[output_jaccard > jaccard_clip] <- jaccard_clip
+
+heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(12,12),
+          RowSideColors=rank_colors, ColSideColors=network_num,
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          symbreaks=FALSE, symkey=FALSE)
+```
+
+## Adjusted Rand
+
+```{r results='asis'}
+cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_rand))))
+cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_rand))))
+cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_rand))))
+```
+
+```{r network_module_similarity_adjusted_rand, cache=TRUE, autodep=TRUE, message=FALSE}
+rownames(output_rand) = 1:num_networks
+heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(12,12),
+          RowSideColors=rank_colors, ColSideColors=network_num,
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          symbreaks=FALSE, symkey=FALSE)
+```
+
+## Weighted Kappa
+
+```{r results='asis'}
+cat(sprintf("- Min: %0.2f\n", min(upper.tri(output_kappa))))
+cat(sprintf("- Max: %0.2f\n", max(upper.tri(output_kappa))))
+cat(sprintf("- Median: %0.2f\n", median(upper.tri(output_kappa))))
+```
+
+```{r network_module_similarity_weighted_kappa, cache=TRUE, autodep=TRUE, message=FALSE}
+rownames(output_kappa) = 1:num_networks
+heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(12,12),
+          RowSideColors=rank_colors, ColSideColors=network_num,
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          symbreaks=FALSE, symkey=FALSE)
+```
+

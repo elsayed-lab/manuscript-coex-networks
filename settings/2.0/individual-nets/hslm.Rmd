@@ -1,0 +1,17 @@
+```{r settings}
+# Manuscript settings
+MANUSCRIPT_CONFIG <- list(
+    title           = "Similarity of individual co-expression networks (HsLm)",
+    output_prefix   = 'hslm-inf',
+    rdata_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", "hsapiens_infected_with_lmajor-v6.1"),
+    networks        = read_csv(file.path('..', '..', '..', 'input', 'indiv_network_stats',
+                                  'hsapiens_infected_with_lmajor.csv')),
+    num_networks    = 50,
+    num_genes       = 2500 
+)
+
+CONFIG <- list(
+    target  = 'host',
+    verbose = FALSE               
+)
+```

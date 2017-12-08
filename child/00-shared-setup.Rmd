@@ -1,8 +1,7 @@
-```{r load_settings, include=FALSE}
+```{r load_settings}
 library('knitr')
 library('readr')
 knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
-knit('', quiet=TRUE, output=tempfile())
 ```
 
 ```{r knitr_settings, include=FALSE, message=FALSE}
@@ -31,8 +30,7 @@ opts_chunk$set(fig.path=output_figprefix,
                fig.height=6,
                fig.retina=1,
                dpi=600,
-               cache.path=cache_dir,
-			   echo=CONFIG$verbose)
+               cache.path=cache_dir)
 
 options(digits=5)
 options(stringsAsFactors=FALSE)
@@ -50,12 +48,6 @@ theme_bw_high_res <- function () {
         )
 }
 
-# plotting parameters
-cex_main <- 1.6
-cex_lab  <- 1.8
-cex_axis <- 1.8
-cex_color_labels <- 1.3
-
-# List for storing result
+# List for storing enrichment results
 COEXPRESSION_NETWORK_RESULT <- list()
 ```

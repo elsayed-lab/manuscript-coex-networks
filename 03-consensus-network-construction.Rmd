@@ -3,9 +3,9 @@ author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
   settings: ""
-  title: "Consensus Co-expression Network Comparison"
+  title: "Consensus Co-expression Network Construction"
   version: ""
-  analysis_dirname: "03-network-comparison"
+  analysis_dirname: "03-network-construction"
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
@@ -101,9 +101,10 @@ write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_su
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
 html_filepath <- file.path(output_prefix, paste0('network_comparison_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
+pdf_filepath <- sub('html', 'pdf', html_filepath)
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-network-comparison.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-network-comparison.pdf %s) &', pdf_filepath))
 } else {
     system(sprintf('(sleep 30 && mv 03-network-comparison.html %s) &', html_filepath))
 }

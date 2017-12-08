@@ -116,19 +116,19 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r child='../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd'}
 ```
 
-```{r child='02-kegg-enrichment-results.Rmd'}
+```{r child='04-kegg-enrichment-results.Rmd'}
 ```
 
 ```{r child='../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd'}
 ```
 
-```{r child='02-cpdb-enrichment-results.Rmd'}
+```{r child='04-cpdb-enrichment-results.Rmd'}
 ```
 
 ```{r child='../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd'}
 ```
 
-```{r child='02-tf-regulon-enrichment-results.Rmd'}
+```{r child='04-tf-regulon-enrichment-results.Rmd'}
 ```
 
 ### Visualization of enriched rewired subnetworks
