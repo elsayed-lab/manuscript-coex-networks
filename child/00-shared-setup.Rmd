@@ -1,20 +1,27 @@
-```{r load_settings}
+```{r load_settings, message=FALSE, include=FALSE}
 library('knitr')
 library('readr')
 
 # input directories
 base_dir       <- normalizePath('..')
+
 counts_dir     <- file.path(base_dir, 'input', 'count_tables')
 metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
 
-knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+if ('settings' %in% names(params)) {
+    knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+}
 ```
 
 ```{r knitr_settings, include=FALSE, message=FALSE}
-output_prefix <- file.path('output', params$version, params$analysis_dirname)
-output_suffix <- MANUSCRIPT_CONFIG$output_prefix
+output_suffix <- ""
 
+if ("MANUSCRIPT_CONFIG" %in% ls()) {
+    output_suffix <- MANUSCRIPT_CONFIG$output_prefix
+}
+
+output_prefix    <- file.path('output', params$version, params$analysis_dirname)
 output_datadir   <- file.path(output_prefix, 'data')
 output_tabledir  <- file.path(output_prefix, 'table')
 output_figprefix <- file.path(output_prefix, 'figure', paste0(output_suffix, '-'))
@@ -54,6 +61,9 @@ theme_bw_high_res <- function () {
             plot.title=element_text(size=10, vjust=0)
         )
 }
+
+# discrete color palette
+ggplot_discrete_colors <- c("#7536BC", "#BD373B", "#7EBD37", "#37BDB8")
 
 # List for storing enrichment results
 COEXPRESSION_NETWORK_RESULT <- list()

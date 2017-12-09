@@ -100,13 +100,13 @@ write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_su
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
-html_filepath <- file.path(output_prefix, paste0('network_comparison_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
+html_filepath <- file.path(output_prefix, paste0('network_construction_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
 pdf_filepath <- sub('html', 'pdf', html_filepath)
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-network-comparison.pdf %s) &', pdf_filepath))
+    system(sprintf('(sleep 30 && mv 03-network-construction.pdf %s) &', pdf_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-network-comparison.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-network-construction.html %s) &', html_filepath))
 }
 ```
 

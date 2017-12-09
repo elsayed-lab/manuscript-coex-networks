@@ -42,10 +42,6 @@ opts_chunk$set(dev=c('png', 'pdf'),
                fig.height=6,
                fig.retina=1,
                dpi=600)
-
-# igraph plot options
-igraph.options(vertex.color='#3C02F0', vertex.label.color='black',
-               vertex.label.dist=5, vertex.size=25, vertex.label.degree=2 * pi)
 ```
 
 ```{r setup}
@@ -57,36 +53,6 @@ datasets <- data.frame(
 )
 ```
 
-### Consensus Network Construction
-
-```{r figure_1a}
-# example of network stacking approach
-ind <- c(2, 7, 8, 12)
-
-a1 <- matrix(0, 4, 4)
-a1[ind] <- c(2, 7, 1, 2)
-n1 <- graph.adjacency(a1, mode='undirected', weighted=TRUE)
-
-a2 <- matrix(0, 4, 4)
-a2[ind] <- c(4, 6, 0, 1)
-n2 <- graph.adjacency(a2, mode='undirected', weighted=TRUE)
-
-a3 <- matrix(0, 4, 4)
-a3[ind] <- c(3, 4, 2, 1)
-n3 <- graph.adjacency(a3, mode='undirected', weighted=TRUE)
-
-nn <- graph.adjacency(a1 + a2 + a3, mode='undirected', weighted=TRUE)
-
-coords <- layout.auto(nn)
-node_labels <- paste("Gene ", c("A", "B", "C", "D"))
-
-par(mfrow=c(1,4))
-
-plot(n1, layout=coords, edge.width=E(n1)$weight, vertex.label=node_labels)
-plot(n2, layout=coords, edge.width=E(n2)$weight, vertex.label=node_labels)
-plot(n3, layout=coords, edge.width=E(n3)$weight, vertex.label=node_labels)
-plot(nn, layout=coords, edge.width=E(nn)$weight, vertex.label=node_labels)
-```
 
 Results
 =======

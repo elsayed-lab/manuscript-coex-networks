@@ -83,6 +83,7 @@ ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=ty
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
     theme_bw_high_res() +
+    theme(plot.title=element_text(vjust=0)) +
     xlab('Edge Weight Cutoff Percentile') + ylab('# Unique annotations') +
     ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
 ```
@@ -99,8 +100,9 @@ ggplot(dat_pval_scores, aes(x=cutoff_quantile, y=pvalue_totals, color=type)) +
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
     theme_bw_high_res() +
+    theme(legend.text=element_text(size=8)) +
     xlab('Edge Weight Cutoff Percentile') + ylab('Total -log10(Adj. P-values)') +
-    ggtitle('Total -log10(Adj. P-values) vs. Edge Weight Cutoff')
+    ggtitle('Total -log10(Adj. P-values)\vs. Edge Weight Cutoff')
 ```
 
 ## Ratio of enrichment score to number of genes
@@ -116,6 +118,7 @@ ggplot(dat_ratio_enrichment, aes(x=cutoff_quantile, y=ratio_enrichment_to_num_ge
     geom_line() +
     geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
     theme_bw_high_res() +
+    theme(plot.title=element_text(vjust=0.5)) +
     xlab('Edge Weight Cutoff Percentile') + ylab('Ratio Enrichment to Number of Genes') +
     ggtitle('Ratio of Enrichment to Number of Genes vs. Edge Weight Cutoff')
 ```

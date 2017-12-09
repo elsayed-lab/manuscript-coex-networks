@@ -18,8 +18,8 @@ CONFIG <- list(
     target          = "host",
 
     organism_db     = "Homo.sapiens",
-    organism_genome = "hg38",
-    txdb            = "TxDb.Hsapiens.UCSC.hg38.knownGene",
+    organism_genome = "hg19",
+    txdb            = "TxDb.Hsapiens.UCSC.hg19.knownGene",
     orgdb_key       = "ENSEMBL",
     biomart_dataset = "hsapiens_gene_ensembl",
 

@@ -81,6 +81,17 @@ networks <- networks[sample(1:nrow(networks), num_networks),]
 ```{r child='child/02-indiv-net-permuted-network-similarity.Rmd'}
 ```
 
+# System Information
+
+```{r sysinfo, results='asis'}
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    toLatex(sessionInfo())
+} else {
+    library('pander')
+    pander(sessionInfo())
+}
+```
+
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
