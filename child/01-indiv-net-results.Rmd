@@ -1,0 +1,192 @@
+```{r parameters_to_plot, echo=FALSE}
+plot_nettype   <- 'network_type'        %in% colnames(df) && length(unique(df$network_type)) > 1
+plot_lowcount  <- 'low_count_threshold' %in% colnames(df) && length(unique(df$low_count_threshold)) > 1
+plot_cpm       <- 'cpm_transform'       %in% colnames(df) && length(unique(df$cpm_transform)) > 1
+plot_log2      <- 'log2_transform'      %in% colnames(df) && length(unique(df$log2_transform)) > 1
+plot_qnorm     <- 'quantile_normalize'  %in% colnames(df) && length(unique(df$quantile_normalize)) > 1
+plot_batch_adj <- 'batch_adjustment'    %in% colnames(df) && length(unique(df$batch_adjustment)) > 1
+plot_simmeas   <- 'similarity_measure'  %in% colnames(df) && length(unique(df$similarity_measure)) > 1
+plot_adjpow    <- 'adj_power'           %in% colnames(df) && length(unique(df$adj_power)) > 1
+plot_tom       <- 'topological_overlap' %in% colnames(df) && length(unique(df$topological_overlap)) > 1
+```
+
+**Similarity Measure**
+
+<!-- Similarity Measure -->
+```{r similarity_measure, results='asis', fig.height=fig_height, out.width=out_width, out.height=out_height, echo=FALSE}
+ggplot(df, aes(similarity_measure, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(similarity_measure))) +
+    theme_bw_high_res() +
+    xlab('Similarity Measure') + ylab('Enrichment score') +
+    theme(text=element_text(size=14)) +
+    #theme(text=element_text(size=16),
+    #      axis.text=element_text(size=16),
+    #      axis.text.x=element_text(angle=90, hjust=1),
+    #      legend.text=element_text(size=16),
+    #      plot.margin=unit(c(0.5, 0.5, 0.5, 0.5),"cm")) +
+    guides(guide_legend(title="Similarity Measure")) +
+    scale_fill_discrete(name='Similarity Measure')
+```
+
+**Log2, CPM, Quantile Normalization**
+
+<!-- Log2, CPM, Qnorm -->
+```{r log2_cpm_qnorm}
+# log2
+plt1 <- ggplot(df, aes(log2_transform, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(log2_transform))) +
+            theme_bw_high_res() +
+            theme(legend.position="none",
+                  axis.text=element_text(size=10)) +
+            xlab('Log2-transformation') + 
+            ylab('Enrichment score')
+
+# cpm
+plt2 <- ggplot(df, aes(cpm_transform, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(cpm_transform))) +
+            scale_colour_manual(values=ggplot_discrete_colors) + 
+            theme_bw_high_res() +
+            theme(legend.position="none",
+                  axis.text=element_text(size=9)) +
+            xlab('CPM-transformation') + 
+            ylab('Enrichment score')
+
+# qnorm
+plt3 <- ggplot(df, aes(quantile_normalize, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(quantile_normalize))) +
+            theme_bw_high_res() +
+            theme(legend.position="none",
+                  axis.text=element_text(size=8)) +
+            xlab('Quantile normalization') + 
+            ylab('Enrichment score')
+
+grid.arrange(plt1, plt2, plt3, ncol=2)
+```
+
+**Log2, CPM, Quantile Normalization (by similarity measure)**
+
+<!-- Log2, CPM, Qnorm (by similarity measure) -->
+```{r log2_cpm_qnorm_by_sim}
+# log2, grouped by similarity measure
+plt1 <- ggplot(df, aes(log2_transform, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(similarity_measure))) +
+            theme_bw_high_res() +
+            theme(legend.position="none") +
+            xlab('Log2-transformation') + 
+            ylab('Enrichment score')
+
+# cpm, grouped by similarity measure
+plt2 <- ggplot(df, aes(cpm_transform, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(similarity_measure))) +
+            scale_colour_manual(values=ggplot_discrete_colors) + 
+            theme_bw_high_res() +
+            theme(legend.position="none") +
+            xlab('CPM-transformation') + 
+            ylab('Enrichment score')
+
+# qnorm, grouped by similarity measure
+plt3 <- ggplot(df, aes(quantile_normalize, enrichment_score)) + 
+            geom_boxplot(aes(fill=factor(similarity_measure))) +
+            theme_bw_high_res() +
+            theme(legend.position="none") +
+            xlab('Quantile normalization') + 
+            ylab('Enrichment score')
+
+grid.arrange(plt1, plt2, plt3, ncol=2)
+```
+
+<!-- Batch Adjustment -->
+```{r batch_adjustment, results='asis', fig.height=fig_height, out.width=out_width, out.height=out_height, echo=FALSE, include=plot_batch_adj, eval=plot_batch_adj}
+cat('\n**Batch adjustment**\n\n')
+
+ggplot(df, aes(batch_adjustment, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(similarity_measure))) +
+    guides(guide_legend(title="Similarity Measure")) +
+    theme_bw_high_res() +
+    xlab('Batch Adjustment Method') + ylab('Enrichment score')
+
+ggplot(df, aes(batch_adjustment, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(batch_adjustment))) +
+    guides(guide_legend(title="Similarity Measure")) +
+    theme_bw_high_res() +
+    xlab('Batch Adjustment Method') + ylab('Enrichment score') +
+    guides(guide_legend(FALSE))
+```
+
+<!-- Adjacency Power -->
+```{r adjpower, results='asis', fig.height=fig_height, out.width=out_width, out.height=out_height, echo=FALSE}
+cat('\n**Adjacency power**\n\n')
+ggplot(df, aes(factor(adj_power), enrichment_score)) + 
+    geom_boxplot() +
+    theme_bw_high_res() +
+    xlab('Adjacency power') + ylab('Enrichment score')
+```
+
+<!-- Network Type (Signed vs. Unsigned) -->
+```{r network_type, results='asis', fig.height=fig_height, out.width=out_width, out.height=out_height, echo=FALSE, include=plot_nettype, eval=plot_nettype}
+cat('\n**Network Type**\n\n')
+
+# network type
+ggplot(df, aes(network_type, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(network_type))) +
+    scale_colour_manual(values=ggplot_discrete_colors) + 
+    theme_bw_high_res() +
+    xlab('Network Type') + ylab('Enrichment score') +
+    guides(guide_legend(FALSE))
+
+# network type, grouped by similarity measure
+ggplot(df, aes(network_type, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(similarity_measure))) +
+    scale_colour_manual(values=ggplot_discrete_colors) + 
+    guides(guide_legend(title="Similarity Measure")) +
+    theme_bw_high_res() +
+    xlab('Network Type') + ylab('Enrichment score')
+```
+
+<!-- Topological Overlap -->
+```{r topological_overlap, results='asis', fig.height=fig_height, out.width=out_width, out.height=out_height, echo=FALSE, include=plot_tom, eval=plot_tom}
+cat('\n**Topological overlap**\n\n')
+ggplot(df, aes(topological_overlap, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(similarity_measure))) +
+    guides(guide_legend(title="Similarity Measure")) +
+    theme_bw_high_res() +
+    xlab('Topological overlap') + ylab('Enrichment score')
+ggplot(df, aes(topological_overlap, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(topological_overlap))) +
+    guides(guide_legend(title="Similarity Measure")) +
+    theme_bw_high_res() +
+    xlab('Topological overlap') + ylab('Enrichment score') +
+    guides(guide_legend(FALSE))
+```
+
+<!-- Correlation between functional and TF regulon enrichment -->
+```{r, function_coreg_correlation, results='asis'}
+if ('unique_marbach_terms' %in% colnames(df)) {
+    cor_val <- cor(df$unique_go_terms, df$unique_marbach_terms)
+
+    cat('**Correlation between GO and TF regulon enrichment**\n\n')
+    cat(sprintf("- Pearson correlation: %0.2f\n\n", cor_val))
+
+    ggplot(aes(x=unique_go_terms, y=unique_marbach_terms), data=df) + 
+        geom_point(size=0.5) + 
+        geom_smooth(method='lm') +
+        theme_bw_high_res() +
+        xlab("# Unique GO terms") +
+        ylab("# Unique TF regulon genes")
+}
+
+if ('unique_cpdb_terms' %in% colnames(df)) {
+    cor_val <- cor(df$unique_cpdb_terms, df$unique_marbach_terms)
+
+    cat('**Correlation between CPDB and TF regulon enrichment**\n\n')
+    cat(sprintf("- Pearson correlation: %0.2f\n\n", cor_val))
+
+    ggplot(aes(x=unique_cpdb_terms, y=unique_marbach_terms), data=df) + 
+        geom_point(size=0.5) + 
+        geom_smooth(method='lm') +
+        theme_bw_high_res() +
+        xlab("# Unique CPDB terms") +
+        ylab("# Unique TF regulon genes")
+}
+```
+
