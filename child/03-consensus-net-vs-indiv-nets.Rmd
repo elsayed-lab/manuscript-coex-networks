@@ -1,0 +1,139 @@
+## Functional enrichment comparison (consensus vs. individual networks)
+
+Next, we will compare the overall distributions of functional enrichment
+between the robust consensus networks generated with various cutoffs, and
+the unfiltered individual networks.
+
+Note that because the individual networks are all unfiltered, they will have
+more total genes (and thus more chances for enrichment) than many of the
+consensus networks.
+
+As such, we will only compare filtered consensus networks with half or more of
+the original genes present.
+
+```{r comparison_to_individual_networks, fig.height=ifelse(CONFIG$target == 'host', 3.375, 2.5)}
+nets <- MANUSCRIPT_CONFIG$networks
+
+# compute score for each network using -log10 p-value scores, if available, or
+# else total unique annotations
+
+# score (-log10 p-value)
+# total p-value scores by annotation type
+indiv_scores <- nets %>%
+    select(starts_with('total'), id) %>%
+    select(ends_with('pval'), id) %>%
+    melt(id.vars='id', variable.name='type',
+            value.name='total')
+
+if (CONFIG$target == 'host') {
+    # human consensus network scores
+    consensus_scores <- data.frame(
+        type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"),
+        score=c(dat$`GO enrichment -log10(p-val) score`[1], 
+                dat$`KEGG enrichment -log10(p-val) score`[1],
+                dat$`CPDB enrichment -log10(p-val) score`[1], 
+                dat$`TF enrichment -log10(p-val) score`[1])
+    )
+
+} else {
+    # parasite consensus network scores
+    consensus_scores <- data.frame(
+        type=c("GO Terms", "KEGG Pathways"),
+        score=c(dat$`GO enrichment -log10(p-val) score`[1], 
+                dat$`KEGG enrichment -log10(p-val) score`[1])
+    )
+}
+# replace labels
+label_mapping <- data.frame(
+    from=c('total_go_pval', 'total_kegg_pval', 
+            'total_cpdb_pval', 'total_marbach_pval', 'total_leishcyc_pval'),
+    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes",
+            "LeishCyc Pathways")
+)
+indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
+
+# total unique annotation counts by annotation type
+#indiv_scores <- nets %>%
+#    select(starts_with('unique'), id) %>%
+#    melt(id.vars='id', variable.name='type',
+#            value.name='total')
+
+#if (CONFIG$target == 'host') {
+#    # human consensus network scores
+#    consensus_scores <- data.frame(
+#        type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"),
+#        score=c(dat$`# Unique GO terms`[1], 
+#                dat$`# Unique KEGG pathways`[1],
+#                dat$`# Unique CPDB pathways`[1], 
+#                dat$`# Unique TF's`[1])
+#    )
+
+#} else {
+#    # parasite consensus network scores
+#    consensus_scores <- data.frame(
+#        type=c("GO Terms", "KEGG Pathways"),
+#        score=c(dat$`# Unique GO terms`[1], 
+#                dat$`# Unique KEGG pathways`[1])
+#    )
+#}
+## replace labels
+#label_mapping <- data.frame(
+#    from=c('unique_go_terms', 'unique_kegg_terms', 
+#            'unique_cpdb_terms', 'unique_marbach_terms'),
+#    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes")
+#)
+#indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
+##}
+
+## Exclude LeishCyc for now (sparesely annotated)
+#indiv_scores <- indiv_scores %>% 
+#    filter(type %in% c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"))
+
+# plot of p-value scores by annotation type
+ggplot(indiv_scores, aes(x=total, fill=type)) +
+    geom_density() +
+    geom_vline(data=consensus_scores, aes(xintercept=score), 
+                linetype='dashed', color='red') +
+    theme_bw_high_res() +
+    facet_wrap(~ type, scale = 'free_x')
+
+# Comparison of unfiltered consensus network score to distribution of
+# individual network scores
+#ggplot(data.frame(score=indiv_scores), aes(score)) +
+#    geom_histogram()
+    #geom_vline(xintercept=, linetype='dashed', color='red')
+
+# Comparison of 0-50th percentile filtered consensus networks to all 
+# individual networks
+#if ('total_go_pval' %in% colnames(nets)) {
+#    df <- rbind(data.frame(score=dat_pval_scores$pvalue_totals[1:51], type="Consensus Networks"),
+#                data.frame(score=nets$total_go_pval, type='Individual Networks'))
+
+#    ggplot(df, aes(x=score, group=type, fill=type)) +
+#        geom_density(alpha=0.5)
+#}
+
+```
+
+```{r table_1, results='asis'}
+# comparison of unfiltered consensus network enrichment to distribution of
+# individual networks
+table_1 <- consensus_scores
+
+quantiles <- c()
+
+for (i in 1:nrow(table_1)) {
+    type <- table_1$type[i]
+    vals <- indiv_scores$total[indiv_scores$type == type]
+
+    # quantile where consensus enrichment score falls in the individual
+    # network distribution
+    qval <- sum(table_1$score[i] > vals) / length(vals)
+    quantiles <- c(quantiles, qval)
+}
+
+table_1 <- cbind(table_1, quantile=quantiles)
+
+xkable(table_1, caption='Table 1. Comparison of unfiltered consensus network to individual networks')
+```
+
