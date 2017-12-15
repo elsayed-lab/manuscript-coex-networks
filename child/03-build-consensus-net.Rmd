@@ -94,6 +94,16 @@ for (i in 1:length(input_nets)) {
         adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
     }
 
+    # normalize edge weights
+    if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
+        if (MANUSCRIPT_CONFIG$normalization == 'scale') {
+            # size-factor normalization
+            tmp <- (tmp / sum(tmp)) * 1E6
+        } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
+            tmp <- rank(tmp) 
+        }
+    }
+
     # combine matrices
     adjmat <- adjmat + tmp
 }

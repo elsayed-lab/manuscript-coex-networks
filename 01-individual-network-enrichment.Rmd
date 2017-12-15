@@ -88,29 +88,32 @@ source('../../2015/00-shared/R/util.R')
 
 ```{r plot_adjustments, echo=FALSE}
 # alternative plot / display dimensions for single plots
-fig_height <- 5
+fig_height <- 4.5
 out_width  <- 480
-out_height <- 320
+out_height <- 300
 ```
 
 ## Host networks
 
-<!--
 ### *H. sapiens* all samples (HsAll)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/hsall.csv')
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/6.0/networks_hsall.csv')
 
 # create a copy to create a combined dataset for comparative analysis
-#combined <- cbind(df, network='HsTc')
-#```
+combined <- cbind(df, network='HsTc')
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
--->
+```{r child='child/01-indiv-net-results.Rmd'}
+```
+
+```{r}
+# add to combined result dataframe
+combined <- cbind(df, network='HsAll')
+```
 
 ### *H. sapiens* infected with *T. cruzi* (HsTc)
 
@@ -125,33 +128,15 @@ df <- read_csv('input/indiv_network_stats/networks_hstc.csv')
 ```
 
 ```{r}
-# create a copy to create a combined dataset for comparative analysis
-combined <- cbind(df, network='HsTc')
-```
-
-### *H. sapiens* infected with *T. cruzi* - uninfected samples (HsTcUI)
-
-```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/networks_hstc-uninf.csv')
-```
-
-```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-```
-
-```{r child='child/01-indiv-net-results.Rmd'}
-```
-
-```{r}
-# create a copy to create a combined dataset for comparative analysis
-l <- list(combined, cbind(df, network='HsTcUI'))
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='HsTc'))
 combined <- do.call(rbind.fill, l)
 ```
-
 <!--
-### *H. sapiens* infected with *L. braziliensis* (HsLb)
+### *H. sapiens* infected with *T. cruzi* - uninfected samples (HsTcUI)
 
 #```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/networks_hslb.csv')
+#df <- read_csv('input/indiv_network_stats/networks_hstc-uninf.csv')
 #```
 
 #```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -161,12 +146,29 @@ combined <- do.call(rbind.fill, l)
 #```
 
 #```{r}
-## create a copy to create a combined dataset for comparative analysis
-##l <- list(combined, cbind(df, network='HsLb'))
-combined <- do.call(rbind.fill, l)
+## add to combined result dataframe
+#l <- list(combined, cbind(df, network='HsTcUI'))
+#combined <- do.call(rbind.fill, l)
 #```
-
 -->
+
+### *H. sapiens* infected with *L. braziliensis* (HsLb)
+
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/networks_hslb.csv')
+```
+
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
+
+```{r child='child/01-indiv-net-results.Rmd'}
+```
+
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='HsLb'))
+combined <- do.call(rbind.fill, l)
+```
 
 ### *H. sapiens* infected with *L. major* (HsLm)
 
@@ -181,11 +183,10 @@ df <- read_csv('input/indiv_network_stats/networks_hslm.csv')
 ```
 
 ```{r}
-# create a copy to create a combined dataset for comparative analysis
-l <- list(combined)
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='HsLm'))
 combined <- do.call(rbind.fill, l)
 ```
-
 <!--
 ### *H. sapiens* infected with *L. major*, including alt parameters (HsLm-full)
 
@@ -198,17 +199,49 @@ combined <- do.call(rbind.fill, l)
 
 #```{r child='child/01-indiv-net-results.Rmd'}
 #```
--->
 
-```{r}
-# create a copy to create a combined dataset for comparative analysis
-#combined <- merge(combined, cbind(df, network='HsLmFull'), all=TRUE)
-```
 
 ### *H. sapiens* infected with *L. major* - uninfected samples (HsLmUI)
 
+#```{r load_data, message=FALSE}
+#df <- read_csv('input/indiv_network_stats/networks_hslm-uninf.csv')
+#```
+
+#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+#```
+
+#```{r child='child/01-indiv-net-results.Rmd'}
+#```
+
+#```{r}
+#l <- list(combined, cbind(df, network='HsLmUI'))
+#combined <- do.call(rbind.fill, l)
+#```
+-->
+
+### *M. musculus* infected with *L. major* (MmLm)
+
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/networks_hslm-uninf.csv')
+df <- read_csv('input/indiv_network_stats/6.0/networks_mmlm.csv')
+```
+
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
+
+```{r child='child/01-indiv-net-results.Rmd'}
+```
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='MmLm'))
+combined <- do.call(rbind.fill, l)
+```
+
+## Parasite networks
+
+### *L. major* infecting *M. musculus* (LmMm)
+
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/6.0/networks_lmmm.csv')
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -218,49 +251,9 @@ df <- read_csv('input/indiv_network_stats/networks_hslm-uninf.csv')
 ```
 
 ```{r}
-l <- list(combined, cbind(df, network='HsLmUI'))
+l <- list(combined, cbind(df, network='LmMm'))
 combined <- do.call(rbind.fill, l)
 ```
-
-<!--
-### *M. musculus* infected with *L. major* (MmLm)
-
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/mmusculus_infected_with_lmajor-v6.0.csv')
-#```
-
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
-
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
-#```{r}
-## create a copy to create a combined dataset for comparative analysis
-#combined <- merge(combined, cbind(df, network='MmLm'), all=TRUE)
-#```
--->
-
-## Parasite networks
-
-<!--
-### *L. major* infecting *M. musculus* (LmMm)
-
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/lmajor_infecting_mmusculus-v6.0.csv')
-#```
-
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
-
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
-
-```{r}
-# create a copy to create a combined dataset for comparative analysis
-#combined <- merge(combined, cbind(df, network='LmMm'), all=TRUE)
-```
-
--->
 
 ### *L. major* all hosts (LmAll)
 
@@ -279,43 +272,43 @@ l <- list(combined, cbind(df, network='LmAll'))
 combined <- do.call(rbind.fill, l)
 ```
 
-<!--
 ### *L. major* infecting *H. sapiens* (LmHs)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/lmajor_infecting_hsapiens-v6.0.csv') 
-#```
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/6.0/networks_lmhs.csv') 
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
+```{r child='child/01-indiv-net-results.Rmd'}
+```
 
-#```{r}
-## create a copy to create a combined dataset for comparative analysis
-#combined <- merge(combined, cbind(df, network='LmHs'), all=TRUE)
-#```
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='LmHs'))
+combined <- do.call(rbind.fill, l)
+```
 
 ### *T. cruzi* infecting *H. sapiens* (TcHs)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/tcruzi_infecting_hsapiens-v6.0.csv')
-#```
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/6.0/networks_tchs.csv')
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
-#```{r}
-## create a copy to create a combined dataset for comparative analysis
-#combined <- merge(combined, cbind(df, network='TcHs'), all=TRUE)
-#```
--->
+```{r child='child/01-indiv-net-results.Rmd'}
+```
 
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='TcHs'))
+combined <- do.call(rbind.fill, l)
+```
 
-### *T. cruzi* infecting *H. sapiens* (TcAll)
+### *T. cruzi* all developmental stages (TcAll)
 
 ```{r load_data, message=FALSE}
 df <- read_csv('input/indiv_network_stats/networks_tcall.csv')
@@ -328,127 +321,150 @@ df <- read_csv('input/indiv_network_stats/networks_tcall.csv')
 ```
 
 ```{r}
+# add to combined result dataframe
 l <- list(combined, cbind(df, network='TcAll'))
 combined <- do.call(rbind.fill, l)
 ```
 
-<!--
 ## modENCODE networks
 
 ### ModENCODE - Fly (Fly)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/modencode_fly-v6.0.csv')
-#```
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/networks_modencode_fly.csv')
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
+```{r child='child/01-indiv-net-results.Rmd'}
+```
 
-#```{r}
-#combined <- merge(combined, cbind(df, network='Fly'), all=TRUE)
-#```
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='Fly'))
+combined <- do.call(rbind.fill, l)
+```
 
-### ModENCODE - Worm (Worm)
+## ModENCODE - Worm (Worm)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/modencode_worm-v6.0.csv')
-#```
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/networks_modencode_worm.csv')
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
+```{r child='child/01-indiv-net-results.Rmd'}
+```
 
-#```{r}
-#combined <- merge(combined, cbind(df, network='Worm'), all=TRUE)
-#```
+```{r}
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='Worm'))
+combined <- do.call(rbind.fill, l)
+```
 
 ## Illumina BodyMap network
 
 ### *H .sapiens* BodyMap multi-tissue network (Body)
 
-#```{r load_data, message=FALSE}
-#df <- read_csv('input/indiv_network_stats/illumina_bodymap-v6.0.csv')
-#```
+```{r load_data, message=FALSE}
+df <- read_csv('input/indiv_network_stats/networks_bodymap.csv')
+```
 
-#```{r child='child/01-indiv-net-load-network-stats.Rmd'}
-#```
+```{r child='child/01-indiv-net-load-network-stats.Rmd'}
+```
 
-#```{r child='child/01-indiv-net-results.Rmd'}
-#```
+```{r child='child/01-indiv-net-results.Rmd'}
+```
 
-#```{r}
-#combined <- merge(combined, cbind(df, network='Body'), all=TRUE)
-#```
--->
+```{r}
+combined <- merge(combined, cbind(df, network='Body'), all=TRUE)
+# add to combined result dataframe
+l <- list(combined, cbind(df, network='Body'))
+combined <- do.call(rbind.fill, l)
+```
 
-## Summary
+## Comparison
 
 ### Log2 transformation
 
-```{r}
+```{r summary_log2, fig.height=3.375, out.width=out_width, out.height=out_height}
 ggplot(combined, aes(network, enrichment_score)) + 
-    geom_boxplot(aes(fill=factor(log2_transform))) +
+    geom_boxplot(aes(fill=factor(log2_transform)), size=0.25, outlier.size=0.25) +
     theme_bw_high_res() +
-    #theme(axis.text=element_text(size=10)) +
-    #guides(guide_legend(title="Log2 transformation")) +
-    xlab('Log2-transformation') + 
+    theme(legend.title = element_blank(), 
+          axis.text.x=element_text(angle=90, hjust=1)) +
     ylab('Enrichment score')
 ```
 
 ### CPM transformation
 
-```{r summary_cpm, fig.height=fig_height, out.width=out_width, out.height=out_height}
+```{r summary_cpm, fig.height=3.375, out.width=out_width, out.height=out_height}
 ggplot(combined, aes(network, enrichment_score)) + 
-    geom_boxplot(aes(fill=factor(cpm_transform))) +
+    geom_boxplot(aes(fill=factor(cpm_transform)), size=0.25, outlier.size=0.25) +
     theme_bw_high_res() +
-    #theme(axis.text=element_text(size=10)) +
-    #guides(guide_legend(title="Log2 transformation")) +
-    xlab('CPM-transformation') + 
+    theme(legend.title = element_blank(), 
+          axis.text.x=element_text(angle=90, hjust=1)) +
     ylab('Enrichment score')
 ```
 
 ### Quantile Normalization
 
-```{r summary_qnorm, fig.height=fig_height, out.width=out_width, out.height=out_height}
+```{r summary_qnorm, fig.height=3.375, out.width=out_width, out.height=out_height}
 ggplot(combined, aes(network, enrichment_score)) + 
-    geom_boxplot(aes(fill=factor(quantile_normalize))) +
+    geom_boxplot(aes(fill=factor(quantile_normalize)), size=0.25, outlier.size=0.25) +
     theme_bw_high_res() +
-    #theme(axis.text=element_text(size=10)) +
-    #guides(guide_legend(title="Log2 transformation")) +
-    xlab('Quantile Normalization') + 
+    theme(legend.title = element_blank(), 
+          axis.text.x=element_text(angle=90, hjust=1)) +
     ylab('Enrichment score')
 ```
 
 ### Similarity Measure
 
-```{r summary_sim_meas, fig.height=fig_height, out.width=out_width, out.height=out_height}
+```{r summary_sim_meas, fig.height=3.375, out.width=out_width, out.height=out_height}
 ggplot(combined, aes(network, enrichment_score)) + 
-    geom_boxplot(aes(fill=factor(similarity_measure))) +
+    geom_boxplot(aes(fill=factor(similarity_measure)), size=0.25, outlier.size=0.25) +
     theme_bw_high_res() +
-    #theme(axis.text=element_text(size=10)) +
-    #guides(guide_legend(title="Log2 transformation")) +
-    xlab('Similarity Measure') + 
+    theme(legend.title = element_blank(), 
+          axis.text.x=element_text(angle=90, hjust=1)) +
     ylab('Enrichment score')
 ```
 
 ### Batch Adjustment
 
-```{r summary_batch_adjust, fig.height=fig_height, out.width=out_width, out.height=out_height}
-ggplot(combined, aes(network, enrichment_score)) + 
-    geom_boxplot(aes(fill=factor(batch_adjustment))) +
+```{r summary_batch_adjust, fig.height=3.375, out.width=out_width, out.height=out_height}
+# exclude networks without batch information
+missing_batch <- names(table(combined$network)[table(combined$network) < 1344])
+
+batch_dat <- combined %>%
+    filter(!network %in% missing_batch)
+
+ggplot(batch_dat, aes(network, enrichment_score)) + 
+    geom_boxplot(aes(fill=factor(batch_adjustment)), size=0.25, outlier.size=0.25) +
     theme_bw_high_res() +
-    #theme(axis.text=element_text(size=10)) +
-    #guides(guide_legend(title="Log2 transformation")) +
-    xlab('Batch Adjustment') + 
+    theme(legend.title = element_blank(), 
+          axis.text.x=element_text(angle=90, hjust=1)) +
     ylab('Enrichment score')
 ```
 
-### Overview
+### Summary
+
+```{r summary_table}
+combined %>% 
+    group_by(network) %>% 
+    summarise(
+        max_go_uniq=max(unique_go_terms),
+        max_kegg_uniq=max(unique_kegg_terms),
+        max_cpdb_uniq=max(unique_cpdb_terms),
+        max_marbach_uniq=max(unique_marbach_terms),
+        max_go_pval=max(total_go_pval),
+        max_kegg_pval=max(total_kegg_pval),
+        max_cpdb_pval=max(total_cpdb_pval),
+        max_marbach_pval=max(total_marbach_pval)
+    ) %>% arrange(desc(max_go_uniq)) %>%
+    kable
+```
 
 ```{r summary_overview}
 summary_dat <- cbind(
@@ -480,7 +496,7 @@ summary_dat <- summary_dat %>%
 
 ggplot(summary_dat, aes(Network, Parameter)) +
     geom_tile(aes(fill=Value)) + 
-    geom_text(aes(label=Value), size=2.5) +
+    geom_text(aes(label=round(Value, 2)), size=3) +
     scale_fill_gradient(low="green", high="red") + 
     theme_bw_high_res() +
     ylab("Parameter")
@@ -494,6 +510,19 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 } else {
     library('pander')
     pander(sessionInfo())
+}
+```
+
+```{r save_output, include=FALSE}
+# Give rmarkdown some time to finish convern and then copy original rmarkdown
+# along with output images and HTML to archive location
+html_filepath <- file.path(output_prefix, 'individual-network-enrichment.html')
+pdf_filepath <- sub('html', 'pdf', html_filepath)
+
+if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
+    system(sprintf('(sleep 30 && mv 01-individual-network-enrichment.pdf %s) &', pdf_filepath))
+} else {
+    system(sprintf('(sleep 30 && mv 01-individual-network-enrichment.html %s) &', html_filepath))
 }
 ```
 

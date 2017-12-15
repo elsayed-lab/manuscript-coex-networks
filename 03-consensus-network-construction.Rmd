@@ -5,7 +5,7 @@ params:
   settings: ""
   title: "Consensus Co-expression Network Construction"
   version: ""
-  analysis_dirname: "03-network-construction"
+  analysis_dirname: "03-consensus-network-construction"
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
@@ -78,10 +78,14 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
 ```
 
+
 Results
 =======
 
 ```{r child='child/03-filtered-consensus-net-results.Rmd'}
+```
+
+```{r child='child/03-consensus-net-vs-indiv-nets.Rmd'}
 ```
 
 ```{r save_rdata}
@@ -104,9 +108,9 @@ html_filepath <- file.path(output_prefix, paste0('network_construction_', MANUSC
 pdf_filepath <- sub('html', 'pdf', html_filepath)
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-network-construction.pdf %s) &', pdf_filepath))
+    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.pdf %s) &', pdf_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-network-construction.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.html %s) &', html_filepath))
 }
 ```
 

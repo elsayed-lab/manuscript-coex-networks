@@ -5,7 +5,7 @@ params:
   settings: ""
   title: ""
   version: ""
-  analysis_dirname: "03-consensus-network-construction"
+  analysis_dirname: "04-consensus-network-analysis"
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
@@ -163,7 +163,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 
 ### Save results
 
-```{r child='child/00-save-tables.Rmd'}
+```{r child='child/00-shared-save-tables.Rmd'}
 ```
 
 ```{r save_rdata_results, message=FALSE}
@@ -235,8 +235,8 @@ html_filepath <- file.path(output_prefix, paste0('consesus_network_',
                                                  '.html'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 04-consensus-network-analysis.pdf %s) &', html_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 04-consensus-network-analysis.html %s) &', html_filepath))
 }
 ```

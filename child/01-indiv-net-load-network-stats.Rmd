@@ -3,9 +3,9 @@
 df <- df[,apply(df, 2, function(x) { length(unique(x)) > 1 })]
 ```
 
-```{r compute_scores}
+```{r compute_scores, fig.height=3, message=FALSE, warning=FALSE}
 # IRefIndex score <- ratio of supported weights * 1000
-if ('ireg_score' %in% colnames(df)) {
+if ('irefindex_edge_weight' %in% colnames(df)) {
     df$iref_score <- (df$irefindex_edge_weight / df$total_edge_weight) * 1000
 }
 
@@ -21,6 +21,37 @@ if ('marbach_total_enriched' %in% colnames(df)) {
     df$enrichment_score_total <- as.vector(1/3 * (scale(df$go_total_enriched) +
                                                   scale(df$cpdb_total_enriched) + 
                                                   scale(df$marbach_total_enriched)))
+
+    # density separated by annotation source (unique)
+    x <- melt(df %>% select(`Unique GO terms`=unique_go_terms, 
+                            `Unique KEGG pathways`=unique_kegg_terms,
+                            `Unique CPDB pathways`=unique_cpdb_terms, 
+                            `Unique Marbach genes`=unique_marbach_terms))
+    p1 <- ggplot(x, aes(x=value)) + 
+            geom_density(aes(fill=factor(variable)), alpha=0.75) +
+            theme_bw_high_res() +
+            theme(legend.position=c(.6, .7), axis.title.y=element_blank()) +
+            #guides(fill=guide_legend(title="Annotation Type")) +
+            xlab('Raw')
+
+    # density separated by annotation source (z-scores)
+    x <- melt(df %>% 
+            mutate(`Unique GO terms`=scale(unique_go_terms),
+                   `Unique KEGG pathways`=scale(unique_kegg_terms),
+                   `Unique CPDB pathways`=scale(unique_cpdb_terms),
+                   `Unique Marbach genes`=scale(unique_marbach_terms)) %>%
+            select(`Unique GO terms`, `Unique KEGG pathways`, 
+                   `Unique CPDB pathways`,
+                   `Unique Marbach genes`))
+    p2 <- ggplot(x, aes(x=value)) + 
+            geom_density(aes(fill=factor(variable)), alpha=0.75) +
+            theme_bw_high_res() +
+            theme(legend.position="none", axis.title.y=element_blank()) +
+            guides(fill=guide_legend(title="Annotation Type")) +
+            xlab('Scaled')
+
+    grid.arrange(p1, p2, ncol=2)
+
 } else if ('cpdb_total_enriched' %in% colnames(df)) {
     # Mouse
     df$total_enriched        <- df$go_total_enriched + df$cpdb_total_enriched
@@ -48,6 +79,9 @@ df <- df %>%
 # show rank column at left
 df <- df[,c(ncol(df), 1:(ncol(df) - 1))]
 
+```
+
+```{r enrichment_score_distributions}
 ```
 
 ```{r indiv_nets_summary}
