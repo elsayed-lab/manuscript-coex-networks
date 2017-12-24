@@ -1,11 +1,12 @@
 ---
 author: "V. Keith Hughitt"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: "Difference Co-expression Network - HsLm vs. HsTc"
 params:
-  analysis_dirname: "05-infected-vs-uninfected"
+  analysis_dirname: "06-conserved-signatures"
   settings: ""
-  title: ""
-  version: ""
+  title: "Difference Networks - Conserved Signatures of Infection (HsLm vs. HsTc)"
+  version: "3.0"
 output:
   html_document:
     theme: cosmo
@@ -53,18 +54,13 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r child='child/05-infected-vs-uninfected-load-counts.Rmd'}
+```{r child='child/06-conserved-signature-load-counts.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd'}
 ```
 
 ```{r}
-# update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix,
-                               paste0(MANUSCRIPT_CONFIG$output_suffix, '-')))
-options(digits=4)
-
 # keep a backup of full annotation dataframe
 gene_info_orig <- gene_info
 ```
@@ -72,27 +68,31 @@ gene_info_orig <- gene_info
 ### Load host consensus networks
 
 ```{r load_host_nets}
-load(MANUSCRIPT_CONFIG$adjmat_inf)
-inf <- adjmat
+load(MANUSCRIPT_CONFIG$adjmat_hslm_inf)
+hslm_inf <- adjmat
 
-load(MANUSCRIPT_CONFIG$adjmat_uninf)
-uninf <- adjmat
+load(MANUSCRIPT_CONFIG$adjmat_hslm_uninf)
+hslm_uninf <- adjmat
+
+load(MANUSCRIPT_CONFIG$adjmat_hstc_inf)
+hstc_inf <- adjmat
+
+load(MANUSCRIPT_CONFIG$adjmat_hstc_uninf)
+hstc_uninf <- adjmat
 ```
 
 ### Construct difference network
 
 ```{r}
-mapping_inf   <- CONFIG_INF$condition_mapping
-mapping_uninf <- CONFIG_UNINF$condition_mapping
+mapping_hslm_inf   <- CONFIG_HSLM$condition_mapping
+mapping_hslm_uninf <- CONFIG_HSLMUI$condition_mapping
+mapping_hstc_inf   <- CONFIG_HSTC$condition_mapping
+mapping_hstc_uninf <- CONFIG_HSTCUI$condition_mapping
 
-condition_inf   <- factor(CONFIG_INF$samples[['Condition']])
-condition_uninf <- factor(CONFIG_UNINF$samples[['Condition']])
-
-subtitle <- MANUSCRIPT_CONFIG[['subtitle']]
-
-# update figure prefix
-opts_chunk$set(fig.path=paste0(output_figprefix,
-                               paste0(MANUSCRIPT_CONFIG$output_suffix, '-')))
+condition_hslm_inf   <- factor(CONFIG_HSLM$samples[['Condition']])
+condition_hslm_uninf <- factor(CONFIG_HSLMUI$samples[['Condition']])
+condition_hstc_inf   <- factor(CONFIG_HSTC$samples[['Condition']])
+condition_hstc_uninf <- factor(CONFIG_HSTCUI$samples[['Condition']])
 ```
 
 ```{r child='child/05-infected-vs-uninfected-setup.Rmd'}

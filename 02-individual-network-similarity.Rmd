@@ -73,9 +73,21 @@ networks <- networks[sample(1:nrow(networks), num_networks),]
 
 # Get top N highest-scoring networks
 #networks <- head(networks %>% arrange(desc(enrichment_score)), num_networks)
+
+# To speed things up, we will randomly select a subset of genes to compare 
+# across each network, rather than comparing all genes
+id_a = networks$id[1]
+load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%d.RData", id_a)))
+
+genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 ```
 
-```{r child='child/02-indiv-net-gene_wise_similarity.Rmd'}
+# Methods & Results
+
+```{r child='child/02-indiv-net-module-similarity.Rmd'}
+```
+
+```{r child='child/02-indiv-net-edge-similarity.Rmd'}
 ```
 
 ```{r child='child/02-indiv-net-permuted-network-similarity.Rmd'}

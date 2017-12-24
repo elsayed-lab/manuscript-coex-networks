@@ -29,18 +29,15 @@ if (CONFIG$target == 'host') {
     # human consensus network scores
     consensus_scores <- data.frame(
         type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"),
-        score=c(dat$`GO enrichment -log10(p-val) score`[1], 
-                dat$`KEGG enrichment -log10(p-val) score`[1],
-                dat$`CPDB enrichment -log10(p-val) score`[1], 
-                dat$`TF enrichment -log10(p-val) score`[1])
+        score=c(go_pval_total, kegg_pval_total, cpdb_pval_total, tf_pval_total)
     )
 
 } else {
     # parasite consensus network scores
     consensus_scores <- data.frame(
         type=c("GO Terms", "KEGG Pathways"),
-        score=c(dat$`GO enrichment -log10(p-val) score`[1], 
-                dat$`KEGG enrichment -log10(p-val) score`[1])
+        score=c(go_pval_total, 
+                kegg_pval_total)
     )
 }
 # replace labels

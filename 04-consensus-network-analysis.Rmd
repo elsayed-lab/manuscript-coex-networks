@@ -169,7 +169,7 @@ annot <- cbind(gene_info, color=module_colors, cluster=module_labels)
 ```{r save_rdata_results, message=FALSE}
 #save(adjmat, file=file.path(output_datadir, 'adjmat_unfiltered.rda'))
 message("Saving RData objects")
-save(filtered_adjmat, file=file.path(output_datadir, paste0('adjmat_filtered_', output_suffix, '.rda')))
+#save(filtered_adjmat, file=file.path(output_datadir, paste0('adjmat_filtered_', output_suffix, '.rda')))
 save(gene_info, file=file.path(output_datadir, paste0('gene_info_', output_suffix, '.rda')))
 save(module_go_enrichment, file=file.path(output_datadir, paste0('module_go_enrichment_', output_suffix, '.rda')))
 save(module_kegg_enrichment, file=file.path(output_datadir, paste0('module_kegg_enrichment_', output_suffix, '.rda')))

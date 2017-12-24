@@ -1,0 +1,109 @@
+```{r config}
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Shared signatures of infection (HsTc vs. HsLm)", 
+    output_prefix  = 'hslm-vs-hstc',
+    adjmat_hslm_inf      = 'output/3.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
+    adjmat_hslm_uninf    = 'output/3.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda',
+    adjmat_hslm_inf      = 'output/3.0/03-consensus-network-construction/data/adjmat_hstc-inf.rda',
+    adjmat_hslm_uninf    = 'output/3.0/03-consensus-network-construction/data/adjmat_hstc-uninf.rda'
+)
+
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = c("L. major", "T. cruzi"),
+    target          = "host",
+
+    organism_db     = "Homo.sapiens",
+    organism_genome = "hg19",
+    txdb            = "TxDb.Hsapiens.UCSC.hg19.knownGene",
+    orgdb_key       = "ENSEMBL",
+    biomart_dataset = "hsapiens_gene_ensembl",
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+
+# HsLm
+CONFIG_HSLM <- list(
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                             filter(startsWith(Condition, 'infLM')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+
+    main_comparison       = c('infLM4', 'infLM72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+
+# HsLmUI
+CONFIG_HSLMUI <- list(
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+
+    main_comparison       = c('uninfLM4', 'uninfLM72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+
+# HsTc
+CONFIG_HSTC <- list(
+    input_count_tables  = file.path(counts_dir, "li2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hstc.csv')) %>%
+                              filter(startsWith(Condition, 'inf')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf04', 'uninf06', 'uninf12', 'uninf20', 'uninf24',
+               'uninf48', 'uninf72', 'inf04', 'inf06', 'inf12', 'inf20',
+               'inf24', 'inf48', 'inf72'),
+        to=c(4, 6, 12, 20, 24, 48, 72, 4, 6, 12, 20, 24, 48, 72)
+    ),
+
+    main_comparison     = c('inf04', 'inf72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+
+# HsTcUI
+CONFIG_HSTCUI <- list(
+    input_count_tables  = file.path(counts_dir, "li2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hstc.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf04', 'uninf06', 'uninf12', 'uninf20', 'uninf24',
+               'uninf48', 'uninf72', 'inf04', 'inf06', 'inf12', 'inf20',
+               'inf24', 'inf48', 'inf72'),
+        to=c(4, 6, 12, 20, 24, 48, 72, 4, 6, 12, 20, 24, 48, 72)
+    ),
+
+    main_comparison     = c('uninf04', 'uninf72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+```

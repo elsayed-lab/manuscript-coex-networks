@@ -1,0 +1,119 @@
+## Edge overlap
+
+Next, we will randomly select N networks and measure the edge similarities
+for each pair of networks.
+
+To determine edge similarity, for each pair of genes, we will compute the proportion of networks
+where they are both "present" (have an edge weight >= 0.5).
+
+```{r compare_networks, cache=TRUE, autodep=TRUE, message=FALSE}
+# edge binarization cutoff
+edge_cutoff <- 0.5
+
+# load first network and convert to binary
+id_a = networks$id[i]
+adjmat_file_a <- sprintf("%d_adjmat.RData", id_a)
+mapping_file_a <- sprintf("%d.RData", id_a)
+
+load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_a))
+load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_a))
+
+# edge count matrix (upper triangular)
+matsize <- nrow(module_mapping)
+edge_count_mat <- matrix(0, nrow=matsize, ncol=matsize)
+edge_count_mat[upper.tri(edge_count_mat)] <- adjacency_matrix
+
+# convert to binary matrix
+edge_count_mat <- ifelse(edge_count_mat > edge_cutoff, 1, 0)
+
+rownames(edge_count_mat) <- module_mapping$gene_id
+colnames(edge_count_mat) <- module_mapping$gene_id
+
+# Iterate over remaining networks and add to edge counts
+for (i in 2:nrow(networks)) {
+    id_a = networks$id[i]
+    message(sprintf("Loading network %d...", id_a))
+
+    adjmat_file_a <- sprintf("%d_adjmat.RData", id_a)
+    mapping_file_a <- sprintf("%d.RData", id_a)
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_a))
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_a))
+
+    # create an upper triangular adjacency matrix
+    matsize <- nrow(module_mapping)
+    adjmat_a <- matrix(0, nrow=matsize, ncol=matsize)
+    adjmat_a[upper.tri(adjmat_a)] <- adjacency_matrix
+
+    #adjmat_a[lower.tri(adjmat_a)] <- t(adjmat_a)[lower.tri(adjmat_a)]
+
+    rownames(adjmat_a) <- module_mapping$gene_id
+    colnames(adjmat_a) <- module_mapping$gene_id
+
+    if ((nrow(edge_count_mat) != nrow(adjmat_a)) || (!all(rownames(edge_count_mat) == rownames(adjmat_a)))) {
+        # normalize matrix size and elements
+        adjmat_a_missing <- rownames(edge_count_mat)[!rownames(edge_count_mat) %in% rownames(adjmat_a)]
+        if (length(adjmat_a_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(adjmat_a)
+
+            adjmat_a <- rbind(adjmat_a, matrix(0, nrow=length(adjmat_a_missing), ncol=ncol(adjmat_a)))
+            adjmat_a <- cbind(adjmat_a, matrix(0, nrow=nrow(adjmat_a), ncol=length(adjmat_a_missing)))
+
+            rownames(adjmat_a) <- c(gene_ids, adjmat_a_missing)
+            colnames(adjmat_a) <- c(gene_ids, adjmat_a_missing)
+
+        }
+
+        adj_missing <- rownames(adjmat_a)[!rownames(adjmat_a) %in% rownames(edge_count_mat)]
+        if (length(adj_missing) > 0) {
+            # add missing columns / rows
+            gene_ids <- rownames(edge_count_mat)
+
+            edge_count_mat <- rbind(edge_count_mat, matrix(0, nrow=length(adj_missing), ncol=ncol(edge_count_mat)))
+            edge_count_mat <- cbind(edge_count_mat, matrix(0, nrow=nrow(edge_count_mat), ncol=length(adj_missing)))
+
+            rownames(edge_count_mat) <- c(gene_ids, adj_missing)
+            colnames(edge_count_mat) <- c(gene_ids, adj_missing)
+        }
+
+        # normalize row/column order
+        adjmat_a <- adjmat_a[order(rownames(adjmat_a)),order(colnames(adjmat_a))]
+        edge_count_mat <- edge_count_mat[order(rownames(edge_count_mat)),order(colnames(edge_count_mat))]
+    }
+
+    # convert to binary matrix and add to count mat
+    edge_count_mat <- edge_count_mat + ifelse(adjmat_a > edge_cutoff, 1, 0)
+}
+```
+
+## Ratio of shared edges
+
+```{r results='hold'}
+# distribution of edge presence ratios for all edges found in at least one of
+# the networks
+mask <- edge_count_mat != 0
+edge_ratios <- edge_count_mat[mask] / num_networks
+
+hist(sample(edge_ratios, 1E4))
+```
+
+```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
+# Color rows by rank and columns by network number (~parameter similarity)
+#rank_colors = rev(colorRampPalette(brewer.pal(9, 'Blues'))(num_networks))
+#network_num = rev(colorRampPalette(brewer.pal(9, 'Purples'))(max(networks$id)))[networks$id]
+
+# Use rank for rownames
+#rownames(output_jaccard) = 1:num_networks
+
+# Clip upper-end of similarity matrices to improve contrast in heatmap (doesn't
+# make too much of a difference; data behaves approximately bimodal)
+#jaccard_clip <- as.numeric(quantile(output_jaccard, 0.95))
+#output_jaccard[output_jaccard > jaccard_clip] <- jaccard_clip
+
+#heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(4, 4),
+#          RowSideColors=rank_colors, ColSideColors=network_num,
+#          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+#          symbreaks=FALSE, symkey=FALSE)
+```
+
+

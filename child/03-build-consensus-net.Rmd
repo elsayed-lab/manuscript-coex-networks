@@ -54,6 +54,16 @@ for (i in 1:length(input_nets)) {
         stop(sprintf("Incompatible adjacency matrix input: %s", input_nets[i]))
     }
 
+    # normalize edge weights
+    if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
+        if (MANUSCRIPT_CONFIG$normalization == 'scale') {
+            # size-factor normalization
+            adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
+        } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
+            adjacency_matrix <- rank(adjacency_matrix) * 1E-5
+        }
+    }
+
     # add to existing adjacency matrix;
     tmp <- matrix(0, nrow=matsize, ncol=matsize)
     tmp[upper.tri(tmp)] <- adjacency_matrix
@@ -92,16 +102,6 @@ for (i in 1:length(input_nets)) {
         # normalize row/column order
         tmp <- tmp[order(rownames(tmp)),order(colnames(tmp))]
         adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
-    }
-
-    # normalize edge weights
-    if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
-        if (MANUSCRIPT_CONFIG$normalization == 'scale') {
-            # size-factor normalization
-            tmp <- (tmp / sum(tmp)) * 1E6
-        } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
-            tmp <- rank(tmp) 
-        }
     }
 
     # combine matrices

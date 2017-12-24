@@ -1,0 +1,67 @@
+```{r settings}
+#
+# L. major all samples
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Co-expression Network Comparison: L. major (All Samples)", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'lmajor_all_samples-multicopy-v6.1'),
+    output_prefix  = 'lmajor',
+    quantile_cutoff = 0,
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_lmall.csv')) %>%
+        filter(batch_adjustment != 'none'),
+
+    normalization   = 'scale', # none, scale, rank
+
+    # Alternate condition values to use for plotting, etc.
+    condition_mapping = data.frame(
+        to=c('Procyclic', 'Metacyclic', 'Ama  4hrs', 'Ama 24hrs', 'Ama 48hrs', 
+               'Ama 72 hrs', 'Footpad Ama', 'Sandfly day 2', 'Sandfly day 4',
+               'Sandfly day 15', 'Released Ama', 'Inf Neutrophils', 'Axenic Metacyclic'),
+        from=c('proc', 'meta', 'amast04', 'amast24', 'amast48', 'amast72',
+               'footpad_amast', 'sandfly_day2', 'sandfly_day4',
+               'sandfly_day15', 'released_amast', 'inf_neutrophils',
+               'sacks_meta')
+    ),
+    xlabel='Developmental Stage',
+    xangle=90,
+    xhjust=0.5
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = c("H. sapiens", "M. musculus", "P. duboscqi"),
+    pathogen        = "L. major",
+    target          = "pathogen",
+
+    organism_db     = "Leishmania.major.Friedlin",
+    organism_genome = "LmJF",
+    orgdb_key       = "GID",
+
+    input_count_tables  = c(file.path(counts_dir, "fernandes2016", "lmajor", "*.count"),
+                            file.path(counts_dir, "dillon2015", "lmajor", "*.count"),
+                            file.path(counts_dir, "inbar2017", "lmajor", "*.count")),
+    samples             = read_csv(file.path(metadata_dir, 'samples_lmall.csv')),
+    sample_id         = 'sample_id',
+    condition         = 'condition',
+    batch             = 'batch',
+    covariates        = c('batch', 'host', 'strain'),
+
+    main_comparison     = c('proc', 'amast04'),
+    main_comparison_label = "ΔExpr (Amast 4 HPI - Proc)",
+
+    filter_multicopy  = FALSE,
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

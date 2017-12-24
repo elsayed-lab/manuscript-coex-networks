@@ -1,6 +1,6 @@
-# Methods
+## Module overlap
 
-Next, we will select the top N networks, and measure the cluster similarities
+Next, we will randomly select N networks and measure the cluster similarities
 for each pair of networks.
 
 ```{r compare_networks, cache=TRUE, autodep=TRUE, message=FALSE}
@@ -13,13 +13,6 @@ rownames(output_rand) <- colnames(output_rand) <- paste0("network_", networks$id
 
 output_kappa <- matrix(nrow=num_networks, ncol=num_networks)
 rownames(output_kappa) <- colnames(output_kappa) <- paste0("network_", networks$id)
-
-# To speed things up, we will randomly select a subset of genes to compare 
-# across each network, rather than comparing all genes
-id_a = networks$id[1]
-load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%d.RData", id_a)))
-
-genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 
 # Iterate over top hits and construct a similarity matrix
 for (i in 1:nrow(networks)) {
@@ -82,8 +75,6 @@ diag(output_rand) = max(output_rand)
 diag(output_kappa) = 0
 diag(output_kappa) = max(output_kappa)
 ```
-
-# Results
 
 ## Jaccard Index
 

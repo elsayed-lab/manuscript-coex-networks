@@ -1,0 +1,103 @@
+```{r functional_enrichment}
+# dummy objects for compatibility with shared functions
+network_counts <- list(
+    final=matrix(0, nrow=nrow(adjmat))
+)
+rownames(network_counts$final) <- rownames(adjmat)
+
+count_table <- matrix(0, nrow=nrow(adjmat)) 
+rownames(count_table) <- rownames(adjmat)
+
+# convert to distance matrix and perform hierarchical clustering
+distmat <- 1 - (adjmat / max(adjmat))
+
+gene_tree <- flashClust(as.dist(distmat), method="average")
+gene_tree$height <- round(gene_tree$height, 6)
+
+# 2017/12/16: Enable deepSplit to allow for a fair comparison with indiv nets
+#module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
+module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=TRUE, minModuleSize=10)
+
+num_labels <- length(unique(module_labels))
+pal <- c('grey', substring(rainbow(num_labels), 1, 7))
+module_colors <- (pal[module_labels + 1])
+
+# load relevant gene annotations and restore order
+gene_info <- gene_info %>% 
+    filter(gene_id %in% rownames(adjmat)) %>%
+    arrange(gene_id)
+
+result <- cbind(gene_info, color=module_colors)
+
+# create a mapping from module id to number of genes for later use
+module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
+    group_by(module_id) %>% 
+    summarize(num_genes=n())
+
+# measure enrichment
+knit('../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
+knit('../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
+
+# GO
+num_unique_go_terms <- length(unique(unlist(sapply(module_go_enrichment, function(x) { x$category }))))
+
+go_pval_total <- 0
+
+for (module in names(module_go_enrichment)) {
+    # over-represented terms with adj. p-val <= 0.05
+    mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
+    go_pval_total <- go_pval_total + sum(-log10(pmax(pvals, 10^-10)))
+}
+
+# KEGG
+num_unique_kegg_pathways <- length(unique(unlist(sapply(module_kegg_enrichment, function(x) { x$category }))))
+
+kegg_pval_total <- 0
+
+for (module in names(module_kegg_enrichment)) {
+    # over-represented terms with adj. p-val <= 0.05
+    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
+    kegg_pval_total <- kegg_pval_total + sum(-log10(pmax(pvals, 10^-10)))
+}
+
+# TF Regulon / CPDB (human only)
+if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
+    # Marbach TF regulon
+    knit('../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', quiet=TRUE, output=tempfile())
+
+    num_unique_tfs <- length(unique(unlist(sapply(module_coreg_enrichment, function(x) { x$category }))))
+
+    tf_pval_total <- 0
+
+    for (module in names(module_coreg_enrichment)) {
+        # over-represented terms with adj. p-val <= 0.05
+        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
+        tf_pval_total <- tf_pval_total + sum(-log10(pmax(pvals, 10^-10)))
+    }
+
+    # CPDB
+    knit('../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
+
+    num_unique_cpdb_pathways <- length(unique(unlist(sapply(module_cpdb_enrichment, function(x) { x$category }))))
+
+    cpdb_pval_total <- 0
+
+    for (module in names(module_cpdb_enrichment)) {
+        # over-represented terms with adj. p-val <= 0.05
+        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+        cpdb_pval_total <- cpdb_pval_total + sum(-log10(pmax(pvals, 10^-10)))
+    }
+}
+```

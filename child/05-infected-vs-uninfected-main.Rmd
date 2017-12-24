@@ -163,8 +163,11 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     edge_flux <- edge_flux / max(abs(edge_flux))
 
     # color vertices based on net edge flux
-    pal_neg <- colorRamp(c('purple', 'red'))
-    pal_pos <- colorRamp(c('purple', 'blue'))
+    #pal_neg <- colorRamp(c('purple', 'red'))
+    #pal_pos <- colorRamp(c('purple', 'blue'))
+    plasma_cols <- plasma(100)
+    pal_neg <- colorRamp(plasma_cols[50:1])
+    pal_pos <- colorRamp(plasma_cols[51:100])
 
     V(g)$color <- sapply(edge_flux, FUN=function(x) {
         if (x < 0) {
@@ -207,7 +210,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
         mask <- abs(E(g)$weight) < cutoff
 
-        #E(g)$weight[mask] <- 0
+        E(g)$weight[mask] <- 0
         #E(g2)$weight[mask] <- 0
 
         # remove nodes and edges that become disconnected from pruning
@@ -229,7 +232,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
     E(g)$weight <- abs(E(g)$weight)
 
     # log and rescale edge weights 
-    E(g)$weight <- log1p(E(g)$weight)
+    #E(g)$weight <- log1p(E(g)$weight)
     E(g)$weight <- E(g)$weight - min(E(g)$weight)
     E(g)$weight <- ((E(g)$weight / max(E(g)$weight))) * 4
 
@@ -258,11 +261,12 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # create diverging color ramp centered about 0 for heatmap
     # https://stackoverflow.com/questions/10985224/r-heatmap-with-diverging-colour-palette/10986203#10986203
+    #ramp_cols <- colorRampPalette(colors=c('red', 'purple', 'blue'), space="Lab")(ncols)
     ncols <- 100
-    ramp_cols <- colorRampPalette(colors=c('red', 'purple', 'blue'), space="Lab")(ncols)
+    ramp_cols <- plasma
 
     ## Make a vector with n+1 breaks
-    ramp_breaks <- seq(-max(abs(adj)), max(adj), length.out=ncols+1)
+    ramp_breaks <- seq(-max(abs(adj)), max(abs(adj)), length.out=ncols + 1)
 
     gene_labels <- gene_info$description[ind]
     gene_ids    <- gene_info$gene_id[ind]
@@ -270,8 +274,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # diff heatmap
     heatmap.2(adj, trace='none', dendrogram='row', cexRow=30/nrow(adj),
-              #labRow=gene_labels, margins=c(8, 24),
-              labRow=gene_labels, margins=c(4, 6),
+              labRow=gene_labels, margins=c(4, 8),
               labCol=FALSE, col=ramp_cols, breaks=ramp_breaks,
               symm=TRUE, symkey=TRUE, symbreaks=TRUE,
               key.title='', key.ylab='',  keysize=2, 
@@ -318,8 +321,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
         theme_bw_high_res() +
         theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
                                        hjust=MANUSCRIPT_CONFIG$xhjust,
-                                       size=9, lineheight=0.9)) +
-        theme()
+                                       size=9, lineheight=0.9))
 
     # infected expression plot
     p2 <- module_profile_plot(counts_long_inf, module_color, line_color='#333333',
@@ -329,7 +331,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
         theme_bw_high_res() +
         theme(axis.text.x=element_text(angle=MANUSCRIPT_CONFIG$xanglexangle, 
                                        hjust=MANUSCRIPT_CONFIG$xhjust,
-                                       size=9, lineheight=0.9)) +
+                                       size=9, lineheight=0.9))
 
     grid.arrange(p1, p2, ncol=2)
 }

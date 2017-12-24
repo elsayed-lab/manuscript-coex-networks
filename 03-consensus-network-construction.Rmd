@@ -75,15 +75,11 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/03-build-consensus-net.Rmd'}
 ```
 
-```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
+```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
 ```
-
 
 Results
 =======
-
-```{r child='child/03-filtered-consensus-net-results.Rmd'}
-```
 
 ```{r child='child/03-consensus-net-vs-indiv-nets.Rmd'}
 ```
@@ -91,8 +87,9 @@ Results
 ```{r save_rdata}
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
-save(dat, dat_num_unique,  dat_ratio_enrichment,
-     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
+
+#save(dat, dat_num_unique,  dat_ratio_enrichment,
+#     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
 
 ```{r save_tables}

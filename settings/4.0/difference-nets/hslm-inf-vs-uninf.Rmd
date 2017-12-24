@@ -6,8 +6,8 @@ MANUSCRIPT_CONFIG <- list(
     title           = "Differential co-expression network - HsLm (inf. vs. uninf)", 
     subtitle        = 'Human infected with L. major',
     output_prefix   = 'hslm-inf-vs-uninf',
-    adjmat_inf      = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
-    adjmat_uninf    = 'output/2.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda'
+    adjmat_inf      = 'output/4.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
+    adjmat_uninf    = 'output/4.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda'
 )
 
 CONFIG <- list(

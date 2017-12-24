@@ -1,0 +1,70 @@
+```{r load_counts, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+#
+# helper function
+#
+load_counts <- function(ids, count_files) {
+    # support old/new hpgltools
+    tryCatch({
+        res <- read_counts_expt(ids, count_files)
+
+        # newer version (dec 2017)
+        if (is.list(res)) {
+            count_table <- as.data.frame(res$count_table)
+            row.names(count_table) <- count_table$rownames
+            as.matrix(count_table[,colnames(count_table) != 'rownames'])
+        } else {
+            # new version
+            res
+        }
+    }, error = function(e) {
+        # old hpgltool
+        expt_read_counts(ids, count_files)
+    })
+}
+
+#
+# HsLm
+#
+# Infected
+count_files <- Sys.glob(CONFIG_HSLM$input_count_tables)
+ids <- file_path_sans_ext(basename(count_files))
+
+# support old/new hpgltools
+counts_hslm_inf <- load_counts(ids, count_files)
+sample_ids_hslm_inf <- as.character(CONFIG_HSLM$samples[[CONFIG_HSLM$sample_id]])
+counts_hslm_inf <- counts_hslm_inf[,sample_ids_hslm_inf]
+
+# Uninfected
+count_files <- Sys.glob(CONFIG_HSLMUI$input_count_tables)
+ids <- file_path_sans_ext(basename(count_files))
+counts_hslm_uninf <- load_counts(ids, count_files)
+
+sample_ids_hslm_uninf <- as.character(CONFIG_HSLMUI$samples[[CONFIG_HSLMUI$sample_id]])
+counts_uninf <- counts_uninf[,sample_ids_hslm_uninf]
+
+#
+# HsTc
+#
+count_files <- Sys.glob(CONFIG_HSTC$input_count_tables)
+ids <- file_path_sans_ext(basename(count_files))
+
+# support old/new hpgltools
+counts_hstc_inf <- load_counts(ids, count_files)
+sample_ids_hstc_inf <- as.character(CONFIG_HSTC$samples[[CONFIG_HSTC$sample_id]])
+counts_hstc_inf <- counts_hstc_inf[,sample_ids_hstc_inf]
+
+# Uninfected
+count_files <- Sys.glob(CONFIG_HSTCUI$input_count_tables)
+ids <- file_path_sans_ext(basename(count_files))
+counts_hstc_uninf <- load_counts(ids, count_files)
+
+sample_ids_hstc_uninf <- as.character(CONFIG_HSTCUI$samples[[CONFIG_HSTCUI$sample_id]])
+counts_uninf <- counts_uninf[,sample_ids_hstc_uninf]
+
+
+# All of the *raw* count tables above include the same genes, so for the purpose 
+# of loading host annotations, we can use any of them:
+#  all(rownames(hslm_inf_count_table) %in% rownames(hstc_inf_count_table))
+#  TRUE
+count_table <- counts_hslm_inf
+```
