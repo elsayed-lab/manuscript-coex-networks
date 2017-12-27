@@ -1,0 +1,114 @@
+## Comparison of individual and consensus networks to a selected sub-network
+
+Next, we will select a tissue-specific transcriptonal regulatory sub-network 
+from the Marbach et al. (2016) high-level network compondium, and compare
+it to randomly selected individual networks, and to the consensus network.
+
+```{r human_consensus_indiv_subnet_comparison}
+# edge weight cutoff (quantile)
+tf_edge_weight_cutoff <- 0.95
+
+# Load tissue-specific transcriptional regulatory network 
+# source: http://regulatorycircuits.org/
+base_dir <- file.path(Sys.getenv('REF'), 'marbach2016/Tissue-specific_regulatory_networks_FANTOM5-v1/32_high-level_networks')
+
+# HsLm (macrophage)
+if (startsWith(MANUSCRIPT_CONFIG$output_prefix, 'hslm')) {
+    # target TF
+    target_tfs <- c('TBX21')
+
+    infile <- file.path(base_dir,  '11_myeloid_leukocytes.txt.gz')
+} else if (startsWith(MANUSCRIPT_CONFIG$output_prefix, 'hstc')) {
+    # target TF (NFKB family, except for RELB)
+    target_tfs <- c('NFKB1', 'NFKB2', 'REL', 'RELA')
+
+    # todo: double-check if this is best tissue network to use..
+    infile <- file.path(base_dir,  '09_connective_tissue_integumental_cells.txt.gz')
+}
+
+# Get TF-regulated genes with the strongest edge weights
+tf_mapping <- read_tsv(infile, col_names=c('tf', 'target', 'edge_weight')) %>%
+    filter(tf %in% target_tfs)
+tf_mapping <- tf_mapping %>%
+    filter(edge_weight > quantile(tf_mapping$edge_weight, tf_edge_weight_cutoff))
+
+# map gene symbols to ENSEMBL gene ID's
+tf_mapping$ensgene <- grch37$ensgene[match(tf_mapping$target, grch37$symbol)]
+tf_mapping$enstf <- grch37$ensgene[match(tf_mapping$tf, grch37$symbol)]
+tf_ensgenes <- grch37$ensgene[match(target_tfs, grch37$symbol)]
+
+# drop genes not in adjmat
+tf_mapping_subset <- tf_mapping %>%
+    filter(ensgene %in% rownames(adjmat))
+
+# plot subnetwork for consensus network, and for randomly selected subnetworks
+mask <- rownames(adjmat) %in% c(tf_mapping_subset$ensgene, tf_ensgenes)
+
+# get consensus adjacency matrix and shift to range [0,1]
+subnet <- adjmat[mask,mask]
+#subnet <- subnet - min(subnet)
+#subnet <- subnet / max(subnet)
+
+# get edge weights from consensus mat
+consensus_edge_weights <- subnet[cbind(tf_mapping_subset$enstf, tf_mapping_subset$ensgene)]
+consensus_edge_weights <- consensus_edge_weights - min(consensus_edge_weights)
+consensus_edge_weights <- consensus_edge_weights / max(consensus_edge_weights)
+
+# rescale marbach edge weights to range [0,1]
+tf_mapping_subset$edge_weight_scaled <- tf_mapping_subset$edge_weight - min(tf_mapping_subset$edge_weight)
+tf_mapping_subset$edge_weight_scaled <- tf_mapping_subset$edge_weight_scaled / max(tf_mapping_subset$edge_weight_scaled)
+
+#consensus_colors <- result$color[match(rownames(subnet), result$gene_id)]
+
+# correlation with Marbach TF-regulatory network edge weights
+cor(consensus_edge_weights, tf_mapping_subset$edge_weight_scaled, method='spearman')
+
+# create a matrix with columns containing edge weights from each network
+# compared:
+#   1. marbach
+#   2. consensus network
+# 3-n. randomly selected indiv nets
+compare_mat <- cbind(marbach=tf_mapping_subset$edge_weight_scaled, 
+                     consensus=consensus_edge_weights)
+
+#
+# indiv networks
+#
+sample_nets <- nets[sample(nrow(nets), 10),]
+
+for (net_id in sample_nets$id) {
+    # load individual network
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%s.RData", net_id)))
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%s_adjmat.RData", net_id)))
+
+    # add to existing adjacency matrix;
+    indiv_adjmat <- matrix(0, nrow=nrow(module_mapping), ncol=nrow(module_mapping))
+    indiv_adjmat[upper.tri(indiv_adjmat)] <- adjacency_matrix
+    indiv_adjmat[lower.tri(indiv_adjmat)] <- t(indiv_adjmat)[lower.tri(indiv_adjmat)]
+
+    rownames(indiv_adjmat) <- module_mapping$gene_id
+    colnames(indiv_adjmat) <- module_mapping$gene_id
+
+    # plot subnetwork for consensus network, and for randomly selected subnetworks
+    mask <- rownames(indiv_adjmat) %in% c(tf_mapping_subset$ensgene, tf_ensgenes)
+
+    # get consensus adjacency matrix and shift to range [0,1]
+    subnet <- indiv_adjmat[mask,mask]
+    #subnet <- subnet - min(subnet)
+    #subnet <- subnet / max(subnet)
+
+    # get edge weights from consensus mat
+    indiv_edge_weights <- subnet[cbind(tf_mapping_subset$enstf, tf_mapping_subset$ensgene)]
+    indiv_edge_weights <- indiv_edge_weights - min(indiv_edge_weights)
+    indiv_edge_weights <- indiv_edge_weights / max(indiv_edge_weights)
+
+    compare_mat <- cbind(compare_mat, indiv_edge_weights)
+
+    # correlation with Marbach TF-regulatory network edge weights
+    message(cor(indiv_edge_weights, tf_mapping_subset$edge_weight, method='spearman'))
+}
+colnames(compare_mat) <- c('marbach', 'consensus', sprintf("indiv_net_%d", sample_nets$id))
+
+library("heatmaply")
+heatmaply(compare_mat, distfun='pearson')
+```
