@@ -134,3 +134,109 @@ table_1 <- cbind(table_1, quantile=quantiles)
 xkable(table_1, caption='Table 1. Comparison of unfiltered consensus network to individual networks')
 ```
 
+## Network metrics (individual vs. consensus networks)
+
+```{r}
+# create a max-scaled version of consensus network for a more equal comparison
+# to individual nets
+scaled_adjmat <- adjmat / max(adjmat)
+```
+
+### Network densities
+
+```{r network_density}
+# consensus network density
+g <- graph.adjacency(scaled_adjmat, mode='undirected', weighted=TRUE)
+consensus_val <- edge_density(g)
+rm(g)
+
+ggplot(data.frame(x=network_densities), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Network Density") +
+    theme_bw_high_res()
+```
+
+## Ratio of non-zero edges (global)
+
+```{r ratio_nonzero_edges_global}
+consensus_val <- sum(scaled_adjmat != 0) / length(scaled_adjmat)
+
+ggplot(data.frame(x=ratio_nonzero_edges), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Ratio of Non-zero Edges (global)") +
+    theme_bw_high_res()
+```
+
+## Ratio of edges with values > 0.25
+
+```{r ratio_edges_gt_1q}
+consensus_val <- sum(scaled_adjmat > 0.25) / length(scaled_adjmat)
+
+ggplot(data.frame(x=ratio_edges_1q), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Ratio of Edges > 0.25 (global)") +
+    theme_bw_high_res()
+```
+
+## Ratio of edges with values > 0.50
+
+```{r ratio_edges_gt_2q}
+consensus_val <- sum(scaled_adjmat > 0.5) / length(scaled_adjmat)
+
+ggplot(data.frame(x=ratio_edges_2q), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Ratio of Edges > 0.50 (global)") +
+    theme_bw_high_res()
+```
+
+## Ratio of edges with values > 0.75
+
+```{r ratio_edges_gt_3q}
+consensus_val <- sum(scaled_adjmat > 0.75) / length(scaled_adjmat)
+
+ggplot(data.frame(x=ratio_edges_3q), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Ratio of Edges > 0.75 (global)") +
+    theme_bw_high_res()
+```
+
+## Median non-zero edge weight (global)
+
+```{r median_nonzero_edge_weight_global}
+consensus_val <- median(adjmat_scaled[adjmat_scaled != 0])
+
+ggplot(data.frame(x=median_edge_weight_global), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Median Edge Weight (global)") +
+    theme_bw_high_res()
+```
+
+## Median ratio of non-zero edges per gene
+
+```{r median_ratio_nonzero_edges_per_gene}
+consensus_val <- median(apply(adjmat_scaled, 1, function(x) { sum(x != 0) / nrow(adjmat_scaled) }))
+
+ggplot(data.frame(x=median_ratio_edges_per_gene), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Median Ratio Non-zero Edges Per Gene") +
+    theme_bw_high_res()
+```
+
+## Median Non-zero Edge Weight per Gene
+
+```{r median_nonzero_edge_weight_per_gene}
+consensus_val <- median(apply(adjmat_scaled, 1, function(x) { median(x[x != 0]) }))
+
+ggplot(data.frame(x=median_edge_weight_per_gene), aes(x)) +
+    geom_density(fill='#7ebd37') +
+    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
+    xlab("Median Non-zero Edge Weight Per Gene") +
+    theme_bw_high_res()
+```

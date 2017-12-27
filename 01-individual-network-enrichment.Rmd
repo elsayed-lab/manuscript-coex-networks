@@ -2,7 +2,7 @@
 author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
-  version: "2.0"
+  version: "4.0"
   analysis_dirname: "01-individual-network-enrichment"
 title: "Functional Enrichment of Individual Co-expression Networks (`r params$version`)"
 output:
@@ -98,10 +98,7 @@ out_height <- 300
 ### *H. sapiens* all samples (HsAll)
 
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/6.0/networks_hsall.csv')
-
-# create a copy to create a combined dataset for comparative analysis
-combined <- cbind(df, network='HsTc')
+df <- read_csv('input/indiv_network_stats/networks_hsall.csv')
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -111,7 +108,7 @@ combined <- cbind(df, network='HsTc')
 ```
 
 ```{r}
-# add to combined result dataframe
+# create a copy to create a combined dataset for comparative analysis
 combined <- cbind(df, network='HsAll')
 ```
 
@@ -222,7 +219,7 @@ combined <- do.call(rbind.fill, l)
 ### *M. musculus* infected with *L. major* (MmLm)
 
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/6.0/networks_mmlm.csv')
+df <- read_csv('input/indiv_network_stats/networks_mmlm.csv')
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -241,7 +238,7 @@ combined <- do.call(rbind.fill, l)
 ### *L. major* infecting *M. musculus* (LmMm)
 
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/6.0/networks_lmmm.csv')
+df <- read_csv('input/indiv_network_stats/networks_lmmm.csv')
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -275,7 +272,7 @@ combined <- do.call(rbind.fill, l)
 ### *L. major* infecting *H. sapiens* (LmHs)
 
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/6.0/networks_lmhs.csv') 
+df <- read_csv('input/indiv_network_stats/networks_lmhs.csv') 
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}

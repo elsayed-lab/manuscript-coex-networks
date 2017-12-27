@@ -6,7 +6,7 @@ for each pair of networks.
 To determine edge similarity, for each pair of genes, we will compute the proportion of networks
 where they are both "present" (have an edge weight >= 0.5).
 
-```{r compare_networks, cache=TRUE, autodep=TRUE, message=FALSE}
+```{r compare_networks, cache=TRUE, cache.lazy=FALSE, autodep=TRUE, message=FALSE}
 # edge binarization cutoff
 edge_cutoff <- 0.5
 
@@ -94,26 +94,6 @@ for (i in 2:nrow(networks)) {
 mask <- edge_count_mat != 0
 edge_ratios <- edge_count_mat[mask] / num_networks
 
-hist(sample(edge_ratios, 1E4))
+plot(density(sample(edge_ratios, 1E4)), main='', xlab='Ratio of Networks Containing Edge')
 ```
-
-```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
-# Color rows by rank and columns by network number (~parameter similarity)
-#rank_colors = rev(colorRampPalette(brewer.pal(9, 'Blues'))(num_networks))
-#network_num = rev(colorRampPalette(brewer.pal(9, 'Purples'))(max(networks$id)))[networks$id]
-
-# Use rank for rownames
-#rownames(output_jaccard) = 1:num_networks
-
-# Clip upper-end of similarity matrices to improve contrast in heatmap (doesn't
-# make too much of a difference; data behaves approximately bimodal)
-#jaccard_clip <- as.numeric(quantile(output_jaccard, 0.95))
-#output_jaccard[output_jaccard > jaccard_clip] <- jaccard_clip
-
-#heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(4, 4),
-#          RowSideColors=rank_colors, ColSideColors=network_num,
-#          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
-#          symbreaks=FALSE, symkey=FALSE)
-```
-
 

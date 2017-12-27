@@ -262,3 +262,33 @@ if (length(plts) > 0) {
     grid.arrange(grobs=plts, ncol=2)
 }
 ```
+
+**Number of modules vs. enrichment score**
+
+```{r num_modules_vs_enrichment_score}
+ggplot(df, aes(x=num_modules, y=enrichment_score)) +
+    geom_point() + 
+    theme_bw_high_res() +
+    xlab("# Modules") +
+    ylab("Enrichment Score")
+```
+
+```{r, include=FALSE, eval=FALSE}
+# Median size
+# Nothing special here either..
+ggplot(df, aes(x=med_module_size, y=enrichment_score)) +
+    geom_point() + 
+    theme_bw_high_res() +
+    xlab("Median Module Size") +
+    ylab("Enrichment Score")
+```
+
+
+```{r num_modules_vs_enrichment_score, results='asis', eval='total_edge_weight' %in% colnames(df)}
+cat('\n\n**Total network edge weight vs. enrichment score**\n\n')
+ggplot(df, aes(x=total_edge_weight, y=enrichment_score, color=factor(adj_power))) +
+    geom_point() + 
+    theme_bw_high_res() +
+    xlab("Sum(edge weights)") +
+    ylab("Enrichment Score")
+```

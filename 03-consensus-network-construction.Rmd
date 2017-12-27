@@ -35,6 +35,7 @@ Methods
 =======
 
 ```{r load_libraries, message=FALSE, results='hide'}
+library('annotables')
 library('biomaRt')
 library('clusteval')
 library('doParallel')
@@ -48,6 +49,7 @@ library('ggplot2')
 library('goseq')
 library('gplots')
 library('hpgltools')
+library('igraph')
 library('knitr')
 library('knitcitations')
 library('reshape2')
@@ -84,10 +86,14 @@ Results
 ```{r child='child/03-consensus-net-vs-indiv-nets.Rmd'}
 ```
 
+```{r child='child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval=CONFIG$target == 'host'}
+```
+
 ```{r save_rdata}
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
 
+# 2017/12/25: disabling filtering-related results for now
 #save(dat, dat_num_unique,  dat_ratio_enrichment,
 #     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
