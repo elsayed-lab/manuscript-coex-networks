@@ -75,6 +75,7 @@ library('plyr')
 library('dplyr')
 library('ggplot2')
 library('gridExtra')
+library('heatmaply')
 library('knitr')
 library('reshape2')
 library('readr')
@@ -290,7 +291,7 @@ combined <- do.call(rbind.fill, l)
 ### *T. cruzi* infecting *H. sapiens* (TcHs)
 
 ```{r load_data, message=FALSE}
-df <- read_csv('input/indiv_network_stats/6.0/networks_tchs.csv')
+df <- read_csv('input/indiv_network_stats/networks_tchs.csv')
 ```
 
 ```{r child='child/01-indiv-net-load-network-stats.Rmd'}
@@ -376,7 +377,6 @@ df <- read_csv('input/indiv_network_stats/networks_bodymap.csv')
 ```
 
 ```{r}
-combined <- merge(combined, cbind(df, network='Body'), all=TRUE)
 # add to combined result dataframe
 l <- list(combined, cbind(df, network='Body'))
 combined <- do.call(rbind.fill, l)
@@ -446,6 +446,27 @@ ggplot(batch_dat, aes(network, enrichment_score)) +
 ```
 
 ### Summary
+
+```{r dataset_similarity, message=FALSE, dpi=192}
+combined_wide <- combined %>% 
+    arrange(network_id, network) %>%
+    select(network_id, network, enrichment_score) %>%
+    spread(key=network, value=enrichment_score) %>%
+    select(-network_id)
+
+# compare datasets with and without batch separately
+batch_mask <- sapply(combined_wide, function(x) { sum(is.na(x)) }) == 0
+
+# with batch
+cor_mat_batch <- cor(combined_wide[,batch_mask], method='spearman')
+diag(cor_mat_batch) <- 0
+heatmaply(cor_mat_batch)
+
+# without batch
+cor_mat_no_batch <- cor(combined_wide[complete.cases(combined_wide),!batch_mask], method='spearman')
+diag(cor_mat_no_batch) <- 0
+heatmaply(cor_mat_no_batch)
+```
 
 ```{r summary_table}
 combined %>% 

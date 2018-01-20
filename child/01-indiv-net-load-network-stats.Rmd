@@ -9,44 +9,38 @@ if ('irefindex_edge_weight' %in% colnames(df)) {
     df$iref_score <- (df$irefindex_edge_weight / df$total_edge_weight) * 1000
 }
 
-# Enrichment (total and unique annotations)
+# Enrichment score (sum of trimmed -log10 adjusted P-values)
 if ('marbach_total_enriched' %in% colnames(df)) {
     # Human
-    df$total_enriched        <- df$go_total_enriched + df$cpdb_total_enriched + df$marbach_total_enriched
-    df$total_enriched_unique <- df$unique_go_terms + df$unique_cpdb_terms + df$unique_marbach_terms
+    #df$total_enriched        <- df$go_total_enriched + df$cpdb_total_enriched + df$marbach_total_enriched
+    #df$total_enriched_unique <- df$unique_go_terms + df$unique_cpdb_terms + df$unique_marbach_terms
 
-    df$enrichment_score       <- as.vector(1/3 * (scale(df$unique_go_terms) +
-                                                  scale(df$unique_cpdb_terms) + 
-                                                  scale(df$unique_marbach_terms)))
-    df$enrichment_score_total <- as.vector(1/3 * (scale(df$go_total_enriched) +
-                                                  scale(df$cpdb_total_enriched) + 
-                                                  scale(df$marbach_total_enriched)))
+    df$enrichment_score       <- as.vector(1/3 * (scale(df$total_go_pval) +
+                                                  scale(df$total_cpdb_pval) + 
+                                                  scale(df$total_marbach_pval)))
 
-    # density separated by annotation source (unique)
-    x <- melt(df %>% select(`Unique GO terms`=unique_go_terms, 
-                            `Unique KEGG pathways`=unique_kegg_terms,
-                            `Unique CPDB pathways`=unique_cpdb_terms, 
-                            `Unique Marbach genes`=unique_marbach_terms))
+    # density separated by annotation source (raw)
+    x <- melt(df %>% select(`GO Enrichment Scores`=total_go_pval, 
+                            `CPDB Enrichment Scores`=total_cpdb_pval, 
+                            `Marbach Scores`=total_marbach_pval))
     p1 <- ggplot(x, aes(x=value)) + 
             geom_density(aes(fill=factor(variable)), alpha=0.75) +
             theme_bw_high_res() +
-            theme(legend.position=c(.6, .7), axis.title.y=element_blank()) +
-            #guides(fill=guide_legend(title="Annotation Type")) +
+            theme(legend.position="none", axis.title.y=element_blank()) +
             xlab('Raw')
 
     # density separated by annotation source (z-scores)
     x <- melt(df %>% 
-            mutate(`Unique GO terms`=scale(unique_go_terms),
-                   `Unique KEGG pathways`=scale(unique_kegg_terms),
-                   `Unique CPDB pathways`=scale(unique_cpdb_terms),
-                   `Unique Marbach genes`=scale(unique_marbach_terms)) %>%
-            select(`Unique GO terms`, `Unique KEGG pathways`, 
+            mutate(`GO Enrichment Scores`=scale(total_go_pval),
+                   `Unique CPDB pathways`=scale(total_cpdb_pval),
+                   `Unique Marbach genes`=scale(total_marbach_pval)) %>%
+            select(`GO Enrichment Scores`,  
                    `Unique CPDB pathways`,
                    `Unique Marbach genes`))
     p2 <- ggplot(x, aes(x=value)) + 
             geom_density(aes(fill=factor(variable)), alpha=0.75) +
             theme_bw_high_res() +
-            theme(legend.position="none", axis.title.y=element_blank()) +
+            theme(legend.position=c(.6, .7), axis.title.y=element_blank()) +
             guides(fill=guide_legend(title="Annotation Type")) +
             xlab('Scaled')
 
@@ -54,20 +48,17 @@ if ('marbach_total_enriched' %in% colnames(df)) {
 
 } else if ('cpdb_total_enriched' %in% colnames(df)) {
     # Mouse
-    df$total_enriched        <- df$go_total_enriched + df$cpdb_total_enriched
-    df$total_enriched_unique <- df$unique_go_terms + df$unique_cpdb_terms
+    #df$total_enriched        <- df$go_total_enriched + df$cpdb_total_enriched
+    #df$total_enriched_unique <- df$unique_go_terms + df$unique_cpdb_terms
 
-    df$enrichment_score       <- as.vector(1/2 * (scale(df$unique_go_terms) +
-                                                  scale(df$unique_cpdb_terms)))
-    df$enrichment_score_total <- as.vector(1/2 * (scale(df$go_total_enriched) +
-                                                  scale(df$cpdb_total_enriched)))
+    df$enrichment_score       <- as.vector(1/2 * (scale(df$total_go_pval) +
+                                                  scale(df$total_cpdb_pval)))
 } else {
     # All other organisms
-    df$total_enriched         <- df$go_total_enriched
-    df$total_enriched_unique  <- df$unique_go_terms
+    #df$total_enriched         <- df$go_total_enriched
+    #df$total_enriched_unique  <- df$unique_go_terms
 
-    df$enrichment_score       <- as.vector(scale(df$unique_go_terms))
-    df$enrichment_score_total <- as.vector(scale(df$go_total_enriched))
+    df$enrichment_score       <- as.vector(scale(df$total_go_pval))
 }
 
 # sort by enrichment score and add a rank column

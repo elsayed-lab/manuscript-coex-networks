@@ -208,7 +208,7 @@ ggplot(data.frame(x=ratio_edges_3q), aes(x)) +
 ## Median non-zero edge weight (global)
 
 ```{r median_nonzero_edge_weight_global}
-consensus_val <- median(adjmat_scaled[adjmat_scaled != 0])
+consensus_val <- median(scaled_adjmat[scaled_adjmat != 0])
 
 ggplot(data.frame(x=median_edge_weight_global), aes(x)) +
     geom_density(fill='#7ebd37') +
@@ -220,7 +220,7 @@ ggplot(data.frame(x=median_edge_weight_global), aes(x)) +
 ## Median ratio of non-zero edges per gene
 
 ```{r median_ratio_nonzero_edges_per_gene}
-consensus_val <- median(apply(adjmat_scaled, 1, function(x) { sum(x != 0) / nrow(adjmat_scaled) }))
+consensus_val <- median(apply(scaled_adjmat, 1, function(x) { sum(x != 0) / nrow(scaled_adjmat) }))
 
 ggplot(data.frame(x=median_ratio_edges_per_gene), aes(x)) +
     geom_density(fill='#7ebd37') +
@@ -232,7 +232,7 @@ ggplot(data.frame(x=median_ratio_edges_per_gene), aes(x)) +
 ## Median Non-zero Edge Weight per Gene
 
 ```{r median_nonzero_edge_weight_per_gene}
-consensus_val <- median(apply(adjmat_scaled, 1, function(x) { median(x[x != 0]) }))
+consensus_val <- median(apply(scaled_adjmat, 1, function(x) { median(x[x != 0]) }))
 
 ggplot(data.frame(x=median_edge_weight_per_gene), aes(x)) +
     geom_density(fill='#7ebd37') +

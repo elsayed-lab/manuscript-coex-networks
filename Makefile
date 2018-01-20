@@ -55,3 +55,13 @@ inf-vs-uninf:
 		echo $$cmd; \
 		#eval $$cmd; \
 	done
+
+hslm-vs-hstc:
+	rmd="settings/$(VERSION)/difference-nets//hslm-vs-hstc.Rmd"; \
+	echo "---------- Processing $$rmd ----------"; \
+	title=`grep title $$rmd | head -n1 | grep -o \".*\"`; \
+	params="list(settings=\"$$rmd\", title=$$title, version=\"$(VERSION)\")"; \
+	cmd="Rscript -e 'rmarkdown::render(\"06-conserved-signature-of-infection.Rmd\", params=$$params)'"; \
+	echo $$cmd; \
+	#eval $$cmd; \
+

@@ -54,7 +54,7 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
-```{r child='child/06-conserved-signature-load-counts.Rmd'}
+```{r child='child/06-host-conserved-infection-sig-load-counts.Rmd'}
 ```
 
 ```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd'}

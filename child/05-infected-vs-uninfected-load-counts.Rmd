@@ -5,10 +5,22 @@ ids <- file_path_sans_ext(basename(count_files))
 
 # support old/new hpgltools
 counts_inf = tryCatch({
-    read_counts_expt(ids, count_files)
+    res <- read_counts_expt(ids, count_files)
+
+    if (is.data.frame(res)) { 
+        # new version
+        res
+    } else {
+        # newer version (dec 2017)
+        count_table <- as.data.frame(res$count_table)
+        row.names(count_table) <- count_table$rownames
+        as.matrix(count_table[,colnames(count_table) != 'rownames'])
+    }
 }, error = function(e) {
+    # old hpgltool
     expt_read_counts(ids, count_files)
 })
+
 sample_ids_inf <- as.character(CONFIG_INF$samples[[CONFIG_INF$sample_id]])
 counts_inf <- counts_inf[,sample_ids_inf]
 
@@ -16,9 +28,21 @@ counts_inf <- counts_inf[,sample_ids_inf]
 count_files <- Sys.glob(CONFIG_UNINF$input_count_tables)
 ids <- file_path_sans_ext(basename(count_files))
 
+# support old/new hpgltools
 counts_uninf = tryCatch({
-    read_counts_expt(ids, count_files)
+    res <- read_counts_expt(ids, count_files)
+
+    if (is.data.frame(res)) { 
+        # new version
+        res
+    } else {
+        # newer version (dec 2017)
+        count_table <- as.data.frame(res$count_table)
+        row.names(count_table) <- count_table$rownames
+        as.matrix(count_table[,colnames(count_table) != 'rownames'])
+    }
 }, error = function(e) {
+    # old hpgltool
     expt_read_counts(ids, count_files)
 })
 sample_ids_uninf <- as.character(CONFIG_UNINF$samples[[CONFIG_UNINF$sample_id]])

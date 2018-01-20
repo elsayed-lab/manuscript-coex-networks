@@ -20,6 +20,7 @@ output:
 ---
 
 ```{r load_libraries, message=FALSE}
+library('annotables')
 library('dplyr')
 library('gplots')
 library('ggplot2')

@@ -159,53 +159,53 @@ ggplot(df, aes(topological_overlap, enrichment_score)) +
     guides(guide_legend(FALSE))
 ```
 
-<!-- Correlation between functional and TF regulon enrichment (# unique annot) -->
-```{r, function_coreg_correlation_unique_annots, results='asis', fig.height=3}
+<!-- Correlation between functional and TF regulon enrichment -->
+```{r function_coreg_correlation, results='asis', fig.height=3}
 plts <- list()
 
-if ('unique_marbach_terms' %in% colnames(df)) {
+if ('total_marbach_pval' %in% colnames(df)) {
     # GO correlation
-    go_tf_cor <- cor(df$unique_go_terms, df$unique_marbach_terms)
+    go_tf_cor <- cor(df$total_go_pval, df$total_marbach_pval)
 
     # position for correlation score text
-    #xpos <- 0.90 * max(df$unique_go_terms)
-    xpos <- min(df$unique_go_terms) + 0.15 * max(df$unique_go_terms)
-    ypos <- 0.95 * max(df$unique_marbach_terms)
+    #xpos <- 0.90 * max(df$total_go_pval)
+    xpos <- min(df$total_go_pval) + 0.15 * max(df$total_go_pval)
+    ypos <- 0.95 * max(df$total_marbach_pval)
 
-    cat(sprintf("- GO vs. TF Pearson correlation (# Unique annotations): %0.2f\n", go_tf_cor))
+    cat(sprintf("- GO vs. TF Enrichment Score Pearson correlation: %0.2f\n", go_tf_cor))
 
-    plts[[1]] <- ggplot(aes(x=unique_go_terms, y=unique_marbach_terms), data=df) + 
+    plts[[1]] <- ggplot(aes(x=total_go_pval, y=total_marbach_pval), data=df) + 
         geom_point(size=0.5) + 
         geom_smooth(method='lm') +
         annotate("text", x=xpos, y=ypos, parse=TRUE, color='red',
                  label=sprintf("paste(italic(r), \" = %0.2f\")", go_tf_cor)) +
-        coord_cartesian(xlim=c(min(df$unique_go_terms) - 15, max(df$unique_go_terms) + 30), 
-                        ylim=c(min(df$unique_marbach_terms) - 15, max(df$unique_marbach_terms) + 15), 
+        coord_cartesian(xlim=c(min(df$total_go_pval) - 15, max(df$total_go_pval) + 30), 
+                        ylim=c(min(df$total_marbach_pval) - 15, max(df$total_marbach_pval) + 15), 
                         expand=FALSE) +
         theme_bw_high_res() +
-        xlab("# Unique GO terms") +
-        ylab("# Unique TF regulon genes")
+        xlab("GO Enrichment Score") +
+        ylab("TF-regulon Enrichment Score")
 
-    cpdb_tf_cor <- cor(df$unique_cpdb_terms, df$unique_marbach_terms)
+    cpdb_tf_cor <- cor(df$total_cpdb_pval, df$total_marbach_pval)
     
-    #xpos <- 0.90 * max(df$unique_cpdb_terms)
-    xpos <- min(df$unique_cpdb_terms) + 0.15 * max(df$unique_cpdb_terms)
-    ypos <- 0.95 * max(df$unique_marbach_terms) 
+    #xpos <- 0.90 * max(df$total_cpdb_pval)
+    xpos <- min(df$total_cpdb_pval) + 0.15 * max(df$total_cpdb_pval)
+    ypos <- 0.95 * max(df$total_marbach_pval) 
 
     # CPDB correlation
-    cat(sprintf("- CPDB vs. TF Pearson correlation (# Unique annotations): %0.2f\n\n", cpdb_tf_cor))
+    cat(sprintf("- CPDB vs. TF Enrichment Score Pearson Correlation: %0.2f\n\n", cpdb_tf_cor))
 
-    plts[[2]] <- ggplot(aes(x=unique_cpdb_terms, y=unique_marbach_terms), data=df) + 
+    plts[[2]] <- ggplot(aes(x=total_cpdb_pval, y=total_marbach_pval), data=df) + 
         geom_point(size=0.5) + 
         geom_smooth(method='lm') +
         annotate("text", x=xpos, y=ypos, parse=TRUE, color='red',
                  label=sprintf("paste(italic(r), \" = %0.2f\")", cpdb_tf_cor)) +
-        coord_cartesian(xlim=c(min(df$unique_cpdb_terms) - 15, max(df$unique_cpdb_terms) + 30), 
-                        ylim=c(min(df$unique_marbach_terms) - 15, max(df$unique_marbach_terms) + 30), 
+        coord_cartesian(xlim=c(min(df$total_cpdb_pval) - 15, max(df$total_cpdb_pval) + 30), 
+                        ylim=c(min(df$total_marbach_pval) - 15, max(df$total_marbach_pval) + 30), 
                         expand=FALSE) +
         theme_bw_high_res() +
         theme(axis.title.y=element_blank()) +
-        xlab("# Unique CPDB terms")
+        xlab("CPDB Enrichment Score")
 }
 
 if (length(plts) > 0) {

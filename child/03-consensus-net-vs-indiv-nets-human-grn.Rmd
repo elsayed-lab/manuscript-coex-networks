@@ -14,13 +14,12 @@ base_dir <- file.path(Sys.getenv('REF'), 'marbach2016/Tissue-specific_regulatory
 
 # HsLm (macrophage)
 if (startsWith(MANUSCRIPT_CONFIG$output_prefix, 'hslm')) {
-    # target TF
-    target_tfs <- c('TBX21')
+    # target TF (NFKB family, except for RELB)
+    target_tfs <- c('NFKB1', 'NFKB2', 'REL', 'RELA')
 
     infile <- file.path(base_dir,  '11_myeloid_leukocytes.txt.gz')
 } else if (startsWith(MANUSCRIPT_CONFIG$output_prefix, 'hstc')) {
-    # target TF (NFKB family, except for RELB)
-    target_tfs <- c('NFKB1', 'NFKB2', 'REL', 'RELA')
+    target_tfs <- c('PRDM1', 'IRF', paste0('IRF', 1:9))
 
     # todo: double-check if this is best tissue network to use..
     infile <- file.path(base_dir,  '09_connective_tissue_integumental_cells.txt.gz')
@@ -35,21 +34,28 @@ tf_mapping <- tf_mapping %>%
 # map gene symbols to ENSEMBL gene ID's
 tf_mapping$ensgene <- grch37$ensgene[match(tf_mapping$target, grch37$symbol)]
 tf_mapping$enstf <- grch37$ensgene[match(tf_mapping$tf, grch37$symbol)]
-tf_ensgenes <- grch37$ensgene[match(target_tfs, grch37$symbol)]
 
-# drop genes not in adjmat
+# exclude any tfs that couldn't be mapped (e.g. 'IRF')
+tf_mapping <- tf_mapping[complete.cases(tf_mapping),]
+
+# transcription factor ENSEMBL gene ID's
+tf_ensgenes <- unique(tf_mapping$enstf) 
+
+# drop genes/tfs not in adjmat
 tf_mapping_subset <- tf_mapping %>%
-    filter(ensgene %in% rownames(adjmat))
+    filter(ensgene %in% rownames(adjmat)) %>%
+    filter(enstf %in% rownames(adjmat))
+
+# TF + target genes
+target_genes <- unique(c(tf_mapping_subset$ensgene, tf_mapping_subset$enstf))
 
 # plot subnetwork for consensus network, and for randomly selected subnetworks
-mask <- rownames(adjmat) %in% c(tf_mapping_subset$ensgene, tf_ensgenes)
+mask <- rownames(adjmat) %in% target_genes 
 
 # get consensus adjacency matrix and shift to range [0,1]
 subnet <- adjmat[mask,mask]
-#subnet <- subnet - min(subnet)
-#subnet <- subnet / max(subnet)
 
-# get edge weights from consensus mat
+# get edge weights of interest from consensus mat
 consensus_edge_weights <- subnet[cbind(tf_mapping_subset$enstf, tf_mapping_subset$ensgene)]
 consensus_edge_weights <- consensus_edge_weights - min(consensus_edge_weights)
 consensus_edge_weights <- consensus_edge_weights / max(consensus_edge_weights)
