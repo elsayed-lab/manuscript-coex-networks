@@ -7,7 +7,7 @@
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Consensus Co-expression Network Comparison: T. cruzi (All Samples)", 
+    title           = "Consensus Network Construction: T. cruzi (All Samples)", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'tcruzi_all_samples-multicopy-v6.1'),
     output_prefix  = 'tcruzi',

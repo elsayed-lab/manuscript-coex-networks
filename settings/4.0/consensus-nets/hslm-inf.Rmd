@@ -7,7 +7,7 @@
 # Manuscript-specific configuration
 #
 MANUSCRIPT_CONFIG <- list(
-    title           = "Consensus Co-expression Network Comparison: H. sapiens infected with L. major", 
+    title           = "Consensus Network Construction: H. sapiens infected with L. major", 
     input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
                                 'hsapiens_infected_with_lmajor-v6.1'),
     output_prefix  = 'hslm-inf',
