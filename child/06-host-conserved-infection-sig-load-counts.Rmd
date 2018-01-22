@@ -29,7 +29,6 @@ load_counts <- function(ids, count_files) {
 count_files <- Sys.glob(CONFIG_HSLM$input_count_tables)
 ids <- file_path_sans_ext(basename(count_files))
 
-# support old/new hpgltools
 counts_hslm_inf <- load_counts(ids, count_files)
 sample_ids_hslm_inf <- as.character(CONFIG_HSLM$samples[[CONFIG_HSLM$sample_id]])
 counts_hslm_inf <- counts_hslm_inf[,sample_ids_hslm_inf]
@@ -40,7 +39,7 @@ ids <- file_path_sans_ext(basename(count_files))
 counts_hslm_uninf <- load_counts(ids, count_files)
 
 sample_ids_hslm_uninf <- as.character(CONFIG_HSLMUI$samples[[CONFIG_HSLMUI$sample_id]])
-counts_uninf <- counts_uninf[,sample_ids_hslm_uninf]
+counts_hslm_uninf <- counts_hslm_uninf[,sample_ids_hslm_uninf]
 
 #
 # HsTc
@@ -59,7 +58,7 @@ ids <- file_path_sans_ext(basename(count_files))
 counts_hstc_uninf <- load_counts(ids, count_files)
 
 sample_ids_hstc_uninf <- as.character(CONFIG_HSTCUI$samples[[CONFIG_HSTCUI$sample_id]])
-counts_uninf <- counts_uninf[,sample_ids_hstc_uninf]
+counts_hstc_uninf <- counts_hstc_uninf[,sample_ids_hstc_uninf]
 
 
 # All of the *raw* count tables above include the same genes, so for the purpose 

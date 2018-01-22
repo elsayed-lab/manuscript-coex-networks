@@ -116,9 +116,10 @@ opts_chunk$set(fig.path=paste0(output_figprefix,
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
 html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_prefix, '.html'))
+pdf_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_prefix, '.pdf'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 05-infected-vs-uninfected.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 05-infected-vs-uninfected.pdf %s) &', pdf_filepath))
 } else {
     system(sprintf('(sleep 30 && mv 05-infected-vs-uninfected.html %s) &', html_filepath))
 }

@@ -7,8 +7,8 @@ MANUSCRIPT_CONFIG <- list(
     output_prefix  = 'hslm-vs-hstc',
     adjmat_hslm_inf      = 'output/4.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
     adjmat_hslm_uninf    = 'output/4.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda',
-    adjmat_hslm_inf      = 'output/4.0/03-consensus-network-construction/data/adjmat_hstc-inf.rda',
-    adjmat_hslm_uninf    = 'output/4.0/03-consensus-network-construction/data/adjmat_hstc-uninf.rda'
+    adjmat_hstc_inf      = 'output/4.0/03-consensus-network-construction/data/adjmat_hstc-inf.rda',
+    adjmat_hstc_uninf    = 'output/4.0/03-consensus-network-construction/data/adjmat_hstc-uninf.rda'
 )
 
 CONFIG <- list(

@@ -6,7 +6,7 @@ params:
   analysis_dirname: "06-conserved-signatures"
   settings: ""
   title: "Difference Networks - Conserved Signatures of Infection (HsLm vs. HsTc)"
-  version: "3.0"
+  version: "4.0"
 output:
   html_document:
     theme: cosmo
@@ -95,10 +95,10 @@ condition_hstc_inf   <- factor(CONFIG_HSTC$samples[['Condition']])
 condition_hstc_uninf <- factor(CONFIG_HSTCUI$samples[['Condition']])
 ```
 
-```{r child='child/05-infected-vs-uninfected-setup.Rmd'}
+```{r child='child/06-host-conserved-infection-sig-setup.Rmd'}
 ```
 
-```{r child='child/05-infected-vs-uninfected-main.Rmd'}
+```{r child='child/06-host-conserved-infection-sig.Rmd'}
 ```
 
 ### Summary of enrichment results
@@ -116,11 +116,12 @@ condition_hstc_uninf <- factor(CONFIG_HSTCUI$samples[['Condition']])
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
 html_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_prefix, '.html'))
+pdf_filepath <- file.path(output_prefix, paste0(MANUSCRIPT_CONFIG$output_prefix, '.pdf'))
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 05-infected-vs-uninfected.pdf %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 06-conserved-signature-of-infection.pdf %s) &', pdf_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 05-infected-vs-uninfected.html %s) &', html_filepath))
+    system(sprintf('(sleep 30 && mv 06-conserved-signature-of-infection.html %s) &', html_filepath))
 }
 ```
 

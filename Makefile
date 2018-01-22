@@ -3,7 +3,7 @@ SHELL=/bin/bash
 # Analysis version
 VERSION="4.0"
 
-all: similarity construction analysis inf-vs-uninf
+all: similarity construction analysis inf-vs-uninf hslm-vs-hstc
 
 clean:
 	rm -r README_cache
