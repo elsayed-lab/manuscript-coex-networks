@@ -1,11 +1,9 @@
 ---
 author: "V. Keith Hughitt"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-title: "Difference Co-expression Network - HsLm vs. HsTc"
+title: "Conserved signatures of infection: HsLm vs. HsTc"
 params:
   analysis_dirname: "06-conserved-signatures"
-  settings: ""
-  title: "Difference Networks - Conserved Signatures of Infection (HsLm vs. HsTc)"
   version: "4.0"
 output:
   html_document:

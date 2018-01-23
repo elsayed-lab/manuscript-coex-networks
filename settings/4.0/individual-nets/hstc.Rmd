@@ -1,7 +1,7 @@
 ```{r settings}
 # Manuscript settings
 MANUSCRIPT_CONFIG <- list(
-    title           = "Similarity of individual co-expression networks (HsTc)",
+    title           = "Similarity of individual co-expression networks: HsTc",
     output_prefix   = 'hstc-inf',
     input_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", 
                                 "hsapiens_infected_with_tcruzi-v6.1"),

@@ -6,6 +6,7 @@ params:
   settings: ""
   title: ""
   version: ""
+title: "`r params$title` (`r params$version`)"
 output:
   html_document:
     theme: cosmo

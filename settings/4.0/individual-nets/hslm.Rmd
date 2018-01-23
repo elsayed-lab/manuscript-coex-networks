@@ -1,7 +1,7 @@
 ```{r settings}
 # Manuscript settings
 MANUSCRIPT_CONFIG <- list(
-    title           = "Similarity of individual co-expression networks (HsLm)",
+    title           = "Similarity of individual co-expression networks: HsLm",
     output_prefix   = 'hslm-inf',
     input_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", 
                                 "hsapiens_infected_with_lmajor-v6.1"),
