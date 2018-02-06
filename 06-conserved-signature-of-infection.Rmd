@@ -4,7 +4,7 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 title: "Conserved signatures of infection: HsLm vs. HsTc"
 params:
   analysis_dirname: "06-conserved-signatures"
-  version: "4.0"
+  version: "5.0"
 output:
   html_document:
     theme: cosmo

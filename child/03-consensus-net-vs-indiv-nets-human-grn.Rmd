@@ -114,7 +114,9 @@ for (net_id in sample_nets$id) {
     message(cor(indiv_edge_weights, tf_mapping_subset$edge_weight, method='spearman'))
 }
 colnames(compare_mat) <- c('marbach', 'consensus', sprintf("indiv_net_%d", sample_nets$id))
+```
 
+```{r message=FALSE, fig.width=2, fig.height=2}
 library("heatmaply")
 heatmaply(compare_mat, distfun='pearson')
 ```

@@ -13,19 +13,13 @@ the final version of the network to be used for downstream analysis.
 # maximum consensus edge weights for each gene
 gene_max_edge_weights <- apply(adjmat, 1, max)
 
-# vectores to store results
+# vectors to store results
 cutoffs <- c()
 genes_passing <- c()
 
 num_modules <- c()
 median_module_sizes <- c()
 largest_module_sizes <- c()
-
-# number of unique annotations
-num_unique_go_terms <- c()
-num_unique_kegg_pathways <- c()
-num_unique_cpdb_pathways <- c()
-num_unique_tfs <- c()
 
 # -log10(adj.pval) totals
 total_go_pvals <- c()
@@ -43,7 +37,7 @@ num_tf_enriched_modules <- c()
 gene_info_orig <- gene_info
 
 # cutoffs to compare
-quantile_cutoffs <- seq(0.0, 0.99, by=0.05)
+quantile_cutoffs <- seq(0.0, 0.99, by=0.01)
 
 # iterate over cutoffs and construct and evaluate filtered co-expression 
 # networks for each cutoff
@@ -73,20 +67,12 @@ for (quantile_cutoff in quantile_cutoffs) {
     gene_tree <- flashClust(as.dist(distmat), method="average")
     gene_tree$height <- round(gene_tree$height, 6)
 
-    # TESTING 2017/11/21
-    #module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=TRUE, minModuleSize=10)
-    module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
+    # using deepSplit=TRUE to allow for comparisons with individual networks
+    module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=TRUE, minModuleSize=10)
 
     num_labels <- length(unique(module_labels))
     pal <- c('grey', substring(rainbow(num_labels), 1, 7))
     module_colors <- (pal[module_labels + 1])
-
-    # remove unclustered genes
-    # DOESN'T WORK (mask incorrect, or forgetting to mask something else?)
-    #mask <- module_colors != 'grey'
-
-    #module_colors <- module_colors[mask]
-    #filtered_adjmat <- filtered_adjmat[mask, mask]
 
     # load relevant gene annotations and restore order
     gene_info <- gene_info_orig %>% 
@@ -113,17 +99,14 @@ for (quantile_cutoff in quantile_cutoffs) {
     #module_go_enrichment <- module_go_enrichment[sapply(module_go_enrichment, nrow) > 0] 
 
     # GO
-    num_go <- length(unique(unlist(sapply(module_go_enrichment, function(x) { x$category }))))
-    num_unique_go_terms <- c(num_unique_go_terms, num_go)
-
     go_pval_total <- 0
 
     for (module in names(module_go_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_go_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_go_enrichment[[module]]$over_represented_pvalue_adj[mask]
         go_pval_total <- go_pval_total + sum(-log10(pmax(pvals, 10^-10)))
     }
     total_go_pvals <- c(total_go_pvals, go_pval_total)
@@ -132,17 +115,14 @@ for (quantile_cutoff in quantile_cutoffs) {
                                  length(enriched_colors_go))
     
     # KEGG
-    num_kegg <- length(unique(unlist(sapply(module_kegg_enrichment, function(x) { x$category }))))
-    num_unique_kegg_pathways <- c(num_unique_kegg_pathways, num_kegg)
-
     kegg_pval_total <- 0
 
     for (module in names(module_kegg_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj[mask]
         kegg_pval_total <- kegg_pval_total + sum(-log10(pmax(pvals, 10^-10)))
     }
     total_kegg_pvals <- c(total_kegg_pvals, kegg_pval_total)
@@ -155,17 +135,14 @@ for (quantile_cutoff in quantile_cutoffs) {
         # Marbach TF regulon
         knit('../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', quiet=TRUE, output=tempfile())
 
-        num_tf <- length(unique(unlist(sapply(module_coreg_enrichment, function(x) { x$category }))))
-        num_unique_tfs <- c(num_unique_tfs, num_tf)
-
         tf_pval_total <- 0
 
         for (module in names(module_coreg_enrichment)) {
             # over-represented terms with adj. p-val <= 0.05
-            mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
+            mask <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
             # -log10pvals (limit to 1E-10)
-            pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
+            pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj[mask]
             tf_pval_total <- tf_pval_total + sum(-log10(pmax(pvals, 10^-10)))
         }
         total_tf_pvals <- c(total_tf_pvals, tf_pval_total)
@@ -176,17 +153,14 @@ for (quantile_cutoff in quantile_cutoffs) {
         # CPDB
         knit('../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
 
-        num_cpdb <- length(unique(unlist(sapply(module_cpdb_enrichment, function(x) { x$category }))))
-        num_unique_cpdb_pathways <- c(num_unique_cpdb_pathways, num_cpdb)
-
         cpdb_pval_total <- 0
 
         for (module in names(module_cpdb_enrichment)) {
             # over-represented terms with adj. p-val <= 0.05
-            mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+            mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
             # -log10pvals (limit to 1E-10)
-            pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+            pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj[mask]
             cpdb_pval_total <- cpdb_pval_total + sum(-log10(pmax(pvals, 10^-10)))
         }
         total_cpdb_pvals <- c(total_cpdb_pvals, cpdb_pval_total)

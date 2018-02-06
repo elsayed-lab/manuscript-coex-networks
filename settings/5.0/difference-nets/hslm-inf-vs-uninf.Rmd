@@ -1,0 +1,68 @@
+```{r config}
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Differential co-expression network - HsLm (inf. vs. uninf)", 
+    subtitle        = 'Human infected with L. major',
+    output_prefix   = 'hslm-inf-vs-uninf',
+    adjmat_inf      = 'output/5.0/03-consensus-network-construction/data/adjmat_hslm-inf.rda',
+    adjmat_uninf    = 'output/5.0/03-consensus-network-construction/data/adjmat_hslm-uninf.rda'
+)
+
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "L. major",
+    target          = "host",
+
+    organism_db     = "Homo.sapiens",
+    organism_genome = "hg19",
+    txdb            = "TxDb.Hsapiens.UCSC.hg19.knownGene",
+    orgdb_key       = "ENSEMBL",
+    biomart_dataset = "hsapiens_gene_ensembl",
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+
+# HsLm
+CONFIG_INF <- list(
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                             filter(startsWith(Condition, 'infLM')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+
+    main_comparison       = c('infLM4', 'infLM72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+
+# HsLmUI
+CONFIG_UNINF <- list(
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
+    sample_id           = 'HPGL_ID',
+    condition           = 'Condition',
+    batch               = 'Batch',
+    covariates          = c('Batch'),
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+
+    main_comparison       = c('uninfLM4', 'uninfLM72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)"
+)
+```

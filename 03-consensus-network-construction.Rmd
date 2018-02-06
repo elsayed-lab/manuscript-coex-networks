@@ -80,6 +80,13 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
 ```
 
+```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
+```
+
+```{r child='child/03-filtered-consensus-net-results.Rmd'}
+```
+
+
 Results
 =======
 

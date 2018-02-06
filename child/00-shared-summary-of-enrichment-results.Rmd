@@ -125,7 +125,7 @@ num_annot <- rowSums(table_S2[mask,] %>% select(-Module, -num_genes))
 # get number of genes
 if ('score_mat' %in% ls()) {
     num_genes <- nrow(score_mat)
-else if ('diff' %in% ls()) {
+} else if ('diff' %in% ls()) {
     num_genes <- nrow(diff)
 } else {
     num_genes <- nrow(adjmat)

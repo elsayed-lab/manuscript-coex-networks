@@ -2,7 +2,7 @@
 author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
-  version: "4.0"
+  version: "5.0"
   analysis_dirname: "01-individual-network-enrichment"
 title: "Functional Enrichment of Individual Co-expression Networks (`r params$version`)"
 output:

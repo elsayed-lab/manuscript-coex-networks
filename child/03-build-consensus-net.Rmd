@@ -80,6 +80,50 @@ for (i in 1:length(input_nets)) {
 
     g <- graph.adjacency(raw_adj, mode='undirected', weighted=TRUE)
 
+    # compute network metrics
+
+    # network density
+    # http://igraph.org/r/doc/edge_density.html
+    network_densities <- c(network_densities, edge_density(g))
+    rm(g)
+
+    # ratio of non-zero edges (global)
+    ratio_nonzero_edges <- c(ratio_nonzero_edges, sum(raw_adjacency_matrix != 0) / length(raw_adjacency_matrix))
+
+    # ratio of edges with values > 0.25, 0.50, 0.75
+    ratio_edges_1q <- c(ratio_edges_1q, sum(raw_adjacency_matrix > 0.25) / length(raw_adjacency_matrix))
+    ratio_edges_2q <- c(ratio_edges_2q, sum(raw_adjacency_matrix > 0.50) / length(raw_adjacency_matrix))
+    ratio_edges_3q <- c(ratio_edges_3q, sum(raw_adjacency_matrix > 0.75) / length(raw_adjacency_matrix))
+
+    # median non-zero edge weight value (global)
+    median_edge_weight_global <- c(median_edge_weight_global, median(raw_adjacency_matrix[raw_adjacency_matrix != 0]))
+
+    # median ratio of non-zero edges per gene
+    median_ratio_edges_per_gene <- c(median_ratio_edges_per_gene, 
+                                     median(apply(raw_adj, 1, function(x) { sum(x != 0) / nrow(raw_adj) })))
+
+    median_edge_weight_per_gene <- c(median_edge_weight_per_gene, 
+                                     median(apply(raw_adj, 1, function(x) { median(x[x != 0]) })))
+
+    # http://igraph.org/r/doc/transitivity.html
+    # doesn't work as expected with dense weighted networks 
+    # (and long run-time); disabling for now
+    # clustering_coefs <- c(clustering_coefs, transitivity(g, type='weighted'))
+
+    # network betweeness centrality
+    # http://igraph.org/r/doc/centr_betw.html
+    # centr_betw(g, directed=FALSE)
+    # ~1-2 hrs
+    #network_centralities <- c(network_centralities, centr_betw(g, directed=FALSE)$centralization)
+
+    # network diameter
+    # diameter(g, directed=FALSE)  ; will use "weight" attrib of edges..
+    # > 8 hrs
+    #network_diameters <- c(network_diameters, diameter(g, directed=FALSE))
+
+    # mean_distance (unweighted)
+    #average_path_lengths <- c(average_path_lengths, mean_distance(g, directed=FALSE)) 
+
     rm(raw_adjacency_matrix)
     rm(raw_adj)
 
@@ -101,50 +145,7 @@ for (i in 1:length(input_nets)) {
     rownames(tmp) <- module_mapping$gene_id
     colnames(tmp) <- module_mapping$gene_id
 
-    # compute network metrics
-
-    # network density
-    # http://igraph.org/r/doc/edge_density.html
-    network_densities <- c(network_densities, edge_density(g))
-    rm(g)
-
-    # ratio of non-zero edges (global)
-    ratio_nonzero_edges <- c(ratio_nonzero_edges, sum(adjacency_matrix != 0) / length(adjacency_matrix))
-
-    # ratio of edges with values > 0.25, 0.50, 0.75
-    ratio_edges_1q <- c(ratio_edges_1q, sum(adjacency_matrix > 0.25) / length(adjacency_matrix))
-    ratio_edges_2q <- c(ratio_edges_2q, sum(adjacency_matrix > 0.50) / length(adjacency_matrix))
-    ratio_edges_3q <- c(ratio_edges_3q, sum(adjacency_matrix > 0.75) / length(adjacency_matrix))
-
-    # median non-zero edge weight value (global)
-    median_edge_weight_global <- c(median_edge_weight_global, median(adjacency_matrix[adjacency_matrix != 0]))
-
-    # median ratio of non-zero edges per gene
-    median_ratio_edges_per_gene <- c(median_ratio_edges_per_gene, 
-                                     median(apply(tmp, 1, function(x) { sum(x != 0) / nrow(tmp) })))
-
-    median_edge_weight_per_gene <- c(median_edge_weight_per_gene, 
-                                     median(apply(tmp, 1, function(x) { median(x[x != 0]) })))
-
-    # http://igraph.org/r/doc/transitivity.html
-    # doesn't work as expected with dense weighted networks 
-    # (and long run-time); disabling for now
-    # clustering_coefs <- c(clustering_coefs, transitivity(g, type='weighted'))
-
-    # network betweeness centrality
-    # http://igraph.org/r/doc/centr_betw.html
-    # centr_betw(g, directed=FALSE)
-    # ~1-2 hrs
-    #network_centralities <- c(network_centralities, centr_betw(g, directed=FALSE)$centralization)
-
-    # network diameter
-    # diameter(g, directed=FALSE)  ; will use "weight" attrib of edges..
-    # > 8 hrs
-    #network_diameters <- c(network_diameters, diameter(g, directed=FALSE))
-
-    # mean_distance (unweighted)
-    #average_path_lengths <- c(average_path_lengths, mean_distance(g, directed=FALSE)) 
-
+    # check dimensions
     if ((nrow(adjmat) != nrow(tmp)) || (!all(rownames(adjmat) == rownames(tmp)))) {
         # normalize matrix size and elements
         tmp_missing <- rownames(adjmat)[!rownames(adjmat) %in% rownames(tmp)]

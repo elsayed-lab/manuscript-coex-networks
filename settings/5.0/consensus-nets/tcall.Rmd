@@ -1,0 +1,59 @@
+```{r settings}
+#
+# T. cruzi infecting H. sapiens (all samples)
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Network Construction: T. cruzi (All Samples)", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'tcruzi_all_samples-multicopy-v6.1'),
+    output_prefix  = 'tcruzi',
+    quantile_cutoff = 0,
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_tcall.csv')),
+
+    normalization   = 'rank', # none, scale, rank
+
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('4', '6', '12', '20', '24', '48', '72'),
+        to=c(4, 6, 12, 20, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)',
+    xangle=90,
+    xhjust=0.5
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "T. cruzi",
+    target          = "pathogen",
+
+    organism_db     = "Trypanosoma.cruzi.CLBrener.Esmeraldo",
+    organism_genome = "TcCLB",
+    orgdb_key       = "GID",
+
+    input_count_tables  = file.path(counts_dir, "li2016", "tcruzi", "*.count"),
+
+    samples             = read_csv(file.path(metadata_dir, 'samples_tcall.csv')),
+    sample_id         = 'HPGL_ID',
+    condition         = 'Condition',
+    batch             = 'Batch',
+    covariates        = c('Batch'),
+    filter_multicopy  = FALSE,
+
+    main_comparison     = c(4, 72),
+    main_comparison_label = "ΔExpr (72 - 4 hours)",
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

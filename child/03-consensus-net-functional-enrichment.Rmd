@@ -1,4 +1,4 @@
-```{r functional_enrichment}
+```{r functional_enrichment, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
 # dummy objects for compatibility with shared functions
 network_counts <- list(
     final=matrix(0, nrow=nrow(adjmat))
@@ -45,10 +45,10 @@ go_pval_total <- 0
 
 for (module in names(module_go_enrichment)) {
     # over-represented terms with adj. p-val <= 0.05
-    mask <- module_go_enrichment[[module]]$over_represented_pvalue <= 0.05
+    mask <- module_go_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
     # -log10pvals (limit to 1E-10)
-    pvals <- module_go_enrichment[[module]]$over_represented_pvalue[mask]
+    pvals <- module_go_enrichment[[module]]$over_represented_pvalue_adj[mask]
     go_pval_total <- go_pval_total + sum(-log10(pmax(pvals, 10^-10)))
 }
 
@@ -59,10 +59,10 @@ kegg_pval_total <- 0
 
 for (module in names(module_kegg_enrichment)) {
     # over-represented terms with adj. p-val <= 0.05
-    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue <= 0.05
+    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
     # -log10pvals (limit to 1E-10)
-    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue[mask]
+    pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj[mask]
     kegg_pval_total <- kegg_pval_total + sum(-log10(pmax(pvals, 10^-10)))
 }
 
@@ -77,10 +77,10 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
 
     for (module in names(module_coreg_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj[mask]
         tf_pval_total <- tf_pval_total + sum(-log10(pmax(pvals, 10^-10)))
     }
 
@@ -93,10 +93,10 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
 
     for (module in names(module_cpdb_enrichment)) {
         # over-represented terms with adj. p-val <= 0.05
-        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue <= 0.05
+        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
 
         # -log10pvals (limit to 1E-10)
-        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue[mask]
+        pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj[mask]
         cpdb_pval_total <- cpdb_pval_total + sum(-log10(pmax(pvals, 10^-10)))
     }
 }
