@@ -1,10 +1,12 @@
 ---
 author: "V. Keith Hughitt"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-title: "Conserved signatures of infection: HsLm vs. HsTc"
 params:
   analysis_dirname: "06-conserved-signatures"
+  settings: ""
+  title: ""
   version: "5.0"
+title: "`r params$title` (`r params$version`)"
 output:
   html_document:
     theme: cosmo

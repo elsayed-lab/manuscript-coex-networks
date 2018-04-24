@@ -29,15 +29,16 @@ if (CONFIG$target == 'host') {
     # human consensus network scores
     consensus_scores <- data.frame(
         type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"),
-        score=c(go_pval_total, kegg_pval_total, cpdb_pval_total, tf_pval_total)
+        #score=c(go_pval_total, kegg_pval_total, cpdb_pval_total, tf_pval_total)
+        score=c(total_go_pvals[1], total_kegg_pvals[1], total_cpdb_pvals[1], total_tf_pvals[1])
     )
 
 } else {
     # parasite consensus network scores
     consensus_scores <- data.frame(
         type=c("GO Terms", "KEGG Pathways"),
-        score=c(go_pval_total, 
-                kegg_pval_total)
+        #score=c(go_pval_total, kegg_pval_total)
+        score=c(total_go_pvals[1], total_kegg_pvals[1])
     )
 }
 # replace labels
@@ -49,43 +50,6 @@ label_mapping <- data.frame(
 )
 indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
 
-# total unique annotation counts by annotation type
-#indiv_scores <- nets %>%
-#    select(starts_with('unique'), id) %>%
-#    melt(id.vars='id', variable.name='type',
-#            value.name='total')
-
-#if (CONFIG$target == 'host') {
-#    # human consensus network scores
-#    consensus_scores <- data.frame(
-#        type=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"),
-#        score=c(dat$`# Unique GO terms`[1], 
-#                dat$`# Unique KEGG pathways`[1],
-#                dat$`# Unique CPDB pathways`[1], 
-#                dat$`# Unique TF's`[1])
-#    )
-
-#} else {
-#    # parasite consensus network scores
-#    consensus_scores <- data.frame(
-#        type=c("GO Terms", "KEGG Pathways"),
-#        score=c(dat$`# Unique GO terms`[1], 
-#                dat$`# Unique KEGG pathways`[1])
-#    )
-#}
-## replace labels
-#label_mapping <- data.frame(
-#    from=c('unique_go_terms', 'unique_kegg_terms', 
-#            'unique_cpdb_terms', 'unique_marbach_terms'),
-#    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes")
-#)
-#indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
-##}
-
-## Exclude LeishCyc for now (sparesely annotated)
-#indiv_scores <- indiv_scores %>% 
-#    filter(type %in% c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes"))
-
 # plot of p-value scores by annotation type
 ggplot(indiv_scores, aes(x=total, fill=type)) +
     geom_density() +
@@ -93,23 +57,6 @@ ggplot(indiv_scores, aes(x=total, fill=type)) +
                 linetype='dashed', color='red') +
     theme_bw_high_res() +
     facet_wrap(~ type, scale = 'free_x')
-
-# Comparison of unfiltered consensus network score to distribution of
-# individual network scores
-#ggplot(data.frame(score=indiv_scores), aes(score)) +
-#    geom_histogram()
-    #geom_vline(xintercept=, linetype='dashed', color='red')
-
-# Comparison of 0-50th percentile filtered consensus networks to all 
-# individual networks
-#if ('total_go_pval' %in% colnames(nets)) {
-#    df <- rbind(data.frame(score=dat_pval_scores$pvalue_totals[1:51], type="Consensus Networks"),
-#                data.frame(score=nets$total_go_pval, type='Individual Networks'))
-
-#    ggplot(df, aes(x=score, group=type, fill=type)) +
-#        geom_density(alpha=0.5)
-#}
-
 ```
 
 ```{r table_1, results='asis'}

@@ -10,10 +10,6 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         num_genes=genes_passing,
         median_module_size=median_module_sizes,
         largest_module_size=largest_module_sizes,
-        num_unique_go_terms,
-        num_unique_kegg_pathways,
-        num_unique_cpdb_pathways,
-        num_unique_tfs,
         total_go_pvals,
         total_kegg_pvals,
         total_cpdb_pvals,
@@ -31,10 +27,6 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         `CPDB enrichment per gene`=total_cpdb_pvals/num_genes,
         `TF enrichment per gene`=total_tf_pvals/num_genes
     ) %>% dplyr::rename(
-        `# Unique GO terms`=num_unique_go_terms,
-        `# Unique KEGG pathways`=num_unique_kegg_pathways,
-        `# Unique CPDB pathways`=num_unique_cpdb_pathways,
-        `# Unique TF's`=num_unique_tfs,
         `GO enrichment -log10(p-val) score`=total_go_pvals,
         `KEGG enrichment -log10(p-val) score`=total_kegg_pvals,
         `CPDB enrichment -log10(p-val) score`=total_cpdb_pvals,
@@ -49,8 +41,6 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         num_genes=genes_passing,
         median_module_size=median_module_sizes,
         largest_module_size=largest_module_sizes,
-        num_unique_go_terms,
-        num_unique_kegg_pathways,
         total_go_pvals,
         total_kegg_pvals,
         num_go_enriched_modules,
@@ -61,31 +51,12 @@ if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         `GO enrichment per gene`=total_go_pvals/num_genes,
         `KEGG enrichment per gene`=total_kegg_pvals/num_genes,
     ) %>% dplyr::rename(
-        `# Unique GO terms`=num_unique_go_terms,
-        `# Unique KEGG pathways`=num_unique_kegg_pathways,
         `GO enrichment -log10(p-val) score`=total_go_pvals,
         `KEGG enrichment -log10(p-val) score`=total_kegg_pvals
     )
 }
 
 datatable(dat)
-```
-
-## Number of unique annotations
-
-```{r num_unique_annotations, fig.width=1600/300, fig.height=1080/300}
-dat_num_unique <- dat %>%
-    select(cutoff_quantile, starts_with('# Unique')) %>%
-    melt(id.vars='cutoff_quantile', variable.name='type',
-         value.name='num_unique_annotations')
-
-ggplot(dat_num_unique, aes(x=cutoff_quantile, y=num_unique_annotations, color=type)) +
-    geom_line() +
-    #geom_vline(xintercept=MANUSCRIPT_CONFIG$quantile_cutoff, linetype='dashed', color='red') +
-    theme_bw_high_res() +
-    theme(plot.title=element_text(margin=unit(c(0, 0, 3, 0), "mm"), size=10)) +
-    xlab('Edge Weight Cutoff Percentile') + ylab('# Unique annotations') +
-    ggtitle('Number of Unique Annotations vs. Edge Weight Cutoff')
 ```
 
 ## -log10(Adj. P-value) totals

@@ -17,11 +17,25 @@ pval_score_go   <- 0
 go_terms <- c()
 
 for (module in names(module_go_enrichment)) {
-    # over-represented terms with adj. p-val <= 0.05
-    mask <- module_go_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
+    # skip unclustered genes
+    if (module == 'grey') {
+        next
+    }
+
+    # over-represented terms with adj. p-val < 0.05
+    mask <- module_go_enrichment[[module]]$over_represented_pvalue_adj < 0.05
 
     # -log10pvals (limit to 1E-10)
     pvals <- module_go_enrichment[[module]]$over_represented_pvalue_adj[mask]
+    pval_score_go <- pval_score_go + sum(-log10(pmax(pvals, 10^-10)))
+
+    go_terms <- c(go_terms, module_go_enrichment[[module]]$category[mask])
+
+    # under-represented terms with adj. p-val < 0.05
+    mask <- module_go_enrichment[[module]]$under_represented_pvalue_adj < 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_go_enrichment[[module]]$under_represented_pvalue_adj[mask]
     pval_score_go <- pval_score_go + sum(-log10(pmax(pvals, 10^-10)))
 
     go_terms <- c(go_terms, module_go_enrichment[[module]]$category[mask])
@@ -32,11 +46,25 @@ pval_score_kegg <- 0
 kegg_pathways <- c()
 
 for (module in names(module_kegg_enrichment)) {
-    # over-represented terms with adj. p-val <= 0.05
-    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
+    # skip unclustered genes
+    if (module == 'grey') {
+        next
+    }
+
+    # over-represented terms with adj. p-val < 0.05
+    mask <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj < 0.05
 
     # -log10pvals (limit to 1E-10)
     pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj[mask]
+    pval_score_kegg <- pval_score_kegg + sum(-log10(pmax(pvals, 10^-10)))
+
+    kegg_pathways <- c(kegg_pathways, module_kegg_enrichment[[module]]$category[mask])
+
+    # under-represented terms with adj. p-val < 0.05
+    mask <- module_kegg_enrichment[[module]]$under_represented_pvalue_adj < 0.05
+
+    # -log10pvals (limit to 1E-10)
+    pvals <- module_kegg_enrichment[[module]]$under_represented_pvalue_adj[mask]
     pval_score_kegg <- pval_score_kegg + sum(-log10(pmax(pvals, 10^-10)))
 
     kegg_pathways <- c(kegg_pathways, module_kegg_enrichment[[module]]$category[mask])
@@ -51,11 +79,25 @@ if (CONFIG$target == 'host') {
 
     # CPDB
     for (module in names(module_cpdb_enrichment)) {
-        # over-represented terms with adj. p-val <= 0.05
-        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
+        # skip unclustered genes
+        if (module == 'grey') {
+            next
+        }
+
+        # over-represented terms with adj. p-val < 0.05
+        mask <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj < 0.05
 
         # -log10pvals (limit to 1E-10)
         pvals <- module_cpdb_enrichment[[module]]$over_represented_pvalue_adj[mask]
+        pval_score_cpdb <- pval_score_cpdb + sum(-log10(pmax(pvals, 10^-10)))
+
+        cpdb_pathways <- c(cpdb_pathways, module_go_enrichment[[module]]$category[mask])
+
+        # under-represented terms with adj. p-val < 0.05
+        mask <- module_cpdb_enrichment[[module]]$under_represented_pvalue_adj < 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_cpdb_enrichment[[module]]$under_represented_pvalue_adj[mask]
         pval_score_cpdb <- pval_score_cpdb + sum(-log10(pmax(pvals, 10^-10)))
 
         cpdb_pathways <- c(cpdb_pathways, module_go_enrichment[[module]]$category[mask])
@@ -63,11 +105,25 @@ if (CONFIG$target == 'host') {
 
     # Marbach 2016
     for (module in names(module_coreg_enrichment)) {
-        # over-represented terms with adj. p-val <= 0.05
-        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj <= 0.05
+        # skip unclustered genes
+        if (module == 'grey') {
+            next
+        }
+
+        # over-represented terms with adj. p-val < 0.05
+        mask <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj < 0.05
 
         # -log10pvals (limit to 1E-10)
         pvals <- module_coreg_enrichment[[module]]$over_represented_pvalue_adj[mask]
+        pval_score_coreg <- pval_score_coreg + sum(-log10(pmax(pvals, 10^-10)))
+
+        tfs <- c(tfs, module_coreg_enrichment[[module]]$category[mask])
+
+        # under-represented terms with adj. p-val < 0.05
+        mask <- module_coreg_enrichment[[module]]$under_represented_pvalue_adj < 0.05
+
+        # -log10pvals (limit to 1E-10)
+        pvals <- module_coreg_enrichment[[module]]$under_represented_pvalue_adj[mask]
         pval_score_coreg <- pval_score_coreg + sum(-log10(pmax(pvals, 10^-10)))
 
         tfs <- c(tfs, module_coreg_enrichment[[module]]$category[mask])
@@ -189,7 +245,7 @@ for (enrichment_result in ls()[grepl('module_[a-z]*_enrichment', ls())]) {
     label <- unlist(strsplit(enrichment_result, "_"))[2]
 
     # get annotation-specific enrichment data frame; for now, only include
-    # over-represented annotations and adjusted p-valus
+    # over-represented annotations and adjusted p-values
     df <- do.call("rbind", get(enrichment_result)) %>%
         select(-starts_with("under"), -over_represented_pvalue) %>%
         dplyr::rename(pval_adj=over_represented_pvalue_adj)
