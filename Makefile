@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 
 # Analysis version
-VERSION="5.0"
+VERSION="7.0"
 
 all: similarity construction analysis inf-vs-uninf hslm-vs-hstc
 

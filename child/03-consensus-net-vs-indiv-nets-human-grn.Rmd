@@ -4,7 +4,7 @@ Next, we will select a tissue-specific transcriptonal regulatory sub-network
 from the Marbach et al. (2016) high-level network compondium, and compare
 it to randomly selected individual networks, and to the consensus network.
 
-```{r human_consensus_indiv_subnet_comparison}
+```{r human_consensus_indiv_subnet_comparison, message = FALSE}
 # edge weight cutoff (quantile)
 tf_edge_weight_cutoff <- 0.95
 
@@ -84,6 +84,7 @@ sample_nets <- nets[sample(nrow(nets), 10),]
 
 for (net_id in sample_nets$id) {
     # load individual network
+    message(sprintf("Loading individual network %s...", net_id))
     load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%s.RData", net_id)))
     load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%s_adjmat.RData", net_id)))
 
@@ -117,6 +118,5 @@ colnames(compare_mat) <- c('marbach', 'consensus', sprintf("indiv_net_%d", sampl
 ```
 
 ```{r message=FALSE, fig.width=2, fig.height=2}
-library("heatmaply")
 heatmaply(compare_mat, distfun='pearson')
 ```

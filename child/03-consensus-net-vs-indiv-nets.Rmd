@@ -14,6 +14,17 @@ the original genes present.
 ```{r comparison_to_individual_networks, fig.height=ifelse(CONFIG$target == 'host', 3.375, 2.5)}
 nets <- MANUSCRIPT_CONFIG$networks
 
+# if filtering is disabled, create necessary single-element vectors by hand
+if (!'total_go_pvals' %in% ls()) {
+    total_go_pvals   <- go_pval_total
+    total_kegg_pvals <- kegg_pval_total
+
+    if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
+        total_cpdb_pvals <- cpdb_pval_total
+        total_tf_pvals   <- tf_pval_total
+    }
+}
+
 # compute score for each network using -log10 p-value scores, if available, or
 # else total unique annotations
 
@@ -84,24 +95,8 @@ xkable(table_1, caption='Table 1. Comparison of unfiltered consensus network to 
 ## Network metrics (individual vs. consensus networks)
 
 ```{r}
-# create a max-scaled version of consensus network for a more equal comparison
-# to individual nets
+# create a max-scaled version of consensus network for comparison to individual nets
 scaled_adjmat <- adjmat / max(adjmat)
-```
-
-### Network densities
-
-```{r network_density}
-# consensus network density
-g <- graph.adjacency(scaled_adjmat, mode='undirected', weighted=TRUE)
-consensus_val <- edge_density(g)
-rm(g)
-
-ggplot(data.frame(x=network_densities), aes(x)) +
-    geom_density(fill='#7ebd37') +
-    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
-    xlab("Network Density") +
-    theme_bw_high_res()
 ```
 
 ## Ratio of non-zero edges (global)
@@ -164,26 +159,3 @@ ggplot(data.frame(x=median_edge_weight_global), aes(x)) +
     theme_bw_high_res()
 ```
 
-## Median ratio of non-zero edges per gene
-
-```{r median_ratio_nonzero_edges_per_gene}
-consensus_val <- median(apply(scaled_adjmat, 1, function(x) { sum(x != 0) / nrow(scaled_adjmat) }))
-
-ggplot(data.frame(x=median_ratio_edges_per_gene), aes(x)) +
-    geom_density(fill='#7ebd37') +
-    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
-    xlab("Median Ratio Non-zero Edges Per Gene") +
-    theme_bw_high_res()
-```
-
-## Median Non-zero Edge Weight per Gene
-
-```{r median_nonzero_edge_weight_per_gene}
-consensus_val <- median(apply(scaled_adjmat, 1, function(x) { median(x[x != 0]) }))
-
-ggplot(data.frame(x=median_edge_weight_per_gene), aes(x)) +
-    geom_density(fill='#7ebd37') +
-    geom_vline(xintercept=consensus_val, linetype='dashed', color='#bd373b') +
-    xlab("Median Non-zero Edge Weight Per Gene") +
-    theme_bw_high_res()
-```

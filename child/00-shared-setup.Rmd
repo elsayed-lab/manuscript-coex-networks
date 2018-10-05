@@ -21,21 +21,22 @@ if ("MANUSCRIPT_CONFIG" %in% ls()) {
     output_suffix <- MANUSCRIPT_CONFIG$output_prefix
 }
 
-output_prefix    <- file.path('output', params$version, params$analysis_dirname)
+# directories
+output_prefix    <- file.path(base_dir, 'output', params$version, params$analysis_dirname) 
 output_datadir   <- file.path(output_prefix, 'data')
 output_tabledir  <- file.path(output_prefix, 'table')
 output_figprefix <- file.path(output_prefix, 'figure', paste0(output_suffix, '-'))
 
 # create output directories, if needed
 if (!dir.exists(output_datadir)) {
-    dir.create(file.path('..', output_datadir), recursive=TRUE)
+    dir.create(output_datadir, recursive = TRUE)
 }
 
 if (!dir.exists(output_tabledir)) {
-    dir.create(file.path('..', output_tabledir), recursive=TRUE)
+    dir.create(output_tabledir, recursive=TRUE)
 }
 
-cache_dir <- file.path('cache', output_prefix, output_suffix)
+cache_dir <- file.path(base_dir, 'cache', 'output', params$version, params$analysis_dirname, output_suffix)
 
 opts_chunk$set(fig.path=output_figprefix,
                dev=c('png', 'cairo_pdf'),

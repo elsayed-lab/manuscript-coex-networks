@@ -35,25 +35,27 @@ Methods
 =======
 
 ```{r load_libraries, message=FALSE, results='hide'}
-library('annotables')
-library('biomaRt')
-library('clusteval')
-library('doParallel')
-library('plyr')
-library('dplyr')
-library('dynamicTreeCut')
-library('DT')
-library('flashClust')
-library('foreach')
-library('ggplot2')
-library('goseq')
-library('gplots')
-library('hpgltools')
-library('igraph')
-library('knitr')
-library('knitcitations')
-library('reshape2')
-library('tools')
+library(annotables)
+library(biomaRt)
+library(clusteval)
+library(data.table)
+library(digest)
+library(doParallel)
+library(plyr)
+library(dynamicTreeCut)
+library(DT)
+library(flashClust)
+library(foreach)
+library(goseq)
+library(gplots)
+library(heatmaply)
+library(hpgltools)
+library(igraph)
+library(knitr)
+library(knitcitations)
+library(reshape2)
+library(tools)
+library(tidyverse)
 
 source('../../2015/00-shared/R/annotations.R')
 source('../../2015/00-shared/R/enrichment_analysis.R')
@@ -80,12 +82,10 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
 ```
 
-```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
-```
-
-```{r child='child/03-filtered-consensus-net-results.Rmd'}
-```
-
+<!-- 
+{r child='child/03-filtered-consensus-net-comparison.Rmd'}
+{r child='child/03-filtered-consensus-net-results.Rmd'}
+-->
 
 Results
 =======
@@ -94,15 +94,6 @@ Results
 ```
 
 ```{r child='child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval=CONFIG$target == 'host'}
-```
-
-```{r save_rdata}
-# save RData files to output dir
-save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
-
-# 2017/12/25: disabling filtering-related results for now
-#save(dat, dat_num_unique,  dat_ratio_enrichment,
-#     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 ```
 
 ```{r save_tables}
@@ -122,5 +113,9 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 } else {
     system(sprintf('(sleep 30 && mv 03-consensus-network-construction.html %s) &', html_filepath))
 }
+```
+
+```{r}
+sessionInfo()
 ```
 

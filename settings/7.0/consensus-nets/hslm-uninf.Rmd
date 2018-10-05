@@ -1,0 +1,63 @@
+```{r settings}
+#
+# H. sapiens infected with L. major settings (Uninfected samples only)
+#
+# - unfiltered version of networks...
+#
+
+#
+# Manuscript-specific configuration
+#
+MANUSCRIPT_CONFIG <- list(
+    title           = "Consensus Network Construction: H. sapiens infected with L. major (Uninf)", 
+    input_dir       = file.path(Sys.getenv('SCRATCH'), 'param_opt', 'normal',
+                                'hsapiens_infected_with_lmajor-uninf-v7.0'),
+    output_prefix  = 'hslm-uninf',
+    quantile_cutoff = 0,
+    networks        = read_csv(file.path(indiv_nets_dir, 'networks_hslm-uninf.csv')),
+
+    normalization   = 'rank', # none, scale, rank
+
+    # Alternate condition values to use for plotting, etc.
+    "condition_mapping" = data.frame(
+        from=c('uninf4', 'uninf24', 'uninf48', 'uninf72', 
+               'infLM4', 'infLM24', 'infLM48', 'infLM72'),
+        to=c(4, 24, 48, 72, 4, 24, 48, 72)
+    ),
+    xlabel='Time (hrs)',
+    xangle=90,
+    xhjust=0.5
+)
+
+#
+# Base co-expression analysis configuration
+#
+CONFIG <- list(
+    host            = "H. sapiens",
+    pathogen        = "L. major",
+    target          = "host",
+
+    organism_db     = "Homo.sapiens",
+    organism_genome = "hg19",
+    txdb            = "TxDb.Hsapiens.UCSC.hg19.knownGene",
+    orgdb_key       = "ENSEMBL",
+    biomart_dataset = "hsapiens_gene_ensembl",
+
+    input_count_tables  = file.path(counts_dir, "fernandes2016", "hsapiens", "*.count"),
+    samples             = read_csv(file.path(metadata_dir, 'samples_hslm.csv')) %>%
+                              filter(startsWith(Condition, 'uninf')),
+    'sample_id'         = 'HPGL_ID',
+    'condition'         = 'Condition',
+    'batch'             = 'Batch',
+    'covariates'        = c('Batch'),
+
+    main_comparison       = c('uninf4', 'uninf72'),
+    main_comparison_label = "ΔExpr (72 - 4 hrs)",
+
+    verbose             = FALSE,
+    include_tables      = TRUE,
+    include_plots       = FALSE,
+    debug               = FALSE,
+    use_cache           = FALSE
+)
+```

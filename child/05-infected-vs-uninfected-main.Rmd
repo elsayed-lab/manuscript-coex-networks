@@ -344,9 +344,7 @@ message("Saving difference network GraphML...")
 #diff <- log1p(diff)
 diff_scaled <- diff / max(abs(diff))
 
-message("CURRENT DIR")
-message(getwd())
-outfile <- file.path('..', output_datadir, paste0('difference_network_', output_suffix, '.graphml'))
+outfile <- file.path(output_datadir, paste0('difference_network_', output_suffix, '.graphml'))
 
 # annotations
 annot <- cbind(gene_info, color=module_colors, cluster=module_labels)

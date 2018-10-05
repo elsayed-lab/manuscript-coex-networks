@@ -20,11 +20,12 @@ Overview
 ========
 
 ```{r load_libraries, message=FALSE}
-library('dplyr')
-library('igraph')
-library('knitr')
-library('readr')
-library('printr')
+library(dplyr)
+library(igraph)
+library(knitr)
+library(readr)
+library(rJava)
+library(printr)
 
 output_tabledir <- 'output/1.0/07-summary/table'
 

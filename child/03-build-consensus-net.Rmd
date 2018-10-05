@@ -22,110 +22,75 @@ if ('networks' %in% names(MANUSCRIPT_CONFIG)) {
     input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
 }
 
-# load adjacency matrix and module mapping for the first network
-load(input_rdas[1])
-
-# use module mapping to determine adjacency matrix dimensions
-matsize <- nrow(module_mapping)
-
-# create empty adjacency matrix from first network
-adjmat <- matrix(0, nrow=matsize, ncol=matsize)
-
-# note, genes are stored in the same order in the adjacency matrix and the
-# module mapping, so we can infer id's from the mapping
-rownames(adjmat) <- module_mapping$gene_id
-colnames(adjmat) <- module_mapping$gene_id
-
 # empty vectors to keep track of network metrics
-network_densities    <- c()
 ratio_nonzero_edges  <- c()
 ratio_edges_1q       <- c()
 ratio_edges_2q       <- c()
 ratio_edges_3q       <- c()
 median_edge_weight_global   <- c()
-median_ratio_edges_per_gene <- c() 
-median_edge_weight_per_gene <- c() 
+
+# Note: for performance purposes, we will hold off converting the stored upper triangular 
+# adjacency matrix values until the very last step. 
+# We will limit ourselves to only those genes found in all networks; currently,
+# there are few parameters which affect the total number of genes in the network, and as such,
+# there are likely only a few possible combinations of genes present. To avoid having to convert
+# the adj mat upper triangular values back into a matrix (slow for large adjacency matrices) each 
+# time to determine which entries need to be removed, we will instead maintain multiple separate 
+# "sub" consensus vectors; one for each gene subset present. After all of the matrices have been
+# loaded, we will then convert each configuration back in to a matrix and remove genes not
+# present in all networks, before combining into a final consensus network.
+
+# Example (HsTc v7.0)
+# > table(x$num_genes)
+# 29109 29148 29219 
+#  224   224   896 
+#
+
+# lists to keep track of sub-consensus networks associated with each gene configuration present
+# (typically only three such configurations present for a given dataset)
+adjmats <- list()
+modmaps <- list()
 
 # iterate over remaining networks and add to consensus net
+#
 for (i in 1:length(input_nets)) {
     # load saved data
-    message(sprintf("Loading network %d/%d", i, length(input_nets)))
+    message(sprintf("Loading network %d/%d (%s)", i, length(input_nets), basename(input_nets[i])))
+    message(sprintf("1. %s", Sys.time()))
 
     load(input_nets[i])
     load(input_rdas[i])
 
-
-    # reconstruct adjacency matrix
-    matsize <- nrow(module_mapping)
+    message(sprintf("2. %s", Sys.time()))
 
     # check to make sure dimensions are as expected (a few adjacency matrices
-    # in the past were corrupted, leading to issues; has since been fixed
-    # upstream..)
+    # in the past were corrupted, leading to issues; the problem has since been fixed
+    # upstream and should no longer occur, but leaving check just to be safe..)
+    matsize <- nrow(module_mapping)
+
     if ((((matsize * matsize) - matsize) / 2) != length(adjacency_matrix)) {
-        warning(sprintf("Dimension mismatch for adjacency matrix: %s", 
-                        input_rdas[i]))
+        warning(sprintf("Dimension mismatch for adjacency matrix: %s", input_rdas[i]))
         stop(sprintf("Incompatible adjacency matrix input: %s", input_nets[i]))
     }
 
-    # save a non-normalized version of network for computing network metrics
-    raw_adjacency_matrix <- adjacency_matrix
-
-    # convert upper.tri weight vector back into adj matrix (raw)
-    raw_adj <- matrix(0, nrow=matsize, ncol=matsize)
-    raw_adj[upper.tri(raw_adj)] <- raw_adjacency_matrix
-    raw_adj[lower.tri(raw_adj)] <- t(raw_adj)[lower.tri(raw_adj)]
-
-    rownames(raw_adj) <- module_mapping$gene_id
-    colnames(raw_adj) <- module_mapping$gene_id
-
-    g <- graph.adjacency(raw_adj, mode='undirected', weighted=TRUE)
-
-    # compute network metrics
-
-    # network density
-    # http://igraph.org/r/doc/edge_density.html
-    network_densities <- c(network_densities, edge_density(g))
-    rm(g)
-
     # ratio of non-zero edges (global)
-    ratio_nonzero_edges <- c(ratio_nonzero_edges, sum(raw_adjacency_matrix != 0) / length(raw_adjacency_matrix))
+    ratio_nonzero_edges <- c(ratio_nonzero_edges, sum(adjacency_matrix != 0) /
+                             length(adjacency_matrix))
 
-    # ratio of edges with values > 0.25, 0.50, 0.75
-    ratio_edges_1q <- c(ratio_edges_1q, sum(raw_adjacency_matrix > 0.25) / length(raw_adjacency_matrix))
-    ratio_edges_2q <- c(ratio_edges_2q, sum(raw_adjacency_matrix > 0.50) / length(raw_adjacency_matrix))
-    ratio_edges_3q <- c(ratio_edges_3q, sum(raw_adjacency_matrix > 0.75) / length(raw_adjacency_matrix))
+    # ratio of edges with values > 0.25, 0.50, 0.75 of the maximum edge weight
+    scaled_adjmat <- adjacency_matrix / max(adjacency_matrix)
+
+    ratio_edges_1q <- c(ratio_edges_1q, sum(scaled_adjmat > 0.25) / length(scaled_adjmat))
+    ratio_edges_2q <- c(ratio_edges_2q, sum(scaled_adjmat > 0.50) / length(scaled_adjmat))
+    ratio_edges_3q <- c(ratio_edges_3q, sum(scaled_adjmat > 0.75) / length(scaled_adjmat))
+
+    message(sprintf("3. %s", Sys.time()))
 
     # median non-zero edge weight value (global)
-    median_edge_weight_global <- c(median_edge_weight_global, median(raw_adjacency_matrix[raw_adjacency_matrix != 0]))
+    median_edge_weight_global <- c(median_edge_weight_global, 
+                                   median(adjacency_matrix[adjacency_matrix != 0]))
 
-    # median ratio of non-zero edges per gene
-    median_ratio_edges_per_gene <- c(median_ratio_edges_per_gene, 
-                                     median(apply(raw_adj, 1, function(x) { sum(x != 0) / nrow(raw_adj) })))
-
-    median_edge_weight_per_gene <- c(median_edge_weight_per_gene, 
-                                     median(apply(raw_adj, 1, function(x) { median(x[x != 0]) })))
-
-    # http://igraph.org/r/doc/transitivity.html
-    # doesn't work as expected with dense weighted networks 
-    # (and long run-time); disabling for now
-    # clustering_coefs <- c(clustering_coefs, transitivity(g, type='weighted'))
-
-    # network betweeness centrality
-    # http://igraph.org/r/doc/centr_betw.html
-    # centr_betw(g, directed=FALSE)
-    # ~1-2 hrs
-    #network_centralities <- c(network_centralities, centr_betw(g, directed=FALSE)$centralization)
-
-    # network diameter
-    # diameter(g, directed=FALSE)  ; will use "weight" attrib of edges..
-    # > 8 hrs
-    #network_diameters <- c(network_diameters, diameter(g, directed=FALSE))
-
-    # mean_distance (unweighted)
-    #average_path_lengths <- c(average_path_lengths, mean_distance(g, directed=FALSE)) 
-
-    rm(raw_adjacency_matrix)
-    rm(raw_adj)
+    message(sprintf("4. %s", Sys.time()))
 
     # normalize edge weights
     if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
@@ -133,58 +98,81 @@ for (i in 1:length(input_nets)) {
             # size-factor normalization
             adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
         } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
-            adjacency_matrix <- rank(adjacency_matrix) * 1E-5
+            # rank-based normalization
+            adjacency_matrix <- data.table::frank(adjacency_matrix) * 1E-5
         }
     }
 
+    message(sprintf("5. %s", Sys.time()))
+
+    # add to consensus sub-matrix
+    key <- digest(sort(module_mapping$gene_id), algo = 'md5')
+
+    if (!key %in% names(adjmats)) {
+        # new gene configuration
+        adjmats[[key]] <- adjacency_matrix
+        modmaps[[key]] <- module_mapping
+    } else {
+        # existing gene configuration
+        adjmats[[key]] <- adjmats[[key]] + adjacency_matrix
+    }
+    message(sprintf("6. %s", Sys.time()))
+}
+
+# determine which genes are present in all networks
+shared_genes <- sort(Reduce(intersect, lapply(modmaps, '[[', 'gene_id')))
+
+# create empty adjacency matrix with expected dimensions
+adjmat <- matrix(0, nrow = length(shared_genes), ncol = length(shared_genes))
+
+rownames(adjmat) <- shared_genes
+colnames(adjmat) <- shared_genes
+
+# iterate over gene configurations and add to combined (final) consensus adjacency matrix
+for (key in names(adjmats)) {
+    # get module mapping
+    module_mapping <- modmaps[[key]]
+
+    # convert upper triangular matrix values back into full matrix
+    matsize <- nrow(module_mapping)
+
     # convert upper.tri weight vector back into adj matrix (normalized)
-    tmp <- matrix(0, nrow=matsize, ncol=matsize)
+    tmp <- matrix(0, nrow = matsize, ncol = matsize)
     tmp[upper.tri(tmp)] <- adjacency_matrix
-    tmp[lower.tri(tmp)] <- t(tmp)[lower.tri(tmp)]
 
     rownames(tmp) <- module_mapping$gene_id
     colnames(tmp) <- module_mapping$gene_id
 
-    # check dimensions
-    if ((nrow(adjmat) != nrow(tmp)) || (!all(rownames(adjmat) == rownames(tmp)))) {
-        # normalize matrix size and elements
-        tmp_missing <- rownames(adjmat)[!rownames(adjmat) %in% rownames(tmp)]
-        if (length(tmp_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(tmp)
+    # drop non-shared genes, if present
+    tmp <- tmp[rownames(tmp) %in% shared_genes, colnames(tmp) %in% shared_genes]
 
-            tmp <- rbind(tmp, matrix(0, nrow=length(tmp_missing), ncol=ncol(tmp)))
-            tmp <- cbind(tmp, matrix(0, nrow=nrow(tmp), ncol=length(tmp_missing)))
-
-            rownames(tmp) <- c(gene_ids, tmp_missing)
-            colnames(tmp) <- c(gene_ids, tmp_missing)
-
-        }
-
-        adj_missing <- rownames(tmp)[!rownames(tmp) %in% rownames(adjmat)]
-        if (length(adj_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(adjmat)
-
-            adjmat <- rbind(adjmat, matrix(0, nrow=length(adj_missing), ncol=ncol(adjmat)))
-            adjmat <- cbind(adjmat, matrix(0, nrow=nrow(adjmat), ncol=length(adj_missing)))
-
-            rownames(adjmat) <- c(gene_ids, adj_missing)
-            colnames(adjmat) <- c(gene_ids, adj_missing)
-        }
-
-        # normalize row/column order
-        tmp <- tmp[order(rownames(tmp)),order(colnames(tmp))]
-        adjmat <- adjmat[order(rownames(adjmat)),order(colnames(adjmat))]
+    # rows and columsn should already be in sorted order, but just to be safe...
+    if (rownames(tmp) != rownames(adjmat)) {
+        stop("Mismatched adjacency matrix entries!")
     }
 
-    # combine matrices
+    # add to combined matrix
     adjmat <- adjmat + tmp
 }
+
+# fill in lower triangular part of adjacency matrix (symmetric)
+adjmat[lower.tri(adjmat)] <- t(adjmat)[lower.tri(adjmat)]
 
 # histogram of the consensus adj matrix edge weight distribution
 #hist(log1p(adjmat))
 hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
      xlab="Edge weight")
 ```
+
+```{r save_rdata}
+# save RData files to output dir
+save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+
+# 2017/12/25: disabling filtering-related results for now
+#save(dat, dat_num_unique,  dat_ratio_enrichment,
+#     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
+
+gc()
+```
+
 

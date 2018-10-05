@@ -19,7 +19,7 @@ for (tbl_name in tbl_vars) {
         filename <- sprintf("%s_%s.tab", tbl_name, MANUSCRIPT_CONFIG$output_prefix)
 
         # write table to file
-        write.table(format(tbl_, digits=3), file=file.path('..', output_tabledir, filename),
+        write.table(format(tbl_, digits=3), file=file.path(output_tabledir, filename),
                     row.names=FALSE, quote=FALSE, sep="\t")
     } else {
         # Otherwise, if multiple tables stored in a list, save as XLS with
@@ -27,7 +27,7 @@ for (tbl_name in tbl_vars) {
 
         # output filepath
         filename <- sprintf("%s_%s.xlsx", tbl_name, MANUSCRIPT_CONFIG$output_prefix)
-        xls_filepath <- file.path('..', output_tabledir, filename)
+        xls_filepath <- file.path(output_tabledir, filename)
 
         sheet_names <- names(tbl_)
 

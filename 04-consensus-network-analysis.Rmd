@@ -56,14 +56,12 @@ Methods
 library('biomaRt')
 library('clusteval')
 library('doParallel')
-library('dplyr')
 library('DT')
 library('dynamicTreeCut')
 library('flashClust')
 library('foreach')
 library('goseq')
 library('gplots')
-library('ggplot2')
 library('gridExtra')
 library('hpgltools')
 library('infotheo')
@@ -71,15 +69,14 @@ library('igraph')
 library('knitr')
 library('knitcitations')
 library('matrixStats')
-library('readr')
 library('RColorBrewer')
 library('reshape2')
-library('tibble')
 library('tools')
 library('venneuler')
 library('viridis')
 library('WGCNA')
 library('xlsx')
+library('tidyverse')
 
 source('../../2015/00-shared/R/annotations.R')
 source('../../2015/00-shared/R/count_tables.R')
@@ -225,6 +222,10 @@ for (x in files[grepl(output_suffix, files)]) {
     uri <- file.path('data', sub(output_prefix, '', x))
     cat(sprintf('- [%s](%s)\n', basename(x), uri))
 }
+
+# free up memory for pandoc
+rm(filtered_adjmat)
+suppressMessages(gc())
 ```
 
 ```{r save_output}
