@@ -97,7 +97,7 @@ plot(density(sample(edge_ratio_mat[edge_ratio_mat != 0], 1E5)),
      main='', xlab='Ratio of Networks Containing Edge')
 ```
 
-Edges which ocurr in many of the networks:
+### Edges which ocurr in many of the networks
 
 ```{r, results='asis'}
 # find the edges which occur with the highest frequency
@@ -107,17 +107,22 @@ stable_edges <- which(edge_ratio_mat > 0.925, arr.ind=TRUE)
 from <- rownames(edge_ratio_mat)[stable_edges[,1]]
 
 # description
-from_idx <- match(from, grch37$ensgene)
-from[!is.na(from_idx)] <- grch37$description[from_idx][!is.na(from_idx)]
+#from_idx <- match(from, grch37$ensgene)
+#from[!is.na(from_idx)] <- grch37$description[from_idx][!is.na(from_idx)]
 
 # symbol (when description isn't available)
-from[from[!is.na(from_idx)] == ""] <- grch37$symbol[from_idx[from[!is.na(from_idx)] == ""]]
+#from[from[!is.na(from_idx)] == ""] <- grch37$symbol[from_idx[from[!is.na(from_idx)] == ""]]
+
+# gene symbol
+from[!is.na(from_idx)] <- grch37$symbol[from_idx][!is.na(from_idx)]
 
 # same thing but for to vertices
 to <- colnames(edge_ratio_mat)[stable_edges[,2]]
 to_idx <- match(to, grch37$ensgene)
-to[!is.na(to_idx)] <- grch37$description[to_idx][!is.na(to_idx)]
-to[to[!is.na(to_idx)] == ""] <- grch37$symbol[to_idx[to[!is.na(to_idx)] == ""]]
+to[!is.na(to_idx)] <- grch37$symbol[to_idx][!is.na(to_idx)]
+
+#to[!is.na(to_idx)] <- grch37$description[to_idx][!is.na(to_idx)]
+#to[to[!is.na(to_idx)] == ""] <- grch37$symbol[to_idx[to[!is.na(to_idx)] == ""]]
 
 stable_edge_mat <- cbind(from, to)
 kable(stable_edge_mat)
