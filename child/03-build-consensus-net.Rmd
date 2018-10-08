@@ -47,9 +47,9 @@ median_edge_weight_global   <- c()
 #
 
 # lists to keep track of sub-consensus networks associated with each gene configuration present
-# (typically only three such configurations present for a given dataset)
+# (typically only one to three such configurations present for a given dataset)
 adjmats <- list()
-modmaps <- list()
+adjmat_genes <- list()
 
 # iterate over remaining networks and add to consensus net
 #
@@ -105,22 +105,31 @@ for (i in 1:length(input_nets)) {
 
     message(sprintf("5. %s", Sys.time()))
 
-    # add to consensus sub-matrix
-    key <- digest(sort(module_mapping$gene_id), algo = 'md5')
+    # add to consensus sub-matrix (using md5 hash of gene ids to identify subset)
+    key <- digest(module_mapping$gene_id, algo = 'md5')
 
     if (!key %in% names(adjmats)) {
         # new gene configuration
-        adjmats[[key]] <- adjacency_matrix
-        modmaps[[key]] <- module_mapping
+        adjmats[[key]]      <- adjacency_matrix
+        adjmat_genes[[key]] <- module_mapping$gene_id
     } else {
         # existing gene configuration
         adjmats[[key]] <- adjmats[[key]] + adjacency_matrix
     }
+    # TESTING
+    message('---')
+    message("Adjacency matrix subsets:")
+    message(paste(names(adjmats), collapse = ' / '))
+    message(paste(sapply(adjmats, length), collapse = ' / '))
+    message('---')
+
     message(sprintf("6. %s", Sys.time()))
 }
+```
 
+```{r recombine_adj_submats}
 # determine which genes are present in all networks
-shared_genes <- sort(Reduce(intersect, lapply(modmaps, '[[', 'gene_id')))
+shared_genes <- Reduce(intersect, adjmat_genes)
 
 # create empty adjacency matrix with expected dimensions
 adjmat <- matrix(0, nrow = length(shared_genes), ncol = length(shared_genes))
@@ -130,24 +139,25 @@ colnames(adjmat) <- shared_genes
 
 # iterate over gene configurations and add to combined (final) consensus adjacency matrix
 for (key in names(adjmats)) {
-    # get module mapping
-    module_mapping <- modmaps[[key]]
+    # get gene ids (adjmats and module_mappings are always stored with rows/cols sorted by gene id)
+    submat_genes <- adjmat_genes[[key]]
 
     # convert upper triangular matrix values back into full matrix
-    matsize <- nrow(module_mapping)
+    matsize <- length(submat_genes) 
 
     # convert upper.tri weight vector back into adj matrix (normalized)
     tmp <- matrix(0, nrow = matsize, ncol = matsize)
-    tmp[upper.tri(tmp)] <- adjacency_matrix
+    tmp[upper.tri(tmp)] <- adjmats[[key]]
 
-    rownames(tmp) <- module_mapping$gene_id
-    colnames(tmp) <- module_mapping$gene_id
+    rownames(tmp) <- submat_genes
+    colnames(tmp) <- submat_genes
 
     # drop non-shared genes, if present
-    tmp <- tmp[rownames(tmp) %in% shared_genes, colnames(tmp) %in% shared_genes]
+    mask <- rownames(tmp) %in% shared_genes
+    tmp <- tmp[mask, mask]
 
     # rows and columsn should already be in sorted order, but just to be safe...
-    if (rownames(tmp) != rownames(adjmat)) {
+    if (!all(rownames(tmp) == rownames(adjmat))) {
         stop("Mismatched adjacency matrix entries!")
     }
 
@@ -168,7 +178,7 @@ hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
 
-# 2017/12/25: disabling filtering-related results for now
+# 2017/12/25: disabling filtering-related results for now (slow...)
 #save(dat, dat_num_unique,  dat_ratio_enrichment,
 #     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
 

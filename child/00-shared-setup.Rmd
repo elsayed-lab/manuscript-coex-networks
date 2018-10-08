@@ -1,7 +1,4 @@
 ```{r load_settings, message=FALSE, include=FALSE}
-library('knitr')
-library('readr')
-
 # input directories
 base_dir       <- normalizePath('..')
 
