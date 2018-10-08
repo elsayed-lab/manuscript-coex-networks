@@ -37,7 +37,7 @@ num_tf_enriched_modules <- c()
 gene_info_orig <- gene_info
 
 # cutoffs to compare
-quantile_cutoffs <- seq(0.0, 0.99, by=0.10)
+quantile_cutoffs <- seq(0.0, 0.99, by=0.05)
 
 # iterate over cutoffs and construct and evaluate filtered co-expression 
 # networks for each cutoff

@@ -53,7 +53,7 @@ target_genes <- unique(c(tf_mapping_subset$ensgene, tf_mapping_subset$enstf))
 mask <- rownames(adjmat) %in% target_genes 
 
 # get consensus adjacency matrix and shift to range [0,1]
-subnet <- adjmat[mask,mask]
+subnet <- adjmat[mask, mask]
 
 # get edge weights of interest from consensus mat
 consensus_edge_weights <- subnet[cbind(tf_mapping_subset$enstf, tf_mapping_subset$ensgene)]

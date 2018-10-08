@@ -177,12 +177,7 @@ hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
 ```{r save_rdata}
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
-
-# 2017/12/25: disabling filtering-related results for now (slow...)
-#save(dat, dat_num_unique,  dat_ratio_enrichment,
-#     file=file.path(output_datadir, paste0('results_', output_suffix, '.rda')))
-
-gc()
+suppressMessages(gc())
 ```
 
 

@@ -3,10 +3,10 @@ SHELL=/bin/bash
 # Analysis version
 VERSION="7.0"
 
-all: similarity construction analysis inf-vs-uninf hslm-vs-hstc
+all: indiv_enrichment similarity construction analysis inf-vs-uninf hslm-vs-hstc
 
 clean:
-	rm -r README_cache
+	rm -r cache
 
 indiv_enrichment:
 	echo "---------- Processing Individual Network Enrichment Results ----------"; \

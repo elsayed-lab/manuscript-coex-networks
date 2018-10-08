@@ -159,3 +159,8 @@ ggplot(data.frame(x=median_edge_weight_global), aes(x)) +
     theme_bw_high_res()
 ```
 
+```{r cleanup, include = FALSE, echo = FALSE}
+rm(scaled_adjmat)
+suppressMessages(gc())
+```
+

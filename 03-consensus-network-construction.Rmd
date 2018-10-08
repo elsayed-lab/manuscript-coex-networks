@@ -82,10 +82,11 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
 ```
 
-<!-- 
-{r child='child/03-filtered-consensus-net-comparison.Rmd'}
-{r child='child/03-filtered-consensus-net-results.Rmd'}
--->
+```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
+```
+
+```{r child='child/03-filtered-consensus-net-results.Rmd'}
+```
 
 Results
 =======
@@ -103,15 +104,19 @@ write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_su
 ```
 
 ```{r save_output, include=FALSE}
+# free up memory for pandoc conversion
+rm(adjmat)
+suppressMessages(gc())
+
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
 html_filepath <- file.path(output_prefix, paste0('network_construction_', MANUSCRIPT_CONFIG$output_prefix, '.html'))
 pdf_filepath <- sub('html', 'pdf', html_filepath)
 
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.pdf %s) &', pdf_filepath))
+    system(sprintf('(sleep 60 && mv 03-consensus-network-construction.pdf %s) &', pdf_filepath))
 } else {
-    system(sprintf('(sleep 30 && mv 03-consensus-network-construction.html %s) &', html_filepath))
+    system(sprintf('(sleep 60 && mv 03-consensus-network-construction.html %s) &', html_filepath))
 }
 ```
 

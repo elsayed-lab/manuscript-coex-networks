@@ -14,9 +14,9 @@ distmat <- 1 - (adjmat / max(adjmat))
 gene_tree <- flashClust(as.dist(distmat), method="average")
 gene_tree$height <- round(gene_tree$height, 6)
 
-# 2017/12/16: Enable deepSplit to allow for a fair comparison with indiv nets
-#module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
-module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=TRUE, minModuleSize=10)
+# 2018/10/08: v7.0 individual networks constructed with deepSplit = FALSE and a minimum
+# module size of 10
+module_labels <- cutreeDynamicTree(dendro=gene_tree, deepSplit=FALSE, minModuleSize=10)
 
 num_labels <- length(unique(module_labels))
 pal <- c('grey', substring(rainbow(num_labels), 1, 7))
