@@ -1,4 +1,4 @@
-```{r load_settings, message=FALSE, include=FALSE}
+```{r load_settings, message=FALSE}
 # input directories
 base_dir       <- normalizePath('..')
 
@@ -11,7 +11,7 @@ if ('settings' %in% names(params)) {
 }
 ```
 
-```{r knitr_settings, include=FALSE, message=FALSE}
+```{r knitr_settings, message=FALSE}
 output_suffix <- ""
 
 if ("MANUSCRIPT_CONFIG" %in% ls()) {
@@ -33,7 +33,7 @@ if (!dir.exists(output_tabledir)) {
     dir.create(output_tabledir, recursive=TRUE)
 }
 
-cache_dir <- file.path(base_dir, 'cache', 'output', params$version, params$analysis_dirname, output_suffix)
+cache_dir <- file.path(base_dir, 'cache', params$version, params$analysis_dirname, output_suffix)
 
 opts_chunk$set(fig.path=output_figprefix,
                dev=c('png', 'cairo_pdf'),
@@ -65,4 +65,7 @@ ggplot_discrete_colors <- c("#7536BC", "#BD373B", "#7EBD37", "#37BDB8")
 
 # List for storing enrichment results
 COEXPRESSION_NETWORK_RESULT <- list()
+
+# keep track of time required to run analysis
+time_start <- Sys.time()
 ```

@@ -1,4 +1,4 @@
-## Jaccard Index (permuted modules)
+### Jaccard Index (permuted modules)
 
 To get a sense for how similar two completely random networks with similar
 module sizes and distributions to what we have observed, we will perform a
@@ -7,7 +7,7 @@ module will be randomized before comparison.
 
 ```{r random_network_similarity, results='asis', message=FALSE, cache=TRUE, autodep=TRUE}
 random_output <- matrix(nrow=num_networks, ncol=num_networks)
-rownames(random_output) <- colnames(random_output) <- paste0("network_", networks$id)
+colnames(random_output) <- rownames(random_output) <- paste0("network_", networks$id)
 
 # Iterate over top hits and construct a similarity matrix
 for (i in 1:nrow(networks)) {
@@ -37,10 +37,6 @@ for (i in 1:nrow(networks)) {
             load(file.path(MANUSCRIPT_CONFIG$input_dir, file_b))
             mapping_b <- module_mapping
 
-            # limit to randomly selected genes
-            mapping_a <- mapping_a[mapping_a$gene_id %in% genes_to_compare,]
-            mapping_b <- mapping_b[mapping_b$gene_id %in% genes_to_compare,]
-
             # limit to genes in both networks
             mapping_a <- mapping_a[mapping_a$gene_id %in% mapping_b$gene_id,]
             mapping_b <- mapping_b[mapping_b$gene_id %in% mapping_a$gene_id,]
@@ -64,15 +60,14 @@ diag(random_output) <- 0
 diag(random_output) <- max(random_output)
 ```
 
-```{r results='hold'}
+```{r results='asis'}
 cat(sprintf("- Min: %0.2f\n", min(random_output[upper.tri(random_output)])))
 cat(sprintf("- Max: %0.2f\n", max(random_output[upper.tri(random_output)])))
-cat(sprintf("- Median: %0.2f\n", median(random_output[upper.tri(random_output)])))
+cat(sprintf("- Median: %0.2f\n\n", median(random_output[upper.tri(random_output)])))
 ```
 
 ```{r similarity_plot_permuted, cache=TRUE, autodep=TRUE}
 heatmap.2(random_output, trace='none', dendrogram='row', margin=c(4,4),
-          RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
 ```

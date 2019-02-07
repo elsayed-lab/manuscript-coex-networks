@@ -34,13 +34,9 @@ for (i in 1:nrow(networks)) {
         load(file.path(MANUSCRIPT_CONFIG$input_dir, file_b))
         mapping_b <- module_mapping
 
-        # limit to randomly selected genes
-        mapping_a <- mapping_a[mapping_a$gene_id %in% genes_to_compare,]
-        mapping_b <- mapping_b[mapping_b$gene_id %in% genes_to_compare,]
-
         # limit to genes in both networks
-        mapping_a <- mapping_a[mapping_a$gene_id %in% mapping_b$gene_id,]
-        mapping_b <- mapping_b[mapping_b$gene_id %in% mapping_a$gene_id,]
+        mapping_a <- mapping_a[mapping_a$gene_id %in% mapping_b$gene_id, ]
+        mapping_b <- mapping_b[mapping_b$gene_id %in% mapping_a$gene_id, ]
 
         # TRUE
         # all(mapping_a$gene_id == mapping_b$gene_id)
@@ -76,61 +72,63 @@ diag(output_kappa) = 0
 diag(output_kappa) = max(output_kappa)
 ```
 
-## Jaccard Index
+### Jaccard Index
 
-```{r results='hold'}
+```{r results='asis'}
 cat(sprintf("- Min: %0.2f\n", min(output_jaccard[upper.tri(output_jaccard)])))
 cat(sprintf("- Max: %0.2f\n", max(output_jaccard[upper.tri(output_jaccard)])))
-cat(sprintf("- Median: %0.2f\n", median(output_jaccard[upper.tri(output_jaccard)])))
+cat(sprintf("- Median: %0.2f\n\n", median(output_jaccard[upper.tri(output_jaccard)])))
 ```
 
 ```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
 # Color rows by rank and columns by network number (~parameter similarity)
-rank_colors = rev(colorRampPalette(brewer.pal(9, 'Blues'))(num_networks))
-network_num = rev(colorRampPalette(brewer.pal(9, 'Purples'))(max(networks$id)))[networks$id]
+# Disabling: rank is useful if top networks are being compared, but for now, random networks
+# are being shown. While the network number is *sometimes* a good proxy for similar
+# network parameterization, due to how the networks were constructed, it is also possible
+# for networks with very similar parameterizations to have very different network ids, so
+# this is also being disabled to avoid misleading.
+#rank_colors = rev(colorRampPalette(brewer.pal(9, 'Blues'))(num_networks))
+#network_num = rev(colorRampPalette(brewer.pal(9, 'Purples'))(max(networks$id)))[networks$id]
 
 # Use rank for rownames
-rownames(output_jaccard) = 1:num_networks
-
-# Clip upper-end of similarity matrices to improve contrast in heatmap (doesn't
-# make too much of a difference; data behaves approximately bimodal)
-#jaccard_clip <- as.numeric(quantile(output_jaccard, 0.95))
-#output_jaccard[output_jaccard > jaccard_clip] <- jaccard_clip
+#rownames(output_jaccard) = 1:num_networks
 
 heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(4, 4),
-          RowSideColors=rank_colors, ColSideColors=network_num,
+          #RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
 ```
 
-## Adjusted Rand
+### Adjusted Rand
 
-```{r results='hold'}
+```{r results='asis'}
 cat(sprintf("- Min: %0.2f\n", min(output_rand[upper.tri(output_rand)])))
 cat(sprintf("- Max: %0.2f\n", max(output_rand[upper.tri(output_rand)])))
-cat(sprintf("- Median: %0.2f\n", median(output_rand[upper.tri(output_rand)])))
+cat(sprintf("- Median: %0.2f\n\n", median(output_rand[upper.tri(output_rand)])))
 ```
 
 ```{r network_module_similarity_adjusted_rand, cache=TRUE, autodep=TRUE, message=FALSE}
-rownames(output_rand) = 1:num_networks
+#rownames(output_rand) = 1:num_networks
+
 heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(4,4),
-          RowSideColors=rank_colors, ColSideColors=network_num,
+          #RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
 ```
 
-## Weighted Kappa
+### Weighted Kappa
 
-```{r results='hold'}
+```{r results='asis'}
 cat(sprintf("- Min: %0.2f\n", min(output_kappa[upper.tri(output_kappa)])))
 cat(sprintf("- Max: %0.2f\n", max(output_kappa[upper.tri(output_kappa)])))
-cat(sprintf("- Median: %0.2f\n", median(output_kappa[upper.tri(output_kappa)])))
+cat(sprintf("- Median: %0.2f\n\n", median(output_kappa[upper.tri(output_kappa)])))
 ```
 
 ```{r network_module_similarity_weighted_kappa, cache=TRUE, autodep=TRUE, message=FALSE}
-rownames(output_kappa) = 1:num_networks
+#rownames(output_kappa) = 1:num_networks
+
 heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(4,4),
-          RowSideColors=rank_colors, ColSideColors=network_num,
+          #RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
           symbreaks=FALSE, symkey=FALSE)
 ```

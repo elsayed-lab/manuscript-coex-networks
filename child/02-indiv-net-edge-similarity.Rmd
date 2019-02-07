@@ -3,129 +3,147 @@
 Next, we will randomly select N networks and measure the edge similarities
 for each pair of networks.
 
-To determine edge similarity, for each pair of genes, we will compute the proportion of networks
-where they are both "present" (have an edge weight >= 0.5).
+We will evaluate edge similarity in two ways:
 
-```{r compare_networks, cache=TRUE, cache.lazy=FALSE, autodep=TRUE, message=FALSE}
-# edge binarization cutoff
-edge_cutoff <- 0.5
+1. Measure the pearson correlation of adjacency matrices containing only shared genes
+2. Measure the ratio of shared edges in the upper quantile of each network's edge weight
+   distribution.
 
-# load first network and convert to binary
-id_a = networks$id[i]
-adjmat_file_a <- sprintf("%d_adjmat.RData", id_a)
-mapping_file_a <- sprintf("%d.RData", id_a)
+```{r compare_network_edge_weights, cache=TRUE, cache.lazy=FALSE, autodep=TRUE, message=FALSE}
+# result vectors
+output_adjmat_cor <- matrix(nrow=num_networks, ncol=num_networks)
+output_shared_top_edges <- matrix(nrow=num_networks, ncol=num_networks)
 
-load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_a))
-load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_a))
+rownames(output_adjmat_cor) <- colnames(output_adjmat_cor) <- paste0("network_", networks$id)
+rownames(output_shared_top_edges) <- colnames(output_shared_top_edges) <- paste0("network_", networks$id)
 
-# edge count matrix (upper triangular)
-matsize <- nrow(module_mapping)
-edge_count_mat <- matrix(0, nrow=matsize, ncol=matsize)
-edge_count_mat[upper.tri(edge_count_mat)] <- adjacency_matrix
+# matrix to keep track of pairwise comparisons made 
+nets_compared <- matrix(FALSE, nrow(networks), nrow(networks))
 
-# convert to binary matrix
-edge_count_mat <- ifelse(edge_count_mat > edge_cutoff, 1, 0)
+# iterate over pairs of networks
+for (i in 1:nrow(networks)) {
+  # load first network
+  id_a = networks$id[i]
+  adjmat_file_a <- sprintf("%d_adjmat.RData", id_a)
+  mapping_file_a <- sprintf("%d.RData", id_a)
 
-rownames(edge_count_mat) <- module_mapping$gene_id
-colnames(edge_count_mat) <- module_mapping$gene_id
+  load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_a))
+  load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_a))
 
-# Iterate over remaining networks and add to edge counts
-for (i in 2:nrow(networks)) {
-    id_a = networks$id[i]
-    message(sprintf("Loading network %d...", id_a))
+  # edge count matrix (upper triangular)
+  module_mapping_a <- module_mapping
+  matsize_a <- nrow(module_mapping_a)
+  genes_a <- module_mapping_a$gene_id
 
-    adjmat_file_a <- sprintf("%d_adjmat.RData", id_a)
-    mapping_file_a <- sprintf("%d.RData", id_a)
-    load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_a))
-    load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_a))
+  adjmat_a_unfiltered <- matrix(0, nrow=matsize_a, ncol=matsize_a)
+  adjmat_a_unfiltered[upper.tri(adjmat_a_unfiltered)] <- adjacency_matrix
 
-    # create an upper triangular adjacency matrix
-    matsize <- nrow(module_mapping)
-    adjmat_a <- matrix(0, nrow=matsize, ncol=matsize)
-    adjmat_a[upper.tri(adjmat_a)] <- adjacency_matrix
-
-    #adjmat_a[lower.tri(adjmat_a)] <- t(adjmat_a)[lower.tri(adjmat_a)]
-
-    rownames(adjmat_a) <- module_mapping$gene_id
-    colnames(adjmat_a) <- module_mapping$gene_id
-
-    if ((nrow(edge_count_mat) != nrow(adjmat_a)) || (!all(rownames(edge_count_mat) == rownames(adjmat_a)))) {
-        # normalize matrix size and elements
-        adjmat_a_missing <- rownames(edge_count_mat)[!rownames(edge_count_mat) %in% rownames(adjmat_a)]
-        if (length(adjmat_a_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(adjmat_a)
-
-            adjmat_a <- rbind(adjmat_a, matrix(0, nrow=length(adjmat_a_missing), ncol=ncol(adjmat_a)))
-            adjmat_a <- cbind(adjmat_a, matrix(0, nrow=nrow(adjmat_a), ncol=length(adjmat_a_missing)))
-
-            rownames(adjmat_a) <- c(gene_ids, adjmat_a_missing)
-            colnames(adjmat_a) <- c(gene_ids, adjmat_a_missing)
-
-        }
-
-        adj_missing <- rownames(adjmat_a)[!rownames(adjmat_a) %in% rownames(edge_count_mat)]
-        if (length(adj_missing) > 0) {
-            # add missing columns / rows
-            gene_ids <- rownames(edge_count_mat)
-
-            edge_count_mat <- rbind(edge_count_mat, matrix(0, nrow=length(adj_missing), ncol=ncol(edge_count_mat)))
-            edge_count_mat <- cbind(edge_count_mat, matrix(0, nrow=nrow(edge_count_mat), ncol=length(adj_missing)))
-
-            rownames(edge_count_mat) <- c(gene_ids, adj_missing)
-            colnames(edge_count_mat) <- c(gene_ids, adj_missing)
-        }
-
-        # normalize row/column order
-        adjmat_a <- adjmat_a[order(rownames(adjmat_a)),order(colnames(adjmat_a))]
-        edge_count_mat <- edge_count_mat[order(rownames(edge_count_mat)),order(colnames(edge_count_mat))]
+  for (j in 1:nrow(networks)) {
+    # skip self-comparisons and symmetric comparisons
+    if (i == j || nets_compared[i, j]) {
+      next
     }
 
-    # convert to binary matrix and add to count mat
-    edge_count_mat <- edge_count_mat + ifelse(adjmat_a > edge_cutoff, 1, 0)
-}
+    message(sprintf("Comparing networks %d vs. %d...", i, j))
+
+    # load second network
+    id_b = networks$id[j]
+    adjmat_file_b <- sprintf("%d_adjmat.RData", id_b)
+    mapping_file_b <- sprintf("%d.RData", id_b)
+
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, mapping_file_b))
+    load(file.path(MANUSCRIPT_CONFIG$input_dir, adjmat_file_b))
+
+    # adjacency matrix (upper triangular)
+    module_mapping_b <- module_mapping
+    matsize_b <- nrow(module_mapping_b)
+    genes_b <- module_mapping_b$gene_id
+
+    adjmat_b <- matrix(0, nrow=matsize_b, ncol=matsize_b)
+    adjmat_b[upper.tri(adjmat_b)] <- adjacency_matrix
+
+    # drop any genes only present in one network (differences may exist due to differing batch
+    # adjustment settings, even if all filtering criteria are held constant)
+    mask_a <- genes_a %in% genes_b
+    mask_b <- genes_b %in% genes_a
+
+    # TRUE
+    # all(module_mapping_a$gene_id[mask_a] == module_mapping_b$gene_id[mask_b])
+
+    # create a copy of adjmat_a and update (we want to leave original adjmat_a untouched since it
+    # will be compared against other networks in subsequent loop iterations..)
+    adjmat_a <- adjmat_a_unfiltered
+
+    adjmat_a <- adjmat_a[mask_a, mask_a]
+    adjmat_b <- adjmat_b[mask_b, mask_b]
+
+    # measure correlation of matrix upper triangles
+    adj_cor <- cor(adjmat_a[upper.tri(adjmat_a)], adjmat_b[upper.tri(adjmat_b)])
+    output_adjmat_cor[i, j] <- output_adjmat_cor[j, i] <- adj_cor
+
+    # next, binarize each matrix so that only the edges in the top 90th percentile of each
+    # network's edge weight distribution remain and are set to 1
+    edge_cutoff_a <- quantile(adjmat_a[upper.tri(adjmat_a)], EDGE_WEIGHT_QUANTILE_CUTOFF)
+    edge_cutoff_b <- quantile(adjmat_b[upper.tri(adjmat_b)], EDGE_WEIGHT_QUANTILE_CUTOFF)
+
+    # measure overlap of binarized versions of each matrix
+    binary_mat_b <- adjmat_b[upper.tri(adjmat_b)] > edge_cutoff_b
+    rm(adjmat_b)
+    suppressMessages(gc())
+
+    binary_mat_a <- adjmat_a[upper.tri(adjmat_a)] > edge_cutoff_a
+
+    # ratio of shared top edges
+    shared_ratio <- sum(binary_mat_a & binary_mat_b) / sum(binary_mat_a | binary_mat_b)
+    output_shared_top_edges[i, j] <- output_shared_top_edges[j, i] <- shared_ratio
+
+    # update tracking matrix
+    nets_compared[i, j] <- TRUE
+    nets_compared[j, i] <- TRUE
+  }
+} 
+
+# Set output diagonals to maximum of off-diagonal values to increase dynamic range of color scale
+diag(output_adjmat_cor) = 0
+diag(output_adjmat_cor) = max(output_adjmat_cor)
+
+diag(output_shared_top_edges) = 0
+diag(output_shared_top_edges) = max(output_shared_top_edges)
+
+# clean-up
+rm(adjmat_a_unfiltered)
+rm(adjmat_a)
+suppressMessages(gc())
 ```
 
-## Ratio of shared edges
+### Network edge weight correlations
 
-```{r results='hold'}
-# distribution of edge presence ratios for all edges found in at least one of
-# the networks
-edge_ratio_mat <- edge_count_mat / num_networks
+#### Distribution of edge weight correlations
 
-plot(density(sample(edge_ratio_mat[edge_ratio_mat != 0], 1E5)), 
-     main='', xlab='Ratio of Networks Containing Edge')
+```{r network_edgeweight_correlation_dist}
+plot(density(output_adjmat_cor[upper.tri(output_adjmat_cor)]), 
+     main='Distribution of edge weight correlations', xlab='Correlation')
 ```
 
-### Edges which ocurr in many of the networks
+#### Heatmap of edge weight correlations
 
-```{r, results='asis'}
-# find the edges which occur with the highest frequency
-stable_edges <- which(edge_ratio_mat > 0.925, arr.ind=TRUE)
-
-# ENSEMBL gene ids
-from <- rownames(edge_ratio_mat)[stable_edges[,1]]
-
-# description
-#from_idx <- match(from, grch37$ensgene)
-#from[!is.na(from_idx)] <- grch37$description[from_idx][!is.na(from_idx)]
-
-# symbol (when description isn't available)
-#from[from[!is.na(from_idx)] == ""] <- grch37$symbol[from_idx[from[!is.na(from_idx)] == ""]]
-
-# gene symbol
-from[!is.na(from_idx)] <- grch37$symbol[from_idx][!is.na(from_idx)]
-
-# same thing but for to vertices
-to <- colnames(edge_ratio_mat)[stable_edges[,2]]
-to_idx <- match(to, grch37$ensgene)
-to[!is.na(to_idx)] <- grch37$symbol[to_idx][!is.na(to_idx)]
-
-#to[!is.na(to_idx)] <- grch37$description[to_idx][!is.na(to_idx)]
-#to[to[!is.na(to_idx)] == ""] <- grch37$symbol[to_idx[to[!is.na(to_idx)] == ""]]
-
-stable_edge_mat <- cbind(from, to)
-kable(stable_edge_mat)
+```{r network_edgeweight_correlation_heatmap}
+heatmap.2(output_adjmat_cor, trace='none', dendrogram='row', margin=c(4, 4),
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          symbreaks=FALSE, symkey=FALSE)
 ```
 
+### Ratio of shared edges
 
+#### Distribution of ratios of shared top edge-weights
+
+```{r network_ratio_shared_top_edges_dist}
+plot(density(output_shared_top_edges[upper.tri(output_shared_top_edges)]), 
+     main='Distribution of ratios of shared top edge-weights', xlab='Ratio')
+```
+
+```{r network_ratio_shared_top_edges_heatmap}
+heatmap.2(output_shared_top_edges, trace='none', dendrogram='row', margin=c(4, 4),
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          symbreaks=FALSE, symkey=FALSE)
+```

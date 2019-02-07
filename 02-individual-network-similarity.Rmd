@@ -9,26 +9,26 @@ params:
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
-    theme: cosmo
     toc: true
-    toc_float: true
     number_sections: true
-    code_folding: hide
   pdf_document:
     toc: true
+    number_sections: true
     latex_engine: xelatex
 ---
 
 ```{r load_libraries, message=FALSE}
-library('annotables')
-library('dplyr')
-library('gplots')
-library('ggplot2')
-library('viridis')
-library('RColorBrewer')
-library('clusteval') # jaccard index
-library('irr')       # weighted kappa
-library('mclust')    # adjusted rand
+library(annotables)
+library(dplyr)
+library(gplots)
+library(ggplot2)
+library(knitr)
+library(readr)
+library(RColorBrewer)
+library(clusteval) # jaccard index
+library(irr)       # weighted kappa
+library(mclust)    # adjusted rand
+library(viridis)
 
 # heatmap font sizes
 heatmap_cex <- 0.5
@@ -42,10 +42,15 @@ heatmap_cex <- 0.5
 ```{r child='child/00-shared-setup.Rmd'}
 ```
 
+```{r settings}
+# edge weight quantile cutoff to use when comparing ratio of overlap for top edges
+# in each network
+EDGE_WEIGHT_QUANTILE_CUTOFF <- 0.90
+```
+
 **Load individual networks**
 
-First, we will load the co-expression network ranking from the most recent
-round of optimization.
+First, we will load the co-expression network ranking from the most recent round of optimization.
 
 ```{r compute_enrichment_scores}
 networks <- MANUSCRIPT_CONFIG$networks
@@ -61,26 +66,20 @@ if (CONFIG$target == 'host') {
 }
 
 # add rank column and sort rank
-networks = networks %>% arrange(desc(enrichment_score))
+networks = networks %>% 
+  arrange(desc(enrichment_score))
 networks$rank = 1:nrow(networks)
 ```
 
-```{r}
+```{r select_networks}
 # number of networks to compare
 num_networks <- min(MANUSCRIPT_CONFIG$num_networks, nrow(networks))
 
 # Get N randomly selected networks
-networks <- networks[sample(1:nrow(networks), num_networks),]
+networks <- networks[sample(1:nrow(networks), num_networks), ]
 
 # Get top N highest-scoring networks
 #networks <- head(networks %>% arrange(desc(enrichment_score)), num_networks)
-
-# To speed things up, we will randomly select a subset of genes to compare 
-# across each network, rather than comparing all genes
-id_a = networks$id[1]
-load(file.path(MANUSCRIPT_CONFIG$input_dir, sprintf("%d.RData", id_a)))
-
-genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 ```
 
 # Methods & Results
@@ -88,10 +87,10 @@ genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 ```{r child='child/02-indiv-net-module-similarity.Rmd'}
 ```
 
-```{r child='child/02-indiv-net-edge-similarity.Rmd'}
+```{r child='child/02-indiv-net-permuted-network-similarity.Rmd'}
 ```
 
-```{r child='child/02-indiv-net-permuted-network-similarity.Rmd'}
+```{r child='child/02-indiv-net-edge-similarity.Rmd'}
 ```
 
 # System Information
@@ -100,10 +99,14 @@ genes_to_compare <- sample(module_mapping$gene_id, MANUSCRIPT_CONFIG$num_genes)
 if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
     toLatex(sessionInfo())
 } else {
-    library('pander')
-    pander(sessionInfo())
+    pander::pander(sessionInfo())
 }
 ```
+
+```{r git_commit, results = 'asis'}
+cat(sprintf("- **Git commit revision:** %s", system("git rev-parse HEAD", intern=TRUE)))
+```
+
 
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
@@ -116,5 +119,10 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 } else {
     system(sprintf('(sleep 30 && mv 02-individual-network-similarity.html %s) &', html_filepath))
 }
+```
+
+```{r}
+# total running time
+Sys.time() - time_start
 ```
 
