@@ -6,8 +6,8 @@ MANUSCRIPT_CONFIG <- list(
     input_dir       = file.path(Sys.getenv("SCRATCH"), "param_opt", "normal", 
                                 "hsapiens_infected_with_tcruzi-v7.0"),
     networks        = read_csv(file.path(indiv_nets_dir, 'networks_hstc.csv')),
-    num_networks    = 100,
-    num_genes       = 2500 
+    num_networks    = 25,
+    num_genes       = 5000 
 )
 
 # Shared co-expression network analysis settings
