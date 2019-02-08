@@ -69,6 +69,7 @@ cat(sprintf("- Median: %0.2f\n\n", median(random_output[upper.tri(random_output)
 ```{r similarity_plot_permuted, cache=TRUE, autodep=TRUE}
 heatmap.2(random_output, trace='none', dendrogram='row', margin=c(4,4),
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          key.title=NA, key.xlab='Jaccard Index',
           symbreaks=FALSE, symkey=FALSE)
 ```
 

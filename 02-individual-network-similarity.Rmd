@@ -25,9 +25,9 @@ library(ggplot2)
 library(knitr)
 library(readr)
 library(RColorBrewer)
-library(clusteval) # jaccard index
-library(irr)       # weighted kappa
-library(mclust)    # adjusted rand
+library(clusteval)
+library(irr)
+library(mclust)
 library(viridis)
 
 # heatmap font sizes
@@ -66,7 +66,7 @@ if (CONFIG$target == 'host') {
 }
 
 # add rank column and sort rank
-networks = networks %>% 
+networks = networks %>%
   arrange(desc(enrichment_score))
 networks$rank = 1:nrow(networks)
 ```
@@ -103,11 +103,6 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 }
 ```
 
-```{r git_commit, results = 'asis'}
-cat(sprintf("- **Git commit revision:** %s", system("git rev-parse HEAD", intern=TRUE)))
-```
-
-
 ```{r save_output, include=FALSE}
 # Give rmarkdown some time to finish convern and then copy original rmarkdown
 # along with output images and HTML to archive location
@@ -124,5 +119,9 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 ```{r}
 # total running time
 Sys.time() - time_start
+```
+
+```{r git_commit, results = 'asis'}
+cat(sprintf("- **Git commit revision:** %s", system("git rev-parse HEAD", intern=TRUE)))
 ```
 

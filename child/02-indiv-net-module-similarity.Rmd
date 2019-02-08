@@ -95,7 +95,8 @@ cat(sprintf("- Median: %0.2f\n\n", median(output_jaccard[upper.tri(output_jaccar
 
 heatmap.2(output_jaccard, trace='none', dendrogram='row', margin=c(4, 4),
           #RowSideColors=rank_colors, ColSideColors=network_num,
-          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma', 
+          key.title=NA, key.xlab='Jaccard Index',
           symbreaks=FALSE, symkey=FALSE)
 ```
 
@@ -113,6 +114,7 @@ cat(sprintf("- Median: %0.2f\n\n", median(output_rand[upper.tri(output_rand)])))
 heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(4,4),
           #RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          key.title=NA, key.xlab='Adj. Rand Index',
           symbreaks=FALSE, symkey=FALSE)
 ```
 
@@ -130,6 +132,7 @@ cat(sprintf("- Median: %0.2f\n\n", median(output_kappa[upper.tri(output_kappa)])
 heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(4,4),
           #RowSideColors=rank_colors, ColSideColors=network_num,
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          key.title=NA, key.xlab='Weighted Kappa',
           symbreaks=FALSE, symkey=FALSE)
 ```
 

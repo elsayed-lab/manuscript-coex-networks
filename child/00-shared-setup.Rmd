@@ -7,7 +7,8 @@ metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
 
 if ('settings' %in% names(params)) {
-    knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+    #knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+    knit(text = readLines(file(file.path('..', params$settings))), quiet=TRUE)
 }
 ```
 

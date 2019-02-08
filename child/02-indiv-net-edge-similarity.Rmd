@@ -130,6 +130,7 @@ plot(density(output_adjmat_cor[upper.tri(output_adjmat_cor)]),
 ```{r network_edgeweight_correlation_heatmap}
 heatmap.2(output_adjmat_cor, trace='none', dendrogram='row', margin=c(4, 4),
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          key.title=NA, key.xlab='Pearson Correlation',
           symbreaks=FALSE, symkey=FALSE)
 ```
 
@@ -145,5 +146,6 @@ plot(density(output_shared_top_edges[upper.tri(output_shared_top_edges)]),
 ```{r network_ratio_shared_top_edges_heatmap}
 heatmap.2(output_shared_top_edges, trace='none', dendrogram='row', margin=c(4, 4),
           cexRow=heatmap_cex, cexCol=heatmap_cex, col='plasma',
+          key.title=NA, key.xlab='Ratio Shared Top Edges',
           symbreaks=FALSE, symkey=FALSE)
 ```
