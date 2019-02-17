@@ -105,7 +105,7 @@ write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_su
 
 ```{r save_output, include=FALSE}
 # free up memory for pandoc conversion
-rm(adjmat)
+rm(adjmat, filtered_adjmat)
 suppressMessages(gc())
 
 # Give rmarkdown some time to finish convern and then copy original rmarkdown

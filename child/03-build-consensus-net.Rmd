@@ -56,12 +56,9 @@ adjmat_genes <- list()
 for (i in 1:length(input_nets)) {
     # load saved data
     message(sprintf("Loading network %d/%d (%s)", i, length(input_nets), basename(input_nets[i])))
-    message(sprintf("1. %s", Sys.time()))
 
     load(input_nets[i])
     load(input_rdas[i])
-
-    message(sprintf("2. %s", Sys.time()))
 
     # check to make sure dimensions are as expected (a few adjacency matrices
     # in the past were corrupted, leading to issues; the problem has since been fixed
@@ -84,13 +81,8 @@ for (i in 1:length(input_nets)) {
     ratio_edges_2q <- c(ratio_edges_2q, sum(scaled_adjmat > 0.50) / length(scaled_adjmat))
     ratio_edges_3q <- c(ratio_edges_3q, sum(scaled_adjmat > 0.75) / length(scaled_adjmat))
 
-    message(sprintf("3. %s", Sys.time()))
-
-    # median non-zero edge weight value (global)
     median_edge_weight_global <- c(median_edge_weight_global, 
                                    median(adjacency_matrix[adjacency_matrix != 0]))
-
-    message(sprintf("4. %s", Sys.time()))
 
     # normalize edge weights
     if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
@@ -103,8 +95,6 @@ for (i in 1:length(input_nets)) {
         }
     }
 
-    message(sprintf("5. %s", Sys.time()))
-
     # add to consensus sub-matrix (using md5 hash of gene ids to identify subset)
     key <- digest(module_mapping$gene_id, algo = 'md5')
 
@@ -116,14 +106,6 @@ for (i in 1:length(input_nets)) {
         # existing gene configuration
         adjmats[[key]] <- adjmats[[key]] + adjacency_matrix
     }
-    # TESTING
-    message('---')
-    message("Adjacency matrix subsets:")
-    message(paste(names(adjmats), collapse = ' / '))
-    message(paste(sapply(adjmats, length), collapse = ' / '))
-    message('---')
-
-    message(sprintf("6. %s", Sys.time()))
 }
 ```
 
@@ -177,7 +159,7 @@ hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
 ```{r save_rdata}
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+rm(adjmats, tmp)
 suppressMessages(gc())
 ```
-
 

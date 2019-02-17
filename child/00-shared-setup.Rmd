@@ -5,10 +5,14 @@ base_dir       <- normalizePath('..')
 counts_dir     <- file.path(base_dir, 'input', 'count_tables')
 metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
+```
 
+```{r, results = 'asis'}
 if ('settings' %in% names(params)) {
-    #knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
-    knit(text = readLines(file(file.path('..', params$settings))), quiet=TRUE)
+  #knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+  fp <- file(file.path(base_dir, params$settings))
+  knit(text = readLines(fp), quiet=TRUE)
+  close(fp)
 }
 ```
 

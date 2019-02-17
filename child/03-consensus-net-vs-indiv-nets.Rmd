@@ -1,15 +1,14 @@
 ## Functional enrichment comparison (consensus vs. individual networks)
 
-Next, we will compare the overall distributions of functional enrichment
-between the robust consensus networks generated with various cutoffs, and
-the unfiltered individual networks.
+Next, we will compare level of functional enrichment in the _unfiltered_ consensus network to the
+distribution of enrichment scores for the various _unfiltered_ individual co-expression networks.
 
-Note that because the individual networks are all unfiltered, they will have
-more total genes (and thus more chances for enrichment) than many of the
-consensus networks.
+While it may be useful to use a filtered version of the consensus network for downstream analyses,
+in order to allow for a fair comparison with the individual networks, only unfiltered networks
+are shown below.
 
-As such, we will only compare filtered consensus networks with half or more of
-the original genes present.
+For each figure, the distribution of _individual_ network enrichment scores are shown. The red
+dashed line indicates the level of enrichment for the _consensus_ network.
 
 ```{r comparison_to_individual_networks, fig.height=ifelse(CONFIG$target == 'host', 3.375, 2.5)}
 nets <- MANUSCRIPT_CONFIG$networks
