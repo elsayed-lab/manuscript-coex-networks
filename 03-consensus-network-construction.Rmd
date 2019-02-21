@@ -9,13 +9,11 @@ params:
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
-    theme: cosmo
     toc: true
-    toc_float: true
     number_sections: true
-    code_folding: hide
   pdf_document:
     toc: true
+    number_sections: true
     latex_engine: xelatex
 ---
 
@@ -34,7 +32,7 @@ constructing the consensus network.
 Methods
 =======
 
-```{r load_libraries, message=FALSE, results='hide'}
+```{r load_libraries, message = FALSE, results = 'hide'}
 library(annotables)
 library(biomaRt)
 library(clusteval)
@@ -64,46 +62,57 @@ source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
 ```
 
-```{r child='child/00-shared-setup.Rmd'}
+```{r child = 'child/00-shared-setup.Rmd'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
+```{r child = '../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval=CONFIG$target == 'host'}
+```{r child = '../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval = CONFIG$target == 'host'}
 ```
 
-```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval=CONFIG$target == 'pathogen'}
+```{r child = '../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval = CONFIG$target == 'pathogen'}
 ```
 
-```{r child='child/03-build-consensus-net.Rmd'}
+```{r child = 'child/03-build-consensus-net.Rmd'}
 ```
 
-```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
+```{r child = 'child/03-consensus-net-functional-enrichment.Rmd'}
 ```
 
-```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
+```{r child = 'child/03-filtered-consensus-net-comparison.Rmd'}
 ```
 
-```{r child='child/03-filtered-consensus-net-results.Rmd'}
+```{r child = 'child/03-filtered-consensus-net-results.Rmd'}
 ```
 
 Results
 =======
 
-```{r child='child/03-consensus-net-vs-indiv-nets.Rmd'}
+```{r child = 'child/03-consensus-net-vs-indiv-nets.Rmd'}
 ```
 
-```{r child='child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval=CONFIG$target == 'host'}
+```{r child = 'child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval = CONFIG$target == 'host'}
 ```
 
 ```{r save_tables}
 # save tables to output dir
-write.csv(table_1, file=file.path(output_tabledir, paste0('table_01_', output_suffix, '.csv')),
-          quote=FALSE, row.names=FALSE)
+write.csv(table_1, file = file.path(output_tabledir, paste0('table_01_', output_suffix, '.csv')),
+          quote = FALSE, row.names = FALSE)
 ```
 
-```{r save_output, include=FALSE}
+System Information
+==================
+
+```{r sysinfo}
+sessionInfo()
+```
+
+```{r git_commit}
+system('git rev-parse --short HEAD', intern = TRUE)
+```
+
+```{r save_output, include = FALSE}
 # free up memory for pandoc conversion
 rm(adjmat, filtered_adjmat)
 suppressMessages(gc())
@@ -118,9 +127,5 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 } else {
     system(sprintf('(sleep 60 && mv 03-consensus-network-construction.html %s) &', html_filepath))
 }
-```
-
-```{r}
-sessionInfo()
 ```
 

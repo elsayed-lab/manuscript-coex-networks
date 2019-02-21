@@ -95,12 +95,12 @@ networks <- networks[sample(1:nrow(networks), num_networks), ]
 
 # System Information
 
-```{r sysinfo, results='asis'}
-if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    toLatex(sessionInfo())
-} else {
-    pander::pander(sessionInfo())
-}
+```{r}
+sessionInfo()
+```
+
+```{r git_commit}
+system('git rev-parse --short HEAD', intern = TRUE)
 ```
 
 ```{r save_output, include=FALSE}
@@ -119,9 +119,5 @@ if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
 ```{r}
 # total running time
 Sys.time() - time_start
-```
-
-```{r git_commit, results = 'asis'}
-cat(sprintf("- **Git commit revision:** %s", system("git rev-parse HEAD", intern=TRUE)))
 ```
 

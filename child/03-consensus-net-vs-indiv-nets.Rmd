@@ -53,10 +53,8 @@ if (CONFIG$target == 'host') {
 }
 # replace labels
 label_mapping <- data.frame(
-    from=c('total_go_pval', 'total_kegg_pval', 
-            'total_cpdb_pval', 'total_marbach_pval', 'total_leishcyc_pval'),
-    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes",
-            "LeishCyc Pathways")
+    from=c('total_go_pval', 'total_kegg_pval', 'total_cpdb_pval', 'total_marbach_pval'),
+    to=c("GO Terms", "KEGG Pathways", "CPDB Pathways", "Marbach TF Genes")
 )
 indiv_scores$type <- label_mapping$to[match(indiv_scores$type, label_mapping$from)]
 

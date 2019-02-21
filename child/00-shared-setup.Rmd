@@ -1,4 +1,4 @@
-```{r load_settings, message=FALSE}
+```{r load_settings, message = FALSE}
 # input directories
 base_dir       <- normalizePath('..')
 
@@ -7,16 +7,16 @@ metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
 ```
 
-```{r, results = 'asis'}
+```{r, results = 'asis', message = FALSE}
 if ('settings' %in% names(params)) {
-  #knit(file.path('..', params$settings), quiet=TRUE, output=tempfile())
+  #knit(file.path('..', params$settings), quiet = TRUE, output = tempfile())
   fp <- file(file.path(base_dir, params$settings))
-  knit(text = readLines(fp), quiet=TRUE)
+  cat(knit(text = readLines(fp), quiet = TRUE))
   close(fp)
 }
 ```
 
-```{r knitr_settings, message=FALSE}
+```{r knitr_settings, message = FALSE}
 output_suffix <- ""
 
 if ("MANUSCRIPT_CONFIG" %in% ls()) {
@@ -24,7 +24,7 @@ if ("MANUSCRIPT_CONFIG" %in% ls()) {
 }
 
 # directories
-output_prefix    <- file.path(base_dir, 'output', params$version, params$analysis_dirname) 
+output_prefix    <- file.path(base_dir, 'output', params$version, params$analysis_dirname)
 output_datadir   <- file.path(output_prefix, 'data')
 output_tabledir  <- file.path(output_prefix, 'table')
 output_figprefix <- file.path(output_prefix, 'figure', paste0(output_suffix, '-'))
@@ -35,33 +35,33 @@ if (!dir.exists(output_datadir)) {
 }
 
 if (!dir.exists(output_tabledir)) {
-    dir.create(output_tabledir, recursive=TRUE)
+    dir.create(output_tabledir, recursive = TRUE)
 }
 
 cache_dir <- file.path(base_dir, 'cache', params$version, params$analysis_dirname, output_suffix)
 
-opts_chunk$set(fig.path=output_figprefix,
-               dev=c('png', 'cairo_pdf'),
-               dev.args=list(pdf=list(family="DejaVu Sans")),
-               fig.width=6,
-               fig.height=6,
-               fig.retina=1,
-               dpi=600,
-               cache.path=cache_dir)
+opts_chunk$set(fig.path = output_figprefix,
+               dev = c('png', 'cairo_pdf'),
+               dev.args = list(pdf = list(family = "DejaVu Sans")),
+               fig.width = 6,
+               fig.height = 6,
+               fig.retina = 1,
+               dpi = 600,
+               cache.path = cache_dir)
 
-options(digits=5)
-options(stringsAsFactors=FALSE)
-options(knitr.duplicate.label='allow')
-options(java.parameters="-Xmx8g" )
+options(digits = 5)
+options(stringsAsFactors = FALSE)
+options(knitr.duplicate.label = 'allow')
+options(java.parameters = "-Xmx8g" )
 
 # Increase reproducibility
 set.seed(1)
 
 # ggplot theme
-theme_bw_high_res <- function () { 
-    theme_bw(base_size=11) %+replace% 
+theme_bw_high_res <- function () {
+    theme_bw(base_size = 11) %+replace%
         theme(
-            plot.title=element_text(size=10, vjust=0)
+            plot.title = element_text(size = 10, vjust = 0)
         )
 }
 

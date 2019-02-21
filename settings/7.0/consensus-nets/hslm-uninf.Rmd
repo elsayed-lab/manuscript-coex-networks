@@ -16,7 +16,7 @@ MANUSCRIPT_CONFIG <- list(
     quantile_cutoff = 0,
     networks        = read_csv(file.path(indiv_nets_dir, 'networks_hslm-uninf.csv')),
 
-    normalization   = 'rank', # none, scale, rank
+    normalization   = 'score', # none, scale, score, rank
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(

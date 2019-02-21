@@ -15,7 +15,7 @@ MANUSCRIPT_CONFIG <- list(
     networks        = read_csv(file.path(indiv_nets_dir, 'networks_lmall.csv')) %>%
         filter(batch_adjustment != 'none'),
 
-    normalization   = 'rank', # none, scale, rank
+    normalization   = 'score', # none, scale, score, rank
 
     # Alternate condition values to use for plotting, etc.
     condition_mapping = data.frame(

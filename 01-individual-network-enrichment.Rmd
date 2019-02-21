@@ -530,15 +530,15 @@ ggplot(summary_dat, aes(Network, Parameter)) +
     ylab("Parameter")
 ```
 
-# System Information
+System Information
+==================
 
-```{r sysinfo, results='asis'}
-if (opts_knit$get("rmarkdown.pandoc.to") == 'latex') {
-    toLatex(sessionInfo())
-} else {
-    library('pander')
-    pander(sessionInfo())
-}
+```{r sysinfo}
+sessionInfo()
+```
+
+```{r git_commit}
+system('git rev-parse --short HEAD', intern = TRUE)
 ```
 
 ```{r save_output, include=FALSE}

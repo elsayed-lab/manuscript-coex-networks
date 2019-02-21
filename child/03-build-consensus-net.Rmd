@@ -13,6 +13,10 @@ instantiations.
 input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
 input_rdas <- sub('_adjmat', '', input_nets)
 
+if (length(input_nets) == 0) {
+  stop("No input networks found! check to make sure paths are correctly defined.")
+}
+
 # filter input nets and rdas (optional)
 if ('networks' %in% names(MANUSCRIPT_CONFIG)) {
     nets_to_include <- sprintf('%d_adjmat.RData', MANUSCRIPT_CONFIG$networks$id)
@@ -51,6 +55,23 @@ median_edge_weight_global   <- c()
 adjmats <- list()
 adjmat_genes <- list()
 
+# get individual network scores
+networks <- MANUSCRIPT_CONFIG$networks
+
+if (CONFIG$target == 'host') {
+    # Host (GO, CPDB, Marbach)
+    #networks$enrichment_score = as.vector((1/3) * (scale(networks$total_go_pval) +
+    #                                               scale(networks$total_cpdb_pval) +
+    #                                               scale(networks$total_marbach_pval)))
+		networks$enrichment_score = as.vector(networks$total_go_pval + networks$total_cpdb_pval + networks$total_marbach_pval)
+} else {
+    # Parasite (GO)
+    networks$enrichment_score = as.vector(scale(networks$total_go_pval))
+}
+
+net_ids <- as.numeric(str_match(input_nets, '([0-9]+)_adjmat.RData')[, 2])
+net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
+
 # iterate over remaining networks and add to consensus net
 #
 for (i in 1:length(input_nets)) {
@@ -84,7 +105,15 @@ for (i in 1:length(input_nets)) {
     median_edge_weight_global <- c(median_edge_weight_global, 
                                    median(adjacency_matrix[adjacency_matrix != 0]))
 
+    #
     # normalize edge weights
+    #
+    # none  - do nothing
+    # scale - size-factor scaling; adjmats all sum to 1E6
+    # rank  - rank-based scaling
+    # score - score-weighted scaling; size-factor scaling is applied and each individual network's
+    #         contribution is a function of its score.
+    #
     if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
         if (MANUSCRIPT_CONFIG$normalization == 'scale') {
             # size-factor normalization
@@ -92,6 +121,13 @@ for (i in 1:length(input_nets)) {
         } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
             # rank-based normalization
             adjacency_matrix <- data.table::frank(adjacency_matrix) * 1E-5
+        } else if (MANUSCRIPT_CONFIG$normalization == 'score') {
+            # first, perform size-factor normalization
+            adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
+
+						# next, weight the contribution of the adjacency matrix based on its score and
+						# divide by a scaling factor for convenience
+						adjacency_matrix <- (adjacency_matrix * net_scores[i]) / 10
         }
     }
 
