@@ -538,7 +538,11 @@ sessionInfo()
 ```
 
 ```{r git_commit}
+# manuscript-specific code (https://github.com/elsayed-lab/manuscript-coex-networks)
 system('git rev-parse --short HEAD', intern = TRUE)
+
+# shared code (https://github.com/elsayed-lab/manuscript-shared-rnaseq)
+system('git --git-dir=$UMD/2015/00-shared/.git rev-parse --short HEAD', intern = TRUE)
 ```
 
 ```{r save_output, include=FALSE}

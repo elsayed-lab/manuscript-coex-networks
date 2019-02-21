@@ -9,13 +9,11 @@ params:
 title: "`r params$title` (`r params$version`)"
 output:
   html_document:
-    theme: cosmo
     toc: true
-    toc_float: true
     number_sections: true
-    code_folding: hide
   pdf_document:
     toc: true
+    number_sections: true
     latex_engine: xelatex
 ---
 
@@ -226,6 +224,21 @@ for (x in files[grepl(output_suffix, files)]) {
 # free up memory for pandoc
 rm(filtered_adjmat)
 suppressMessages(gc())
+```
+
+System Information
+==================
+
+```{r sysinfo}
+sessionInfo()
+```
+
+```{r git_commit}
+# manuscript-specific code (https://github.com/elsayed-lab/manuscript-coex-networks)
+system('git rev-parse --short HEAD', intern = TRUE)
+
+# shared code (https://github.com/elsayed-lab/manuscript-shared-rnaseq)
+system('git --git-dir=$UMD/2015/00-shared/.git rev-parse --short HEAD', intern = TRUE)
 ```
 
 ```{r save_output}

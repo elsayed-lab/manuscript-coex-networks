@@ -3,7 +3,7 @@ author: V. Keith Hughitt
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 title: "Host-parasite consensus network analysis results"
 params:
-  version: "1.0"
+  version: ""
 output:
   html_document:
     theme: cosmo
