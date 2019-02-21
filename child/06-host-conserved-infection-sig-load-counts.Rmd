@@ -1,4 +1,4 @@
-```{r load_counts, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+```{r load_counts, message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 #
 # helper function
 #

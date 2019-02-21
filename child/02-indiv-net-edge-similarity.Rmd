@@ -9,7 +9,7 @@ We will evaluate edge similarity in two ways:
 2. Measure the ratio of shared edges in the upper quantile of each network's edge weight
    distribution.
 
-```{r compare_network_edge_weights, cache=TRUE, cache.lazy=FALSE, autodep=TRUE, message=FALSE}
+```{r compare_network_edge_weights, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE, message=FALSE}
 # result vectors
 output_adjmat_cor <- matrix(nrow=num_networks, ncol=num_networks)
 output_shared_top_edges <- matrix(nrow=num_networks, ncol=num_networks)

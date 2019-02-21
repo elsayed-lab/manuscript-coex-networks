@@ -40,6 +40,8 @@ if (!dir.exists(output_tabledir)) {
 
 cache_dir <- file.path(base_dir, 'cache', params$version, params$analysis_dirname, output_suffix)
 
+opts_knit$set(verbose = TRUE)
+
 opts_chunk$set(fig.path = output_figprefix,
                dev = c('png', 'cairo_pdf'),
                dev.args = list(pdf = list(family = "DejaVu Sans")),

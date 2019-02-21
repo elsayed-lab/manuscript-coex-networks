@@ -5,7 +5,7 @@ module sizes and distributions to what we have observed, we will perform a
 similar comparison that what was done above, except that the genes in each
 module will be randomized before comparison.
 
-```{r random_network_similarity, results='asis', message=FALSE, cache=TRUE, autodep=TRUE}
+```{r random_network_similarity, results='asis', message=FALSE, cache = CONFIG$use_cache, autodep=TRUE}
 random_output <- matrix(nrow=num_networks, ncol=num_networks)
 colnames(random_output) <- rownames(random_output) <- paste0("network_", networks$id)
 

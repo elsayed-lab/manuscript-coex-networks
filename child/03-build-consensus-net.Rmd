@@ -8,7 +8,7 @@ Each cell in the matrix represents the total support for a co-expression
 relationship between two genes across a large number of alternative network
 instantiations.
 
-```{r load_consensus_nets, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+```{r load_consensus_nets, message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # input adjaceny matrices
 input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
 input_rdas <- sub('_adjmat', '', input_nets)
@@ -77,6 +77,7 @@ net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
 for (i in 1:length(input_nets)) {
     # load saved data
     message(sprintf("Loading network %d/%d (%s)", i, length(input_nets), basename(input_nets[i])))
+    message(timestamp())
 
     load(input_nets[i])
     load(input_rdas[i])
@@ -188,14 +189,16 @@ adjmat[lower.tri(adjmat)] <- t(adjmat)[lower.tri(adjmat)]
 
 # histogram of the consensus adj matrix edge weight distribution
 #hist(log1p(adjmat))
-hist(adjmat, main="Distribution of consensus adjacency matrix edge weights",
-     xlab="Edge weight")
+sampled_adjmat <- sample(adjmat[lower.tri(adjmat)], 1E5)
+
+hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weights", xlab="Edge weight")
+hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weights (Log)", xlab="Log(Edge weight)")
 ```
 
 ```{r save_rdata}
 # save RData files to output dir
 save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
-rm(adjmats, tmp)
+rm(adjmats, sampled_adjmat, tmp)
 suppressMessages(gc())
 ```
 

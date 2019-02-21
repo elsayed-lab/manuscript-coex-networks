@@ -9,7 +9,7 @@ Plots are then generated to show the effects of applying the varying levels of
 filtering, which can then be used to choose a specific cutoff value to apply to
 the final version of the network to be used for downstream analysis.
 
-```{r filtered_consensus_network_setup, results='hide', message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+```{r filtered_consensus_network_setup, results='hide', message=FALSE, cache=CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # maximum consensus edge weights for each gene
 gene_max_edge_weights <- apply(adjmat, 1, max)
 
@@ -47,8 +47,12 @@ for (quantile_cutoff in quantile_cutoffs) {
     cutoffs <- c(cutoffs, cutoff)
 
     # filter adjacency matrix
-    mask <- gene_max_edge_weights >= cutoff
-    filtered_adjmat <- adjmat[mask, mask]
+    filtered_adjmat <- adjmat
+
+    if (cutoff > 0) {
+      mask <- gene_max_edge_weights >= cutoff
+      filtered_adjmat <- filtered_adjmat[mask, mask]
+    }
 
     genes_passing <- c(genes_passing, sum(mask))
 
@@ -92,7 +96,12 @@ for (quantile_cutoff in quantile_cutoffs) {
     largest_module_sizes <- c(largest_module_sizes, max(module_sizes$num_genes))
 
     # measure enrichment
+    message(timestamp())
+    message("Measuring GO enrichment...")
     knit('../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
+
+    message(timestamp())
+    message("Measuring KEGG enrichment...")
     knit('../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
 
     # save results
@@ -133,6 +142,8 @@ for (quantile_cutoff in quantile_cutoffs) {
     # TF Regulon / CPDB (human only)
     if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
         # Marbach TF regulon
+        message(timestamp())
+        message("Measuring Marbach TF regulon enrichment...")
         knit('../../../2015/00-shared/Rmd/results/hsapiens_marbach2016_tf_enrichment.Rmd', quiet=TRUE, output=tempfile())
 
         tf_pval_total <- 0
@@ -151,6 +162,8 @@ for (quantile_cutoff in quantile_cutoffs) {
                                      sum(sapply(module_coreg_enrichment, nrow) > 0))
 
         # CPDB
+        message(timestamp())
+        message("Measuring CPDB enrichment...")
         knit('../../../2015/00-shared/Rmd/results/cpdb_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
 
         cpdb_pval_total <- 0

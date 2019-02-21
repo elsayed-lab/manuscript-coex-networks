@@ -1,4 +1,4 @@
-```{r load_counts, message=FALSE, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+```{r load_counts, message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # Infected
 count_files <- Sys.glob(CONFIG_INF$input_count_tables)
 ids <- file_path_sans_ext(basename(count_files))

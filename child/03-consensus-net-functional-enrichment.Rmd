@@ -1,4 +1,4 @@
-```{r functional_enrichment, cache=TRUE, cache.lazy=FALSE, autodep=TRUE}
+```{r functional_enrichment_setup, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # dummy objects for compatibility with shared functions
 network_counts <- list(
     final=matrix(0, nrow=nrow(adjmat))
@@ -33,10 +33,10 @@ result <- cbind(gene_info, color=module_colors)
 module_sizes <- setNames(as.data.frame(module_colors), 'module_id') %>% 
     group_by(module_id) %>% 
     summarize(num_genes=n())
+```
 
-# measure enrichment
+```{r functional_enrichment_go, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 knit('../../../2015/00-shared/Rmd/results/go_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
-knit('../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
 
 # GO
 num_unique_go_terms <- length(unique(unlist(sapply(module_go_enrichment, function(x) { x$category }))))
@@ -51,6 +51,10 @@ for (module in names(module_go_enrichment)) {
     pvals <- module_go_enrichment[[module]]$over_represented_pvalue_adj[mask]
     go_pval_total <- go_pval_total + sum(-log10(pmax(pvals, 10^-10)))
 }
+```
+
+```{r functional_enrichment_kegg, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
+knit('../../../2015/00-shared/Rmd/results/kegg_enrichment_network.Rmd', quiet=TRUE, output=tempfile())
 
 # KEGG
 num_unique_kegg_pathways <- length(unique(unlist(sapply(module_kegg_enrichment, function(x) { x$category }))))
@@ -65,7 +69,9 @@ for (module in names(module_kegg_enrichment)) {
     pvals <- module_kegg_enrichment[[module]]$over_represented_pvalue_adj[mask]
     kegg_pval_total <- kegg_pval_total + sum(-log10(pmax(pvals, 10^-10)))
 }
+```
 
+```{r functional_enrichment_cpdb_marbach, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # TF Regulon / CPDB (human only)
 if (CONFIG$target == 'host' && CONFIG$host == 'H. sapiens') {
     # Marbach TF regulon

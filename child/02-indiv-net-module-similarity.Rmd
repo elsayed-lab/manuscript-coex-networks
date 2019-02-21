@@ -3,7 +3,7 @@
 Next, we will randomly select N networks and measure the cluster similarities
 for each pair of networks.
 
-```{r compare_networks, cache=TRUE, autodep=TRUE, message=FALSE}
+```{r compare_networks, cache = CONFIG$use_cache, autodep=TRUE, message=FALSE}
 # Create output matrices
 output_jaccard <- matrix(nrow=num_networks, ncol=num_networks)
 rownames(output_jaccard) <- colnames(output_jaccard) <- paste0("network_", networks$id)
@@ -80,7 +80,7 @@ cat(sprintf("- Max: %0.2f\n", max(output_jaccard[upper.tri(output_jaccard)])))
 cat(sprintf("- Median: %0.2f\n\n", median(output_jaccard[upper.tri(output_jaccard)])))
 ```
 
-```{r network_module_similarity_jaccard, cache=TRUE, autodep=TRUE, message=FALSE}
+```{r network_module_similarity_jaccard, cache = CONFIG$use_cache, autodep=TRUE, message=FALSE}
 # Color rows by rank and columns by network number (~parameter similarity)
 # Disabling: rank is useful if top networks are being compared, but for now, random networks
 # are being shown. While the network number is *sometimes* a good proxy for similar
@@ -108,7 +108,7 @@ cat(sprintf("- Max: %0.2f\n", max(output_rand[upper.tri(output_rand)])))
 cat(sprintf("- Median: %0.2f\n\n", median(output_rand[upper.tri(output_rand)])))
 ```
 
-```{r network_module_similarity_adjusted_rand, cache=TRUE, autodep=TRUE, message=FALSE}
+```{r network_module_similarity_adjusted_rand, cache = CONFIG$use_cache, autodep=TRUE, message=FALSE}
 #rownames(output_rand) = 1:num_networks
 
 heatmap.2(output_rand, trace='none', dendrogram='row', margin=c(4,4),
@@ -126,7 +126,7 @@ cat(sprintf("- Max: %0.2f\n", max(output_kappa[upper.tri(output_kappa)])))
 cat(sprintf("- Median: %0.2f\n\n", median(output_kappa[upper.tri(output_kappa)])))
 ```
 
-```{r network_module_similarity_weighted_kappa, cache=TRUE, autodep=TRUE, message=FALSE}
+```{r network_module_similarity_weighted_kappa, cache = CONFIG$use_cache, autodep=TRUE, message=FALSE}
 #rownames(output_kappa) = 1:num_networks
 
 heatmap.2(output_kappa, trace='none', dendrogram='row', margin=c(4,4),
