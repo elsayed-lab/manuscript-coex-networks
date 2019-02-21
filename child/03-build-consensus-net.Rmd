@@ -8,7 +8,7 @@ Each cell in the matrix represents the total support for a co-expression
 relationship between two genes across a large number of alternative network
 instantiations.
 
-```{r load_consensus_nets, message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
+```{r network_construction_setup, message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # input adjaceny matrices
 input_nets <- Sys.glob(file.path(MANUSCRIPT_CONFIG$input_dir, '*_adjmat.RData'))
 input_rdas <- sub('_adjmat', '', input_nets)
@@ -71,9 +71,22 @@ if (CONFIG$target == 'host') {
 
 net_ids <- as.numeric(str_match(input_nets, '([0-9]+)_adjmat.RData')[, 2])
 net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
+```
 
-# iterate over remaining networks and add to consensus net
-#
+```{r load_saved_adjmat, message = FALSE}
+# check if consensus network has already been constructed, and if so, load it and stats in
+adjmat_file <- file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda'))
+
+message(sprintf("Loading saved consensus network from %s...", adjmat_file))
+
+if (file.exists(adjmat_file)) {
+  load(adjmat_file)
+}
+```
+
+```{r build_consensus_net, eval = file.exists(adjmat_file), message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
+# iterate over remaining networks and add to consensus net;
+# only executed if adjmat file does not already exist
 for (i in 1:length(input_nets)) {
     # load saved data
     message(sprintf("Loading network %d/%d (%s)", i, length(input_nets), basename(input_nets[i])))
@@ -187,18 +200,19 @@ for (key in names(adjmats)) {
 # fill in lower triangular part of adjacency matrix (symmetric)
 adjmat[lower.tri(adjmat)] <- t(adjmat)[lower.tri(adjmat)]
 
+# save RData files to output dir
+save(adjmat, ratio_nonzero_edges, ratio_edges_1q, ratio_edges_2q, ratio_edges_3q,
+     median_edge_weight_global, file = adjmat_file)
+```
+
+```{r consensus_network_edge_weight_dist}
 # histogram of the consensus adj matrix edge weight distribution
-#hist(log1p(adjmat))
 sampled_adjmat <- sample(adjmat[lower.tri(adjmat)], 1E5)
 
 hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weights", xlab="Edge weight")
 hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weights (Log)", xlab="Log(Edge weight)")
-```
 
-```{r save_rdata}
-# save RData files to output dir
-save(adjmat, file=file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda')))
+# clean up
 rm(adjmats, sampled_adjmat, tmp)
 suppressMessages(gc())
 ```
-
