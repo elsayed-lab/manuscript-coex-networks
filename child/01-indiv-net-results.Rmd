@@ -165,7 +165,7 @@ plts <- list()
 
 if ('total_marbach_pval' %in% colnames(df)) {
     # GO correlation
-    go_tf_cor <- cor(df$total_go_pval, df$total_marbach_pval)
+    go_tf_cor <- coop::pcor(df$total_go_pval, df$total_marbach_pval)
 
     # position for correlation score text
     #xpos <- 0.90 * max(df$total_go_pval)
@@ -186,7 +186,7 @@ if ('total_marbach_pval' %in% colnames(df)) {
         xlab("GO Enrichment Score") +
         ylab("TF-regulon Enrichment Score")
 
-    cpdb_tf_cor <- cor(df$total_cpdb_pval, df$total_marbach_pval)
+    cpdb_tf_cor <- coop::pcor(df$total_cpdb_pval, df$total_marbach_pval)
     
     #xpos <- 0.90 * max(df$total_cpdb_pval)
     xpos <- min(df$total_cpdb_pval) + 0.15 * max(df$total_cpdb_pval)
@@ -218,7 +218,7 @@ if (length(plts) > 0) {
 plts <- list()
 
 if ('total_marbach_pval' %in% colnames(df)) {
-    go_tf_cor <- cor(df$total_go_pval, df$total_marbach_pval)
+    go_tf_cor <- coop::pcor(df$total_go_pval, df$total_marbach_pval)
     cat(sprintf("- GO vs. TF Pearson correlation (P-value score): %0.2f\n", go_tf_cor))
 
     # position for correlation score text
@@ -238,7 +238,7 @@ if ('total_marbach_pval' %in% colnames(df)) {
                         ylim=c(min(df$total_marbach_pval) - 30, max(df$total_marbach_pval) + 30), 
                         expand=FALSE)
 
-    cpdb_tf_cor <- cor(df$total_cpdb_pval, df$total_marbach_pval)
+    cpdb_tf_cor <- coop::pcor(df$total_cpdb_pval, df$total_marbach_pval)
     cat(sprintf("- CPDB vs. TF Pearson correlation (P-value score): %0.2f\n\n", cpdb_tf_cor))
 
     #xpos <- 0.90 * max(df$total_cpdb_pval)

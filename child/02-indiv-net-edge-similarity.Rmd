@@ -78,7 +78,7 @@ for (i in 1:nrow(networks)) {
     adjmat_b <- adjmat_b[mask_b, mask_b]
 
     # measure correlation of matrix upper triangles
-    adj_cor <- cor(adjmat_a[upper.tri(adjmat_a)], adjmat_b[upper.tri(adjmat_b)])
+    adj_cor <- coop::pcor(adjmat_a[upper.tri(adjmat_a)], adjmat_b[upper.tri(adjmat_b)])
     output_adjmat_cor[i, j] <- output_adjmat_cor[j, i] <- adj_cor
 
     # next, binarize each matrix so that only the edges in the top 90th percentile of each

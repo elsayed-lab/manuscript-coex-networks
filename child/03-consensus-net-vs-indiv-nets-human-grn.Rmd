@@ -67,7 +67,7 @@ tf_mapping_subset$edge_weight_scaled <- tf_mapping_subset$edge_weight_scaled / m
 #consensus_colors <- result$color[match(rownames(subnet), result$gene_id)]
 
 # correlation with Marbach TF-regulatory network edge weights
-cor(consensus_edge_weights, tf_mapping_subset$edge_weight_scaled, method='spearman')
+coop::pcor(consensus_edge_weights, tf_mapping_subset$edge_weight_scaled, method='spearman')
 
 # create a matrix with columns containing edge weights from each network
 # compared:
@@ -112,7 +112,7 @@ for (net_id in sample_nets$id) {
     compare_mat <- cbind(compare_mat, indiv_edge_weights)
 
     # correlation with Marbach TF-regulatory network edge weights
-    message(cor(indiv_edge_weights, tf_mapping_subset$edge_weight, method='spearman'))
+    message(coop::pcor(indiv_edge_weights, tf_mapping_subset$edge_weight, method='spearman'))
 }
 colnames(compare_mat) <- c('marbach', 'consensus', sprintf("indiv_net_%d", sample_nets$id))
 ```

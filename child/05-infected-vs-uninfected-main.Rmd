@@ -194,7 +194,7 @@ for (module_color in unique(c(enriched_colors_go, enriched_colors_kegg,
 
     # 2017/12/07 - disabling for now; will come back to this approach in
     # the future if time allows...
-    #cor_subnet <- cor(diff_subnet)
+    #cor_subnet <- coop::pcor(diff_subnet)
 
     # ensure same edges are included
     #cor_subnet[diff_subnet == 0] <- 0

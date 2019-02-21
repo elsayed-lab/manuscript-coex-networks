@@ -1,4 +1,4 @@
-```{r load_settings, message = FALSE}
+```{r, message = FALSE}
 # input directories
 base_dir       <- normalizePath('..')
 
@@ -7,9 +7,11 @@ metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
 ```
 
-```{r, results = 'asis', message = FALSE}
+```{r load_config, results = 'asis', message = FALSE}
 if ('settings' %in% names(params)) {
   #knit(file.path('..', params$settings), quiet = TRUE, output = tempfile())
+  message(sprintf("Loading %s", params$settings))
+
   fp <- file(file.path(base_dir, params$settings))
   cat(knit(text = readLines(fp), quiet = TRUE))
   close(fp)
