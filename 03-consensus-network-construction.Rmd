@@ -65,6 +65,23 @@ source('../../2015/00-shared/R/wgcna.R')
 ```{r child = 'child/00-shared-setup.Rmd'}
 ```
 
+```{r knitr_settings}
+# 2019-02-25 knitr settings set in child rmd not preserved
+opts_knit$set(root.dir = base_dir,
+              verbose = TRUE, 
+              error = FALSE)
+
+opts_chunk$set(fig.path = output_figprefix,
+               dev = c('png', 'cairo_pdf'),
+               dev.args = list(pdf = list(family = "DejaVu Sans")),
+               error = FALSE,
+               fig.width = 6,
+               fig.height = 6,
+               fig.retina = 1,
+               dpi = 600,
+               cache.path = cache_dir)
+```
+
 ```{r child = '../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 

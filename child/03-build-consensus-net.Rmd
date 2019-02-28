@@ -19,11 +19,11 @@ if (length(input_nets) == 0) {
 
 # filter input nets and rdas (optional)
 if ('networks' %in% names(MANUSCRIPT_CONFIG)) {
-    nets_to_include <- sprintf('%d_adjmat.RData', MANUSCRIPT_CONFIG$networks$id)
-    rdas_to_include <- sprintf('%d.RData', MANUSCRIPT_CONFIG$networks$id)
+  nets_to_include <- sprintf('%d_adjmat.RData', MANUSCRIPT_CONFIG$networks$id)
+  rdas_to_include <- sprintf('%d.RData', MANUSCRIPT_CONFIG$networks$id)
 
-    input_nets <- input_nets[basename(input_nets) %in% nets_to_include] 
-    input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
+  input_nets <- input_nets[basename(input_nets) %in% nets_to_include] 
+  input_rdas <- input_rdas[basename(input_rdas) %in% rdas_to_include] 
 }
 
 # empty vectors to keep track of network metrics
@@ -59,14 +59,14 @@ adjmat_genes <- list()
 networks <- MANUSCRIPT_CONFIG$networks
 
 if (CONFIG$target == 'host') {
-    # Host (GO, CPDB, Marbach)
-    #networks$enrichment_score = as.vector((1/3) * (scale(networks$total_go_pval) +
-    #                                               scale(networks$total_cpdb_pval) +
-    #                                               scale(networks$total_marbach_pval)))
-		networks$enrichment_score = as.vector(networks$total_go_pval + networks$total_cpdb_pval + networks$total_marbach_pval)
+  # Host (GO, CPDB, Marbach)
+  #networks$enrichment_score = as.vector((1/3) * (scale(networks$total_go_pval) +
+  #                                               scale(networks$total_cpdb_pval) +
+  #                                               scale(networks$total_marbach_pval)))
+  networks$enrichment_score = as.vector(networks$total_go_pval + networks$total_cpdb_pval + networks$total_marbach_pval)
 } else {
-    # Parasite (GO)
-    networks$enrichment_score = as.vector(scale(networks$total_go_pval))
+  # Parasite (GO)
+  networks$enrichment_score = as.vector(scale(networks$total_go_pval))
 }
 
 net_ids <- as.numeric(str_match(input_nets, '([0-9]+)_adjmat.RData')[, 2])
@@ -77,14 +77,13 @@ net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
 # check if consensus network has already been constructed, and if so, load it and stats in
 adjmat_file <- file.path(output_datadir, paste0('adjmat_', output_suffix, '.rda'))
 
-message(sprintf("Loading saved consensus network from %s...", adjmat_file))
-
 if (file.exists(adjmat_file)) {
+  message(sprintf("Loading saved consensus network from %s...", adjmat_file))
   load(adjmat_file)
 }
 ```
 
-```{r build_consensus_net, eval = file.exists(adjmat_file), message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
+```{r build_consensus_net, eval = !file.exists(adjmat_file), message=FALSE, cache = CONFIG$use_cache, cache.lazy=FALSE, autodep=TRUE}
 # iterate over remaining networks and add to consensus net;
 # only executed if adjmat file does not already exist
 for (i in 1:length(input_nets)) {
@@ -159,7 +158,7 @@ for (i in 1:length(input_nets)) {
 }
 ```
 
-```{r recombine_adj_submats}
+```{r recombine_adj_submats, eval = !file.exists(adjmat_file)}
 # determine which genes are present in all networks
 shared_genes <- Reduce(intersect, adjmat_genes)
 
@@ -203,6 +202,10 @@ adjmat[lower.tri(adjmat)] <- t(adjmat)[lower.tri(adjmat)]
 # save RData files to output dir
 save(adjmat, ratio_nonzero_edges, ratio_edges_1q, ratio_edges_2q, ratio_edges_3q,
      median_edge_weight_global, file = adjmat_file)
+
+# clean up
+rm(tmp)
+suppressMessages(gc())
 ```
 
 ```{r consensus_network_edge_weight_dist}
@@ -213,6 +216,6 @@ hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weigh
 hist(sampled_adjmat, main="Distribution of consensus adjacency matrix edge weights (Log)", xlab="Log(Edge weight)")
 
 # clean up
-rm(adjmats, sampled_adjmat, tmp)
+rm(adjmats, sampled_adjmat)
 suppressMessages(gc())
 ```

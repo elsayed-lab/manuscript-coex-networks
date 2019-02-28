@@ -1,10 +1,14 @@
 ```{r, message = FALSE}
 # input directories
-base_dir       <- normalizePath('..')
+base_dir <- normalizePath('..')
 
 counts_dir     <- file.path(base_dir, 'input', 'count_tables')
 metadata_dir   <- file.path(base_dir, 'input', 'sample_metadata')
 indiv_nets_dir <- file.path(base_dir, 'input', 'indiv_network_stats')
+
+# set knitr working directory / stop on errors
+opts_chunk$set(error = FALSE)
+opts_knit$set(root.dir = base_dir)
 ```
 
 ```{r load_config, results = 'asis', message = FALSE}
@@ -47,6 +51,7 @@ opts_knit$set(verbose = TRUE)
 opts_chunk$set(fig.path = output_figprefix,
                dev = c('png', 'cairo_pdf'),
                dev.args = list(pdf = list(family = "DejaVu Sans")),
+               error = FALSE,
                fig.width = 6,
                fig.height = 6,
                fig.retina = 1,
@@ -63,10 +68,10 @@ set.seed(1)
 
 # ggplot theme
 theme_bw_high_res <- function () {
-    theme_bw(base_size = 11) %+replace%
-        theme(
-            plot.title = element_text(size = 10, vjust = 0)
-        )
+  theme_bw(base_size = 11) %+replace%
+    theme(
+      plot.title = element_text(size = 10, vjust = 0)
+    )
 }
 
 # discrete color palette
