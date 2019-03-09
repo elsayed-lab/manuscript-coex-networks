@@ -35,6 +35,11 @@ indiv_scores <- nets %>%
     melt(id.vars='id', variable.name='type',
             value.name='total')
 
+# for l. major, drop LeishCyc entries (too under-represented to be very useful here..)
+indiv_scores <- indiv_scores %>%
+  filter(type != 'total_leishcyc_pval')
+indiv_scores$type <- factor(indiv_scores$type)
+
 if (CONFIG$target == 'host') {
     # human consensus network scores
     consensus_scores <- data.frame(
@@ -47,10 +52,10 @@ if (CONFIG$target == 'host') {
     # parasite consensus network scores
     consensus_scores <- data.frame(
         type=c("GO Terms", "KEGG Pathways"),
-        #score=c(go_pval_total, kegg_pval_total)
         score=c(total_go_pvals[1], total_kegg_pvals[1])
     )
 }
+
 # replace labels
 label_mapping <- data.frame(
     from=c('total_go_pval', 'total_kegg_pval', 'total_cpdb_pval', 'total_marbach_pval'),
