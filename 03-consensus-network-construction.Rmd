@@ -62,7 +62,7 @@ source('../../2015/00-shared/R/util.R')
 source('../../2015/00-shared/R/wgcna.R')
 ```
 
-```{r child = 'child/00-shared-setup.Rmd'}
+```{r child='child/00-shared-setup.Rmd'}
 ```
 
 ```{r knitr_settings}
@@ -82,34 +82,34 @@ opts_chunk$set(fig.path = output_figprefix,
                cache.path = cache_dir)
 ```
 
-```{r child = '../../2015/00-shared/Rmd/init/load_counts.Rmd'}
+```{r child='../../2015/00-shared/Rmd/init/load_counts.Rmd'}
 ```
 
-```{r child = '../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval = CONFIG$target == 'host'}
+```{r child='../../2015/00-shared/Rmd/init/load_host_annotations.Rmd', eval = CONFIG$target == 'host'}
 ```
 
-```{r child = '../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval = CONFIG$target == 'pathogen'}
+```{r child='../../2015/00-shared/Rmd/init/load_pathogen_annotations.Rmd', eval = CONFIG$target == 'pathogen'}
 ```
 
-```{r child = 'child/03-build-consensus-net.Rmd'}
+```{r child='child/03-build-consensus-net.Rmd'}
 ```
 
-```{r child = 'child/03-consensus-net-functional-enrichment.Rmd'}
+```{r child='child/03-consensus-net-functional-enrichment.Rmd'}
 ```
 
-```{r child = 'child/03-filtered-consensus-net-comparison.Rmd'}
+```{r child='child/03-filtered-consensus-net-comparison.Rmd'}
 ```
 
-```{r child = 'child/03-filtered-consensus-net-results.Rmd'}
+```{r child='child/03-filtered-consensus-net-results.Rmd'}
 ```
 
 Results
 =======
 
-```{r child = 'child/03-consensus-net-vs-indiv-nets.Rmd'}
+```{r child='child/03-consensus-net-vs-indiv-nets.Rmd'}
 ```
 
-```{r child = 'child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval = CONFIG$target == 'host'}
+```{r child='child/03-consensus-net-vs-indiv-nets-human-grn.Rmd', eval = CONFIG$target == 'host'}
 ```
 
 ```{r save_tables}

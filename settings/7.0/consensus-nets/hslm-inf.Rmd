@@ -14,7 +14,21 @@ MANUSCRIPT_CONFIG <- list(
     quantile_cutoff = 0,
     networks        = read_csv(file.path(indiv_nets_dir, 'networks_hslm.csv')),
 
-    normalization   = 'score', # none, scale, score, rank
+    # Whether or not to normalize contributions of different functional annotations (GO, CPDB, etc.)
+    # during individual network score calculation; for parasite networks where only a single
+    # annotation source (GO) is used, this has no effect.
+    scale_enrichment_contributions = TRUE,
+
+    # Normalization method to apply to individual network edge weights prior to consensus 
+    # network construction;
+    #
+    #  none  - combine adjacency matrices as-is
+    #  rank  - convert edge weights to ranks
+    #  scale - rescale individual adjacency matrices to sum to the same total
+    #  score - rescale individual adjacency matrices to sum to the same total, then apply weight
+    #          factor proportionate to the individual network's functional enrichment score
+    #
+    normalization       = 'score',
 
     # Alternate condition values to use for plotting, etc.
     "condition_mapping" = data.frame(
