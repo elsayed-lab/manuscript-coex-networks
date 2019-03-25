@@ -60,22 +60,24 @@ networks <- MANUSCRIPT_CONFIG$networks
 
 if (CONFIG$target == 'host') {
   if (MANUSCRIPT_CONFIG$scale_enrichment_contributions) {
-    # Host (GO, CPDB, Marbach) - scaled
-    networks$enrichment_score = as.vector((1/3) * (scale(networks$total_go_pval) +
-                                                   scale(networks$total_cpdb_pval) +
-                                                   scale(networks$total_marbach_pval)))
+    # Host (GO, CPDB, Marbach) - scaled individual enrichment contributions
+    networks$enrichment_score = as.vector((1/3) * (scale(networks$total_go_pval, center = FALSE) +
+                                                   scale(networks$total_cpdb_pval, center = FALSE) +
+                                                   scale(networks$total_marbach_pval, center = FALSE)))
   } else {
-    # Host (GO, CPDB, Marbach) - unscaled
-    networks$enrichment_score = as.vector(networks$total_go_pval + networks$total_cpdb_pval + networks$total_marbach_pval)
+    # Host (GO, CPDB, Marbach) - unscaled individual enrichment contributions
+    networks$enrichment_score = scale(as.vector(networks$total_go_pval + 
+                                                networks$total_cpdb_pval + 
+                                                networks$total_marbach_pval), center = FALSE)
   }
 } else {
   # Parasite (GO)
-  if (MANUSCRIPT_CONFIG$scale_enrichment_contributions) {
-    networks$enrichment_score = as.vector(scale(networks$total_go_pval))
-  } else {
-    networks$enrichment_score = as.vector(networks$total_go_pval)
-  }
+  networks$enrichment_score = scale(as.vector(networks$total_go_pval), center = FALSE)
 }
+
+# raise network scores by some factor; can be used to emphasize contributions of better-performing
+# individual networks during consensus network construction
+networks$enrichment_score <- as.numeric(networks$enrichment_score)^MANUSCRIPT_CONFIG$network_score_exp
 
 net_ids <- as.numeric(str_match(input_nets, '([0-9]+)_adjmat.RData')[, 2])
 net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
@@ -83,7 +85,6 @@ net_scores <- networks$enrichment_score[match(net_ids, networks$id)]
 summary(net_scores)
 plot(density(net_scores))
 ```
-
 
 ```{r load_saved_adjmat, message = FALSE}
 # check if consensus network has already been constructed, and if so, load it and stats in
@@ -139,20 +140,19 @@ for (i in 1:length(input_nets)) {
     #         contribution is a function of its score.
     #
     if ('normalization' %in% names(MANUSCRIPT_CONFIG)) {
-        if (MANUSCRIPT_CONFIG$normalization == 'scale') {
-            # size-factor normalization
-            adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
-        } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
-            # rank-based normalization
-            adjacency_matrix <- data.table::frank(adjacency_matrix) * 1E-5
-        } else if (MANUSCRIPT_CONFIG$normalization == 'score') {
-            # first, perform size-factor normalization
-            adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
+      if (MANUSCRIPT_CONFIG$normalization %in% c('scale', 'score')) {
+        # size-factor normalization
+        adjacency_matrix <- (adjacency_matrix / sum(adjacency_matrix)) * 1E6
 
-						# next, weight the contribution of the adjacency matrix based on its score and
-						# divide by a scaling factor for convenience
-						adjacency_matrix <- (adjacency_matrix * net_scores[i]) / 10
+        # for score-based normalization, we additionally weight the network edge weights
+        # based on the individual network score
+        if (MANUSCRIPT_CONFIG$normalization == 'score') {
+          adjacency_matrix <- (adjacency_matrix * net_scores[i])
         }
+      } else if (MANUSCRIPT_CONFIG$normalization == 'rank') {
+        # rank-based normalization
+        adjacency_matrix <- data.table::frank(adjacency_matrix) * 1E-5
+      }
     }
 
     # add to consensus sub-matrix (using md5 hash of gene ids to identify subset)

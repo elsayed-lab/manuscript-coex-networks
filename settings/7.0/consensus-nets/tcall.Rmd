@@ -15,10 +15,13 @@ MANUSCRIPT_CONFIG <- list(
     networks        = read_csv(file.path(indiv_nets_dir, 'networks_tcall.csv')),
 
     # Whether or not to normalize contributions of different functional annotations (GO, CPDB, etc.)
-    # during individual network score calculation; for parasite networks where only a single
-    # annotation source (GO) is used, this has no effect.
+    # during individual network score calculation
     scale_enrichment_contributions = TRUE,
 
+    # network score exponent; setting to a value greater than one will emphasize the contributions
+    # of better-performing individual networks during the consensus network construction process
+    network_score_exp = 1,
+    
     # Normalization method to apply to individual network edge weights prior to consensus 
     # network construction;
     #
